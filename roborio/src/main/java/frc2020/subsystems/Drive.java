@@ -265,12 +265,9 @@ public class Drive implements Subsystem {
     }
 
     /**
-     * Drive the robot at a velocity this also sets it velocity mode.
-     * ECR is not currently using this function. Talk to a lead
-     * before even thinking about using it.
+     * Drive the robot at a given velocity
      * @param signal The velocity to drive
      */
-    @Deprecated
     public synchronized void driveVelocity(DriveSignal signal) {
         if (state_ != DriveState.Velocity) {
             leftMaster_.selectProfileSlot(VELOCITY_SLOT, 0);
