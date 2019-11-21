@@ -18,14 +18,14 @@ public class Constants {
 
     // Drive Train Ports
     public final static int LEFT_MASTER_PORT = 1; // TalonSRX
-    public final static int LEFT_SLAVE_PORT = 1; // VictorSPX
+    public final static int LEFT_SLAVE_PORT = 2; // VictorSPX
 
-    public final static int RIGHT_MASTER_PORT = 2;// TalonSRX
-    public final static int RIGHT_SLAVE_PORT = 2; // VictorSPX
+    public final static int RIGHT_MASTER_PORT = 3;// TalonSRX
+    public final static int RIGHT_SLAVE_PORT = 4; // VictorSPX
 
     //The Shifters (drive)
-    public final static int SHIFT_FORWARD = 3;
-    public final static int SHIFT_REVERSE = 4;
+    public final static int SHIFT_FORWARD = 4;
+    public final static int SHIFT_REVERSE = 3;
 
     // Drive Train Physical Properties
     // inches NOTE: This is the effective wheel diameter not the measured one
@@ -48,6 +48,8 @@ public class Constants {
     // The Joysticks
     public final static int LEFT_DRIVER_JOYSTICK_PORT = 0;
     public final static int RIGHT_DRIVER_JOYSTICK_PORT = 1;
+
+    public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
    
     /**
      * @return the MAC address of the robot
