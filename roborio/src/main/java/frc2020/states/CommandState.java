@@ -4,26 +4,45 @@ import frc2020.subsystems.Drive;
 import frc2020.util.DriveSignal;
 
 public class CommandState {
-
+    //Demand variables, these are modified in the CSGenerators
     public DriveDemand driveDemand;
+    
+    //Subsystem demands are defined as mini classes
     public static class DriveDemand {
         public DriveSignal demand;
         public DemandType type;
+        public boolean inLowGear;
 
+        public DriveDemand(DriveSignal demand, DemandType type, boolean lowGear) {
+            this.demand = demand;
+            this.type = type;
+            this.inLowGear = type.equals(DemandType.OpenLoop) ? lowGear : false;
+        }
         public DriveDemand(DriveSignal demand, DemandType type) {
             this.demand = demand;
             this.type = type;
+            this.inLowGear = false;
         }
 
         public DriveDemand(DriveSignal demand) {
             this.demand = demand;
             this.type = DemandType.OpenLoop;
+            this.inLowGear = false;
         }
 
         public static enum DemandType {
             OpenLoop,
             Velocity
         }
+    }
+
+    //Setters and getters for each subsystem demand
+    public void setDriveDemand(DriveDemand demand) {
+        driveDemand = demand;
+    }
+
+    public DriveDemand getDriveDemand() {
+        return driveDemand;
     }
 
     /**
@@ -46,6 +65,11 @@ public class CommandState {
                 drive.driveVelocity(driveDemand.demand);
             } else {
                 drive.openLoop(driveDemand.demand);
+            }
+            if (driveDemand.inLowGear) {
+                drive.setLowGear();
+            } else {
+                drive.setHighGear();
             }
         }
     }
