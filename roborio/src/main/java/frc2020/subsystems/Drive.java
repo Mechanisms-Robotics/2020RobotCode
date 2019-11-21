@@ -65,7 +65,7 @@ public class Drive implements Subsystem {
 
     // Motors
     private TalonSRX leftMaster_, rightMaster_;
-    private VictorSPX leftSlave_, rightSlave_;
+    private TalonSRX leftSlave_, rightSlave_;
 
     // Shifterd
     private DoubleSolenoid shifter_;
@@ -125,16 +125,16 @@ public class Drive implements Subsystem {
         rightMaster_.setSensorPhase(false);
 
         // Configure Left Slave CANTalon
-        leftSlave_ = PhoenixFactory.createPermanentSlaveVictor(
+        leftSlave_ = PhoenixFactory.createPermanentSlaveTalon(
                 Constants.LEFT_SLAVE_PORT,
                 leftMaster_);
         leftSlave_.setInverted(InvertType.FollowMaster);
 
         // Configure Right Slave CANTalon
-        rightSlave_ = PhoenixFactory.createPermanentSlaveVictor(
+        rightSlave_ = PhoenixFactory.createPermanentSlaveTalon(
                 Constants.RIGHT_SLAVE_PORT,
                 rightMaster_);
-        rightSlave_.setInverted(InvertType.OpposeMaster);
+        rightSlave_.setInverted(InvertType.FollowMaster);
 
         // Configure Shifters
         shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
