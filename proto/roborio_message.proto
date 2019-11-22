@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package frc2020.proto;
+package frc2020.networking;
 
 message RioUpdate {
 	WheelOdometryUpdate odometry_update = 1;
