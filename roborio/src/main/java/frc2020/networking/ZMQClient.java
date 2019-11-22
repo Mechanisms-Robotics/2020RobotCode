@@ -46,7 +46,7 @@ public class ZMQClient {
 	}
 
 	private void restart() {
-		context_.destroySocket(socket_);
+        context_.destroySocket(socket_);
         socket_ = context_.createSocket(SocketType.SUB);
         socket_.connect(connect_to_);
 	}
