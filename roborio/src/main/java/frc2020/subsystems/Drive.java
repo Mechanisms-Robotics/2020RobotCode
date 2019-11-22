@@ -515,10 +515,6 @@ public class Drive implements Subsystem {
         public double right_feedforward;
     }
 
-    @Override
-    public void writeToLog() {
-
-    }
 
     public synchronized void startLogging() {
         if (CSVWriter_ == null) {

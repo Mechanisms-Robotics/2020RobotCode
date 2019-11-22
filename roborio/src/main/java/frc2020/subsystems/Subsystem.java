@@ -16,6 +16,5 @@ public interface Subsystem {
     void stop();
     void registerLoops(ILooper enabledLooper);
 
-    void writeToLog();
     void outputTelemetry();
 }

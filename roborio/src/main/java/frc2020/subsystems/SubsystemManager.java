@@ -20,10 +20,6 @@ public class SubsystemManager implements ILooper {
         allSubsystems.forEach((s) -> s.outputTelemetry());
     }
 
-    public void outputToLog() {
-        allSubsystems.forEach((s) -> s.writeToLog());
-    }
-
     public void stop() {
         allSubsystems.forEach((s) -> s.stop());
     }
