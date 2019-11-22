@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package frc2020.proto;
+
+message RioUpdate {
+	WheelOdometryUpdate odometry_update = 1;
+}
+
+message WheelOdometryUpdate {
+	float time_stamp = 1;
+	float left = 2;
+	float right = 3;
+}
