@@ -32,6 +32,21 @@ public final class RoborioMessage {
      * <code>.frc2020.networking.WheelOdometryUpdate odometry_update = 1;</code>
      */
     frc2020.networking.RoborioMessage.WheelOdometryUpdateOrBuilder getOdometryUpdateOrBuilder();
+
+    /**
+     * <code>.frc2020.networking.CodeState code_state = 2;</code>
+     * @return Whether the codeState field is set.
+     */
+    boolean hasCodeState();
+    /**
+     * <code>.frc2020.networking.CodeState code_state = 2;</code>
+     * @return The codeState.
+     */
+    frc2020.networking.RoborioMessage.CodeState getCodeState();
+    /**
+     * <code>.frc2020.networking.CodeState code_state = 2;</code>
+     */
+    frc2020.networking.RoborioMessage.CodeStateOrBuilder getCodeStateOrBuilder();
   }
   /**
    * Protobuf type {@code frc2020.networking.RioUpdate}
@@ -91,6 +106,19 @@ public final class RoborioMessage {
 
               break;
             }
+            case 18: {
+              frc2020.networking.RoborioMessage.CodeState.Builder subBuilder = null;
+              if (codeState_ != null) {
+                subBuilder = codeState_.toBuilder();
+              }
+              codeState_ = input.readMessage(frc2020.networking.RoborioMessage.CodeState.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(codeState_);
+                codeState_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
@@ -146,6 +174,29 @@ public final class RoborioMessage {
       return getOdometryUpdate();
     }
 
+    public static final int CODE_STATE_FIELD_NUMBER = 2;
+    private frc2020.networking.RoborioMessage.CodeState codeState_;
+    /**
+     * <code>.frc2020.networking.CodeState code_state = 2;</code>
+     * @return Whether the codeState field is set.
+     */
+    public boolean hasCodeState() {
+      return codeState_ != null;
+    }
+    /**
+     * <code>.frc2020.networking.CodeState code_state = 2;</code>
+     * @return The codeState.
+     */
+    public frc2020.networking.RoborioMessage.CodeState getCodeState() {
+      return codeState_ == null ? frc2020.networking.RoborioMessage.CodeState.getDefaultInstance() : codeState_;
+    }
+    /**
+     * <code>.frc2020.networking.CodeState code_state = 2;</code>
+     */
+    public frc2020.networking.RoborioMessage.CodeStateOrBuilder getCodeStateOrBuilder() {
+      return getCodeState();
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -163,6 +214,9 @@ public final class RoborioMessage {
       if (odometryUpdate_ != null) {
         output.writeMessage(1, getOdometryUpdate());
       }
+      if (codeState_ != null) {
+        output.writeMessage(2, getCodeState());
+      }
       unknownFields.writeTo(output);
     }
 
@@ -175,6 +229,10 @@ public final class RoborioMessage {
       if (odometryUpdate_ != null) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getOdometryUpdate());
+      }
+      if (codeState_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getCodeState());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -196,6 +254,11 @@ public final class RoborioMessage {
         if (!getOdometryUpdate()
             .equals(other.getOdometryUpdate())) return false;
       }
+      if (hasCodeState() != other.hasCodeState()) return false;
+      if (hasCodeState()) {
+        if (!getCodeState()
+            .equals(other.getCodeState())) return false;
+      }
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -210,6 +273,10 @@ public final class RoborioMessage {
       if (hasOdometryUpdate()) {
         hash = (37 * hash) + ODOMETRY_UPDATE_FIELD_NUMBER;
         hash = (53 * hash) + getOdometryUpdate().hashCode();
+      }
+      if (hasCodeState()) {
+        hash = (37 * hash) + CODE_STATE_FIELD_NUMBER;
+        hash = (53 * hash) + getCodeState().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -350,6 +417,12 @@ public final class RoborioMessage {
           odometryUpdate_ = null;
           odometryUpdateBuilder_ = null;
         }
+        if (codeStateBuilder_ == null) {
+          codeState_ = null;
+        } else {
+          codeState_ = null;
+          codeStateBuilder_ = null;
+        }
         return this;
       }
 
@@ -380,6 +453,11 @@ public final class RoborioMessage {
           result.odometryUpdate_ = odometryUpdate_;
         } else {
           result.odometryUpdate_ = odometryUpdateBuilder_.build();
+        }
+        if (codeStateBuilder_ == null) {
+          result.codeState_ = codeState_;
+        } else {
+          result.codeState_ = codeStateBuilder_.build();
         }
         onBuilt();
         return result;
@@ -431,6 +509,9 @@ public final class RoborioMessage {
         if (other == frc2020.networking.RoborioMessage.RioUpdate.getDefaultInstance()) return this;
         if (other.hasOdometryUpdate()) {
           mergeOdometryUpdate(other.getOdometryUpdate());
+        }
+        if (other.hasCodeState()) {
+          mergeCodeState(other.getCodeState());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -578,6 +659,125 @@ public final class RoborioMessage {
           odometryUpdate_ = null;
         }
         return odometryUpdateBuilder_;
+      }
+
+      private frc2020.networking.RoborioMessage.CodeState codeState_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          frc2020.networking.RoborioMessage.CodeState, frc2020.networking.RoborioMessage.CodeState.Builder, frc2020.networking.RoborioMessage.CodeStateOrBuilder> codeStateBuilder_;
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       * @return Whether the codeState field is set.
+       */
+      public boolean hasCodeState() {
+        return codeStateBuilder_ != null || codeState_ != null;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       * @return The codeState.
+       */
+      public frc2020.networking.RoborioMessage.CodeState getCodeState() {
+        if (codeStateBuilder_ == null) {
+          return codeState_ == null ? frc2020.networking.RoborioMessage.CodeState.getDefaultInstance() : codeState_;
+        } else {
+          return codeStateBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       */
+      public Builder setCodeState(frc2020.networking.RoborioMessage.CodeState value) {
+        if (codeStateBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          codeState_ = value;
+          onChanged();
+        } else {
+          codeStateBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       */
+      public Builder setCodeState(
+          frc2020.networking.RoborioMessage.CodeState.Builder builderForValue) {
+        if (codeStateBuilder_ == null) {
+          codeState_ = builderForValue.build();
+          onChanged();
+        } else {
+          codeStateBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       */
+      public Builder mergeCodeState(frc2020.networking.RoborioMessage.CodeState value) {
+        if (codeStateBuilder_ == null) {
+          if (codeState_ != null) {
+            codeState_ =
+              frc2020.networking.RoborioMessage.CodeState.newBuilder(codeState_).mergeFrom(value).buildPartial();
+          } else {
+            codeState_ = value;
+          }
+          onChanged();
+        } else {
+          codeStateBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       */
+      public Builder clearCodeState() {
+        if (codeStateBuilder_ == null) {
+          codeState_ = null;
+          onChanged();
+        } else {
+          codeState_ = null;
+          codeStateBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       */
+      public frc2020.networking.RoborioMessage.CodeState.Builder getCodeStateBuilder() {
+        
+        onChanged();
+        return getCodeStateFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       */
+      public frc2020.networking.RoborioMessage.CodeStateOrBuilder getCodeStateOrBuilder() {
+        if (codeStateBuilder_ != null) {
+          return codeStateBuilder_.getMessageOrBuilder();
+        } else {
+          return codeState_ == null ?
+              frc2020.networking.RoborioMessage.CodeState.getDefaultInstance() : codeState_;
+        }
+      }
+      /**
+       * <code>.frc2020.networking.CodeState code_state = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          frc2020.networking.RoborioMessage.CodeState, frc2020.networking.RoborioMessage.CodeState.Builder, frc2020.networking.RoborioMessage.CodeStateOrBuilder> 
+          getCodeStateFieldBuilder() {
+        if (codeStateBuilder_ == null) {
+          codeStateBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              frc2020.networking.RoborioMessage.CodeState, frc2020.networking.RoborioMessage.CodeState.Builder, frc2020.networking.RoborioMessage.CodeStateOrBuilder>(
+                  getCodeState(),
+                  getParentForChildren(),
+                  isClean());
+          codeState_ = null;
+        }
+        return codeStateBuilder_;
       }
       @java.lang.Override
       public final Builder setUnknownFields(
@@ -1260,6 +1460,711 @@ public final class RoborioMessage {
 
   }
 
+  public interface CodeStateOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:frc2020.networking.CodeState)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>bool pre_start = 1;</code>
+     * @return The preStart.
+     */
+    boolean getPreStart();
+
+    /**
+     * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+     * @return The enum numeric value on the wire for enabledState.
+     */
+    int getEnabledStateValue();
+    /**
+     * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+     * @return The enabledState.
+     */
+    frc2020.networking.RoborioMessage.CodeState.EnabledState getEnabledState();
+  }
+  /**
+   * Protobuf type {@code frc2020.networking.CodeState}
+   */
+  public  static final class CodeState extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:frc2020.networking.CodeState)
+      CodeStateOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use CodeState.newBuilder() to construct.
+    private CodeState(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private CodeState() {
+      enabledState_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new CodeState();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private CodeState(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 8: {
+
+              preStart_ = input.readBool();
+              break;
+            }
+            case 16: {
+              int rawValue = input.readEnum();
+
+              enabledState_ = rawValue;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return frc2020.networking.RoborioMessage.internal_static_frc2020_networking_CodeState_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return frc2020.networking.RoborioMessage.internal_static_frc2020_networking_CodeState_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              frc2020.networking.RoborioMessage.CodeState.class, frc2020.networking.RoborioMessage.CodeState.Builder.class);
+    }
+
+    /**
+     * Protobuf enum {@code frc2020.networking.CodeState.EnabledState}
+     */
+    public enum EnabledState
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>Disabled = 0;</code>
+       */
+      Disabled(0),
+      /**
+       * <code>Auto = 1;</code>
+       */
+      Auto(1),
+      /**
+       * <code>Tellop = 2;</code>
+       */
+      Tellop(2),
+      UNRECOGNIZED(-1),
+      ;
+
+      /**
+       * <code>Disabled = 0;</code>
+       */
+      public static final int Disabled_VALUE = 0;
+      /**
+       * <code>Auto = 1;</code>
+       */
+      public static final int Auto_VALUE = 1;
+      /**
+       * <code>Tellop = 2;</code>
+       */
+      public static final int Tellop_VALUE = 2;
+
+
+      public final int getNumber() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalArgumentException(
+              "Can't get the number of an unknown enum value.");
+        }
+        return value;
+      }
+
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static EnabledState valueOf(int value) {
+        return forNumber(value);
+      }
+
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       */
+      public static EnabledState forNumber(int value) {
+        switch (value) {
+          case 0: return Disabled;
+          case 1: return Auto;
+          case 2: return Tellop;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<EnabledState>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static final com.google.protobuf.Internal.EnumLiteMap<
+          EnabledState> internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<EnabledState>() {
+              public EnabledState findValueByNumber(int number) {
+                return EnabledState.forNumber(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(ordinal());
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return frc2020.networking.RoborioMessage.CodeState.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final EnabledState[] VALUES = values();
+
+      public static EnabledState valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        if (desc.getIndex() == -1) {
+          return UNRECOGNIZED;
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int value;
+
+      private EnabledState(int value) {
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:frc2020.networking.CodeState.EnabledState)
+    }
+
+    public static final int PRE_START_FIELD_NUMBER = 1;
+    private boolean preStart_;
+    /**
+     * <code>bool pre_start = 1;</code>
+     * @return The preStart.
+     */
+    public boolean getPreStart() {
+      return preStart_;
+    }
+
+    public static final int ENABLED_STATE_FIELD_NUMBER = 2;
+    private int enabledState_;
+    /**
+     * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+     * @return The enum numeric value on the wire for enabledState.
+     */
+    public int getEnabledStateValue() {
+      return enabledState_;
+    }
+    /**
+     * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+     * @return The enabledState.
+     */
+    public frc2020.networking.RoborioMessage.CodeState.EnabledState getEnabledState() {
+      @SuppressWarnings("deprecation")
+      frc2020.networking.RoborioMessage.CodeState.EnabledState result = frc2020.networking.RoborioMessage.CodeState.EnabledState.valueOf(enabledState_);
+      return result == null ? frc2020.networking.RoborioMessage.CodeState.EnabledState.UNRECOGNIZED : result;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (preStart_ != false) {
+        output.writeBool(1, preStart_);
+      }
+      if (enabledState_ != frc2020.networking.RoborioMessage.CodeState.EnabledState.Disabled.getNumber()) {
+        output.writeEnum(2, enabledState_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (preStart_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, preStart_);
+      }
+      if (enabledState_ != frc2020.networking.RoborioMessage.CodeState.EnabledState.Disabled.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(2, enabledState_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof frc2020.networking.RoborioMessage.CodeState)) {
+        return super.equals(obj);
+      }
+      frc2020.networking.RoborioMessage.CodeState other = (frc2020.networking.RoborioMessage.CodeState) obj;
+
+      if (getPreStart()
+          != other.getPreStart()) return false;
+      if (enabledState_ != other.enabledState_) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PRE_START_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getPreStart());
+      hash = (37 * hash) + ENABLED_STATE_FIELD_NUMBER;
+      hash = (53 * hash) + enabledState_;
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static frc2020.networking.RoborioMessage.CodeState parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(frc2020.networking.RoborioMessage.CodeState prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code frc2020.networking.CodeState}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:frc2020.networking.CodeState)
+        frc2020.networking.RoborioMessage.CodeStateOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return frc2020.networking.RoborioMessage.internal_static_frc2020_networking_CodeState_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return frc2020.networking.RoborioMessage.internal_static_frc2020_networking_CodeState_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                frc2020.networking.RoborioMessage.CodeState.class, frc2020.networking.RoborioMessage.CodeState.Builder.class);
+      }
+
+      // Construct using frc2020.networking.RoborioMessage.CodeState.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        preStart_ = false;
+
+        enabledState_ = 0;
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return frc2020.networking.RoborioMessage.internal_static_frc2020_networking_CodeState_descriptor;
+      }
+
+      @java.lang.Override
+      public frc2020.networking.RoborioMessage.CodeState getDefaultInstanceForType() {
+        return frc2020.networking.RoborioMessage.CodeState.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public frc2020.networking.RoborioMessage.CodeState build() {
+        frc2020.networking.RoborioMessage.CodeState result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public frc2020.networking.RoborioMessage.CodeState buildPartial() {
+        frc2020.networking.RoborioMessage.CodeState result = new frc2020.networking.RoborioMessage.CodeState(this);
+        result.preStart_ = preStart_;
+        result.enabledState_ = enabledState_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof frc2020.networking.RoborioMessage.CodeState) {
+          return mergeFrom((frc2020.networking.RoborioMessage.CodeState)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(frc2020.networking.RoborioMessage.CodeState other) {
+        if (other == frc2020.networking.RoborioMessage.CodeState.getDefaultInstance()) return this;
+        if (other.getPreStart() != false) {
+          setPreStart(other.getPreStart());
+        }
+        if (other.enabledState_ != 0) {
+          setEnabledStateValue(other.getEnabledStateValue());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        frc2020.networking.RoborioMessage.CodeState parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (frc2020.networking.RoborioMessage.CodeState) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private boolean preStart_ ;
+      /**
+       * <code>bool pre_start = 1;</code>
+       * @return The preStart.
+       */
+      public boolean getPreStart() {
+        return preStart_;
+      }
+      /**
+       * <code>bool pre_start = 1;</code>
+       * @param value The preStart to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPreStart(boolean value) {
+        
+        preStart_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool pre_start = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPreStart() {
+        
+        preStart_ = false;
+        onChanged();
+        return this;
+      }
+
+      private int enabledState_ = 0;
+      /**
+       * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+       * @return The enum numeric value on the wire for enabledState.
+       */
+      public int getEnabledStateValue() {
+        return enabledState_;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+       * @param value The enum numeric value on the wire for enabledState to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEnabledStateValue(int value) {
+        enabledState_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+       * @return The enabledState.
+       */
+      public frc2020.networking.RoborioMessage.CodeState.EnabledState getEnabledState() {
+        @SuppressWarnings("deprecation")
+        frc2020.networking.RoborioMessage.CodeState.EnabledState result = frc2020.networking.RoborioMessage.CodeState.EnabledState.valueOf(enabledState_);
+        return result == null ? frc2020.networking.RoborioMessage.CodeState.EnabledState.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+       * @param value The enabledState to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEnabledState(frc2020.networking.RoborioMessage.CodeState.EnabledState value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        enabledState_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.frc2020.networking.CodeState.EnabledState enabled_state = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEnabledState() {
+        
+        enabledState_ = 0;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:frc2020.networking.CodeState)
+    }
+
+    // @@protoc_insertion_point(class_scope:frc2020.networking.CodeState)
+    private static final frc2020.networking.RoborioMessage.CodeState DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new frc2020.networking.RoborioMessage.CodeState();
+    }
+
+    public static frc2020.networking.RoborioMessage.CodeState getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<CodeState>
+        PARSER = new com.google.protobuf.AbstractParser<CodeState>() {
+      @java.lang.Override
+      public CodeState parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CodeState(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<CodeState> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CodeState> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public frc2020.networking.RoborioMessage.CodeState getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_frc2020_networking_RioUpdate_descriptor;
   private static final 
@@ -1270,6 +2175,11 @@ public final class RoborioMessage {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_frc2020_networking_WheelOdometryUpdate_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_frc2020_networking_CodeState_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_frc2020_networking_CodeState_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -1280,11 +2190,16 @@ public final class RoborioMessage {
   static {
     java.lang.String[] descriptorData = {
       "\n\025roborio_message.proto\022\022frc2020.network" +
-      "ing\"M\n\tRioUpdate\022@\n\017odometry_update\030\001 \001(" +
-      "\0132\'.frc2020.networking.WheelOdometryUpda" +
-      "te\"F\n\023WheelOdometryUpdate\022\022\n\ntime_stamp\030" +
-      "\001 \001(\002\022\014\n\004left\030\002 \001(\002\022\r\n\005right\030\003 \001(\002b\006prot" +
-      "o3"
+      "ing\"\200\001\n\tRioUpdate\022@\n\017odometry_update\030\001 \001" +
+      "(\0132\'.frc2020.networking.WheelOdometryUpd" +
+      "ate\0221\n\ncode_state\030\002 \001(\0132\035.frc2020.networ" +
+      "king.CodeState\"F\n\023WheelOdometryUpdate\022\022\n" +
+      "\ntime_stamp\030\001 \001(\002\022\014\n\004left\030\002 \001(\002\022\r\n\005right" +
+      "\030\003 \001(\002\"\225\001\n\tCodeState\022\021\n\tpre_start\030\001 \001(\010\022" +
+      "A\n\renabled_state\030\002 \001(\0162*.frc2020.network" +
+      "ing.CodeState.EnabledState\"2\n\014EnabledSta" +
+      "te\022\014\n\010Disabled\020\000\022\010\n\004Auto\020\001\022\n\n\006Tellop\020\002b\006" +
+      "proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1295,13 +2210,19 @@ public final class RoborioMessage {
     internal_static_frc2020_networking_RioUpdate_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_frc2020_networking_RioUpdate_descriptor,
-        new java.lang.String[] { "OdometryUpdate", });
+        new java.lang.String[] { "OdometryUpdate", "CodeState", });
     internal_static_frc2020_networking_WheelOdometryUpdate_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_frc2020_networking_WheelOdometryUpdate_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_frc2020_networking_WheelOdometryUpdate_descriptor,
         new java.lang.String[] { "TimeStamp", "Left", "Right", });
+    internal_static_frc2020_networking_CodeState_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_frc2020_networking_CodeState_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_frc2020_networking_CodeState_descriptor,
+        new java.lang.String[] { "PreStart", "EnabledState", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
