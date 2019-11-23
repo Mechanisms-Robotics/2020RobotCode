@@ -120,6 +120,10 @@ public class Jetson implements Subsystem {
             = new CommandState.DriveDemand(new frc2020.util.DriveSignal(0, 0));
     }
 
+    public JetsonStatus getJetsonStatus() {
+        return jetsonStatus_;
+    }
+
     @Override
     public boolean checkSystem() {
         // Not exactly sure what to do here...

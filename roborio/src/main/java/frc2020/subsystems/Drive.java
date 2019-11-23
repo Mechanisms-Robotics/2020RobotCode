@@ -395,7 +395,7 @@ public class Drive implements Subsystem {
         return rotations * DRIVE_ENCODER_PPR;
     }
 
-    private static double inchesToEncoderTicks(double inches) {
+    public static double inchesToEncoderTicks(double inches) {
         return rotationsToEncoderTicks(inchesToRotations(inches));
     }
 

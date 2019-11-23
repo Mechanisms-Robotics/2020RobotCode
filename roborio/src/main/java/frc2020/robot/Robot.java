@@ -5,6 +5,7 @@ import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
 import frc2020.loops.*;
+import frc2020.states.AutoCSGenerator;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
 
@@ -33,7 +34,8 @@ public class Robot extends TimedRobot {
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
 
-    private TeleopCSGenerator teleopCSGenerator;
+    private TeleopCSGenerator teleopCSGenerator_;
+    private AutoCSGenerator autoCSGenerator_;
 
     public Robot() {
 
@@ -47,14 +49,15 @@ public class Robot extends TimedRobot {
                   Jetson.getInstance()
                 )
         );
+        
 
         drive_ = Drive.getInstance();
         jetson_ = Jetson.getInstance();
         compressor_ = new Compressor();
         PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
-        teleopCSGenerator = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
-
+        teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
+        autoCSGenerator_ = new AutoCSGenerator(jetson_);
         autoChooser_ = AutoChooser.getAutoChooser();
     }
 
@@ -144,6 +147,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousPeriodic() {
+        autoCSGenerator_.getCommandState().updateSubsystems(drive_);
     }
 
     /**
@@ -181,7 +185,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator.getCommandState().updateSubsystems(drive_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_);
             
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
