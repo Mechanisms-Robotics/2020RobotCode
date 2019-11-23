@@ -34,6 +34,14 @@ public class CommandState {
             OpenLoop,
             Velocity
         }
+
+        public static DemandType fromDSType(int dsType) {
+            if (dsType == 0) {
+                return DemandType.OpenLoop;
+            } else {
+                return DemandType.Velocity;
+            }
+        }
     }
 
     //Setters and getters for each subsystem demand

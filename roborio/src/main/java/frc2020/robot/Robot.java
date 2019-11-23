@@ -29,6 +29,7 @@ public class Robot extends TimedRobot {
     private AutoModeRunner autoRunner_;
     private SubsystemManager manager;
     private Drive drive_;
+    private Jetson jetson_;
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
 
@@ -42,12 +43,13 @@ public class Robot extends TimedRobot {
 
         manager = new SubsystemManager(
                 Arrays.asList(
-                  Drive.getInstance()
+                  Drive.getInstance(),
+                  Jetson.getInstance()
                 )
         );
 
         drive_ = Drive.getInstance();
-
+        jetson_ = Jetson.getInstance();
         compressor_ = new Compressor();
         PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
