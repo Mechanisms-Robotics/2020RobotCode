@@ -18,7 +18,7 @@ DEPTH_RES = (848, 480)  # pixels
 BGR_RES = (640, 480)  # pixels
 
 # Controls weather debug statments get printed out
-DEBUG_MODE = False
+DEBUG_MODE = True
 WINDOW_NAME = 'Pipeline'
 TUNING_MODE = True
 
@@ -26,6 +26,7 @@ TUNING_MODE = True
 SETINGS_DIR = 'settings/'
 kernal = np.ones((5, 5), np.uint8)
 
+last_velocity_hack_todo = 0.0
 
 class RSPipeline:
     '''
@@ -127,6 +128,13 @@ class RSPipeline:
                         'Pose theta: %s deg' % utils.radians_to_degrees(
                             update.slam_update.theta))
                 update.slam_update.update_epoc = pose_frame.get_timestamp()
+                # TODO:  This is not a permanent velocity solution.  Need
+                # to create a common codebase for common proto file.
+                last_velocity_hack_todo = math.sqrt(
+                    pose.velocity.x**2 + pose.velocity.z**2)
+                utils.print_occasional(
+                    'Velocity: %s  m/s' % last_velocity_hack_todo)
+
 
     def get_rgbd(self):
         if self.started_ and self.depth_camera and self.frames_:

@@ -23,9 +23,12 @@ def distance_between_points(p1, p2):
     return math.sqrt(a*a + b*b)
 
 
+def isNear(a, b, epsilon=0.0001):
+    return abs(a - b) < epsilon
+
+
 def assertNear(a, b):
-    EPSILON = 0.0001
-    assert abs(a - b) < EPSILON
+    assert isNear(a, b)
 
 
 def get_robot_distance_from_line(p1, p2, r):
@@ -62,6 +65,53 @@ def test_get_robot_distance_from_line():
 
     d = get_robot_distance_from_line(p2, p1, r)
     assertNear(d, -math.sqrt(2.0)/2)
+
+
+def get_closest_point_on_line(p1, p2, p):
+    '''
+    Given point p, and the line between p1 and p2, return the point on the line
+    closest to p.  All points are of form (x, y).
+    '''
+
+    assert p1 != p2
+
+    # thanks
+    # https://stackoverflow.com/questions/3120357/get-closest-point-to-a-line
+    p1_to_p = (p[0] - p1[0], p[1] - p1[1])
+    p1_to_p2 = (p2[0] - p1[0], p2[1] - p1[1])
+    dot = p1_to_p[0]*p1_to_p2[0] + p1_to_p[1]*p1_to_p2[1]
+    t = dot / (p1_to_p2[0]**2 + p1_to_p2[1]**2)
+    return (p1[0] + p1_to_p2[0]*t, p1[1] + p1_to_p2[1]*t)
+
+
+def test_get_closest_point_on_line():
+    P1 = (5, 5)
+    P2 = (10, 5)
+    P = (1, 1)
+    EXPECTED = (1, 5)
+    r = get_closest_point_on_line(P1, P2, P)
+    assert r == EXPECTED
+
+    P1 = (0, 0)
+    P2 = (0, 1)
+    P = (-10, -10)
+    EXPECTED = (0, -10)
+    r = get_closest_point_on_line(P1, P2, P)
+    assert r == EXPECTED
+
+    P1 = (5, 5)
+    P2 = (6, 6)
+    P = (1, 1)
+    EXPECTED = (1, 1)
+    r = get_closest_point_on_line(P1, P2, P)
+    assert r == EXPECTED
+
+    P1 = (5, -5)
+    P2 = (6, 6)
+    P = (3, -3)
+    EXPECTED = (315/61, -195/61)
+    r = get_closest_point_on_line(P1, P2, P)
+    assert r == EXPECTED
 
 
 def get_heading_of_line(p1, p2):
