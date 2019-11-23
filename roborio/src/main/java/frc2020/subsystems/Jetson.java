@@ -16,7 +16,7 @@ import frc2020.util.geometry.Pose2d;
 import frc2020.util.geometry.Rotation2d;
 
 public class Jetson implements Subsystem {
-    private final static String JETSON_IP = "10.49.10.26:5555";
+    private final static String JETSON_IP = "10.49.10.26:5556";
     private final static Jetson INSTANCE = new Jetson();
 
     private final Drive drive_;
@@ -88,7 +88,6 @@ public class Jetson implements Subsystem {
         // TODO: Read in values from ZMQClient
         // Should write to jetsonStatus_
         JetsonUpdate update = client_.getUpdate(true);
-
         if (update != null) {
             lastReceivedTimestamp_ = Timer.getFPGATimestamp();
             if (update.getDriveSignal() != null) {
@@ -115,9 +114,10 @@ public class Jetson implements Subsystem {
     // Basicly getters for everthing in jetsonStatus_ would go here.
 
     public class JetsonStatus {
-        public Pose2d pose;
-        public double slamTimestamp;
-        public CommandState.DriveDemand driveDemand;
+        public Pose2d pose = new Pose2d();
+        public double slamTimestamp = -1.0;
+        public CommandState.DriveDemand driveDemand 
+            = new CommandState.DriveDemand(new frc2020.util.DriveSignal(0, 0));
     }
 
     @Override

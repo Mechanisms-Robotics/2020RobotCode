@@ -3,17 +3,12 @@ from google.protobuf.message import DecodeError
 from proto import roborio_message_pb2 as rio_msg
 from proto import jetson_message_pb2 as jetson_msg
 
-context_ = None
-
-def get_context():
-    if CONTEXT == None:
-        CONTEXT = zmq.context()
-    return CONTEXT
+context_ = zmq.Context()
 
 def destroy_context():
-    if CONTEXT != None:
-        CONTEXT.term()
-        CONTEXT = None
+    if context_ != None:
+        context_.term()
+        context_ = None
 
 JETSON_TOPIC = b'jetsonupdate'
 RIO_TOPIC = b'rioupdate'
@@ -25,7 +20,7 @@ class ZMQServer:
 
 	def __init__(self, port = DEFAULT_PORT_PUB):
 		self.connect_to_ = "tcp://*:" + port
-		self.socket_ = get_context().socket(zmq.PUB)
+		self.socket_ = context_.socket(zmq.PUB)
 		self.socket_.bind(self.connect_to_)
 
 	def publish_update(self, update):
@@ -39,7 +34,7 @@ class ZMQClient:
 
     def __init__(self, ip = "10.49.10.2", port = DEFAULT_PORT_SUB):
         self.connect_to_ = "tcp://" + ip + ":" + port
-        self.sub_ = get_context().socket(zmq.SUB)
+        self.sub_ = context_.socket(zmq.SUB)
         self.sub_.setsockopt(zmq.CONFLATE, 1)
         
         
@@ -63,4 +58,4 @@ class ZMQClient:
         return update
         
     def close(self):
-        self.sub.close()
+        self.sub_.close()
