@@ -23,7 +23,9 @@ class Jetson implements Subsystem {
     private Jetson() {
         context_ = new ZContext();
         server_ = new ZMQServer(context_);
+        server_.connect();
         client_ = new ZMQClient(context_, JETSON_IP);
+        client_.connect();
         drive_ = Drive.getInstance();
         ds_ = DriverStation.getInstance();
         jetsonStatus_ = new JetsonStatus();
