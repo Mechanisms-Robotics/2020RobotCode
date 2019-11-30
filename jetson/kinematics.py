@@ -4,7 +4,8 @@ import utils
 
 class RobotModel:
     WHEEL_BASE = 0.5  # m
-    MAX_VELOCITY = 1  # m / s  (3 m/s is about 10 ft/s)
+    MAX_VELOCITY = 1.0  # m / s  (3 m/s is about 10 ft/s)
+    MIN_VELOCITY = 0.1
 
 
 # thanks http://www.cs.columbia.edu/~allen/F17/NOTES/icckinematics.pdf

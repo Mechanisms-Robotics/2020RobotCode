@@ -37,9 +37,10 @@ def test_simulate_path():
             pose[0] + random.normalvariate(0, PERTURBATION_SIGMA),
             pose[1] + random.normalvariate(0, PERTURBATION_SIGMA),
             pose[2] + random.normalvariate(0, PERTURBATION_SIGMA))
-        print(f'{t},{pose[0]},{pose[1]},{pose[2]}')
+        # print(f'{t},{pose[0]},{pose[1]},{pose[2]}')
         visualizer.update(pose)
         drive_velocities = path.follow_path(pose, velocity, motion_profile)
+        print(f'{drive_velocities[0]}, {drive_velocities[1]}')
         pose = kinematics.find_new_pose(pose, drive_velocities, DT)
         velocity = (drive_velocities[0] + drive_velocities[1])/2  # I think...
         t += DT

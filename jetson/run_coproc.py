@@ -17,10 +17,10 @@ def main():
 
     PATH_POINTS = (
         (0, 0),
-        (3, -1),
-        (7, -1),
-        (7, 1),
-        (3, 1),
+        (3, -1.5),
+        (7, -1.5),
+        (7, 1.5),
+        (3, 1.5),
     )
 
     path = path_generator.generate_path_from_points(PATH_POINTS)
@@ -91,6 +91,9 @@ def main():
             update.drive_signal.demand_right = drive_velocities[1]
             update.drive_signal.demand_type = (
                 jetson_msg.DriveSignal.DemandType.Velocity)
+
+            utils.print_occasional(
+                'Vl: %s  Vr %s' % (drive_velocities))
 
             utils.call_increment()
 

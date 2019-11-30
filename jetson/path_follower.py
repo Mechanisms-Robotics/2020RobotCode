@@ -165,7 +165,7 @@ def path_follow(current_x, current_y, current_heading, path):
 ###############################################################################
 
 
-LOOKAHEAD_TIME = 0.5  # s (tunable)
+LOOKAHEAD_TIME = 1.0  # s (tunable)
 MIN_LOOKAHEAD_DISTANCE = 1.0  # m (tunable)
 
 
@@ -190,26 +190,26 @@ class Path:
         function should be called iteratively as the path runs.
         '''
 
-        logging.debug('  Velocity: %s' % velocity)
+        logging.debug('Velocity: %s' % velocity)
 
         # update the position along the path based on current robot state
-        logging.debug('  Distance on path before: %s' % self.distance_on_path)
+        logging.debug('Distance on path before: %s' % self.distance_on_path)
         self.update_distance_on_path(pose, velocity)
-        logging.debug('  Distance on path after: %s' % self.distance_on_path)
+        logging.debug('Distance on path after: %s' % self.distance_on_path)
 
         # determine the lookahead point
         lookahead_distance = max(
             MIN_LOOKAHEAD_DISTANCE, LOOKAHEAD_TIME*velocity)
         lookahead_point = self.get_point_on_path(
             self.distance_on_path + lookahead_distance)
-        logging.debug('  Lookahead point: %s' % str(lookahead_point))
+        logging.debug('Lookahead point: %s' % str(lookahead_point))
 
         # return the drive velocities to steer toward the lookahead point
         turn_radius = arcs.current_solution(pose, lookahead_point)
-        logging.debug('  Turn radius: %s' % turn_radius)
+        logging.debug('Turn radius: %s' % turn_radius)
         desired_velocity = motion_profile.get_desired_velocity(
-            self.distance_on_path)
-        logging.debug('  Desired velocity: %s' % desired_velocity)
+            self.distance_on_path, velocity)
+        logging.debug('Desired velocity: %s' % desired_velocity)
         if turn_radius == float('inf'):
             velocities = (desired_velocity, desired_velocity)
         elif turn_radius == float('-inf'):
@@ -218,7 +218,7 @@ class Path:
         else:
             velocities = kinematics.find_drive_velocities(
                 desired_velocity, turn_radius)
-        logging.debug('  Velocities: %s' % str(velocities))
+        logging.debug('Velocities: %s' % str(velocities))
         return velocities  # (velocity left, velocity right)
 
     # tested by test_update_distance_on_path

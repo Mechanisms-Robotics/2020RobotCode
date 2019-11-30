@@ -117,10 +117,10 @@ class RSPipeline:
                     utils.print_occasional('Pose y: %s m'
                                            % update.slam_update.y)
                 rotation = pose.rotation
-                if DEBUG_MODE:
-                    utils.print_occasional(
-                        'Rotation  x: %s  y: %s  z: %s  w: %s' % (
-                            rotation.x, rotation.y, rotation.z, rotation.w))
+                # if DEBUG_MODE:
+                #     utils.print_occasional(
+                #         'Rotation  x: %s  y: %s  z: %s  w: %s' % (
+                #             rotation.x, rotation.y, rotation.z, rotation.w))
                 update.slam_update.theta = get_robot_rotation(
                     rotation.x, rotation.y, rotation.z, rotation.w)
                 if DEBUG_MODE:
@@ -142,7 +142,7 @@ class RSPipeline:
             depth_frame = aligned_frames.get_depth_frame()
             color_frame = aligned_frames.get_color_frame()
             return (depth_frame, color_frame)
-    
+
     def get_depth(self):
         if self.started_ and self.depth_camera and self.frames_:
             return np.asanyarray(self.frames_.get_depth_frame().get_data())
