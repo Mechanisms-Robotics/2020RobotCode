@@ -9,6 +9,8 @@ import motion_profiler
 def main():
     tracking = sensors.RSPipeline(True, False)
     publisher = networking.ZMQServer()
+    subscriber = networking.ZMQClient()
+    subscriber.connect()
     tracking.start()
 
     ##################################################################
@@ -423,6 +425,13 @@ def main():
             update = jetson_msg.JetsonUpdate()
             tracking.wait_for_next_frame()
             tracking.get_slam_update(update)
+            rio_update = subscriber.rio_update()
+            if rio_update:
+                if rio_update.odometry_update:
+                    wheel_left = rio_update.odometry_update.left
+                    wheel_right = rio_update.odometry_update.right
+                    tracking.send_wheel_data(wheel_left, wheel_right)
+
 
             ##################################################################
             # BEGIN MR ODOM EXPERIMENT - VIRTUAL DRIVER

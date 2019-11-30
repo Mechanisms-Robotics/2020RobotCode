@@ -14,7 +14,7 @@ JETSON_TOPIC = b'jetsonupdate'
 RIO_TOPIC = b'rioupdate'
 TOPIC_DATA_SEPARATOR = b'protobuf'
 DEFAULT_PORT_PUB = '5556'
-DEFAULT_PORT_SUB = '5555'
+DEFAULT_PORT_SUB = '5556'
 
 class ZMQServer:
 

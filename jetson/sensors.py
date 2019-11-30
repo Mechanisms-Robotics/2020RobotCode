@@ -21,9 +21,12 @@ BGR_RES = (640, 480)  # pixels
 DEBUG_MODE = True
 WINDOW_NAME = 'Pipeline'
 TUNING_MODE = True
+LEFT_ID = 0
+RIGHT_ID = 1
 
 #
 SETINGS_DIR = 'settings/'
+ODOM_SETTINGS = 'calibration_odometry.json'
 kernal = np.ones((5, 5), np.uint8)
 
 last_velocity_hack_todo = 0.0
@@ -42,6 +45,7 @@ class RSPipeline:
         self.depth_scale = 0.0
         self.pipeline = rs.pipeline()
         self.frames_ = None
+        self.wheel_data = None
 
     def start(self):
         '''
@@ -57,7 +61,14 @@ class RSPipeline:
             sensor = profile.get_device().first_depth_sensor()
             self.depth_scale = sensor.get_depth_scale()
             self.align = rs.align(rs.stream.color)
-
+        if self.use_tracking:
+            self.wheel_data = profile.get_device().as_tm2().first_pose_sensor().as_wheel_odometer()
+            chars = []
+            with open(ODOM_SETTINGS) as f:
+                for line in f:
+                    for c in line:
+                        chars.append(ord(c))
+            self.wheel_data.load_wheel_odometery_config(chars)
 
     def wait_for_next_frame(self):
         '''
@@ -92,6 +103,14 @@ class RSPipeline:
             cfg.enable_stream(rs.stream.color, BGR_RES[0], BGR_RES[1],
                               rs.format.bgr8, STREAM_FPS)
         return cfg
+
+    def send_wheel_data(self, left_vel, right_vel):
+        left_v = rs.vector()
+        right_v = rs.vector()
+        left_v.z = -left_vel
+        right_v.z = -right_vel
+        self.wheel_data.send_wheel_odometry(LEFT_ID, 0, left_v)
+        self.wheel_data.send_wheel_odometry(RIGHT_ID, 0, right_v)
 
     def get_slam_update(self, update):
         '''
