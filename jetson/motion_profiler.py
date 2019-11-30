@@ -24,7 +24,7 @@ class MotionProfile:
         logging.debug(
             'Motion profiler distance on path: %s' % distance_on_path)
 
-        RAMP_UP_DISTANCE = 2.0  # m
+        RAMP_UP_DISTANCE = 1.0  # m
         ramp_up = min(1.0, distance_on_path/RAMP_UP_DISTANCE)
         ramp_down = min(1.0,
             (self.path_length - distance_on_path)/RAMP_UP_DISTANCE)
