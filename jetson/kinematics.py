@@ -10,6 +10,9 @@ class RobotModel:
 # thanks http://www.cs.columbia.edu/~allen/F17/NOTES/icckinematics.pdf
 
 
+MIN_TURN_RADIUS = 0.01  # m  See comment below about possibly turning this
+
+
 def find_drive_velocities(velocity, turn_radius):
     '''
     Given a desired translational velocity and a desired turn radius, return
@@ -26,8 +29,11 @@ def find_drive_velocities(velocity, turn_radius):
     # I can use my handy physics degree to realize that w = v/R (radians per
     # second).
 
-    if turn_radius == 0:
-        return (velocity, velocity)
+    if abs(turn_radius) < MIN_TURN_RADIUS:
+        # This idea may be ill conceived or overthinking things, but it at
+        # least prevents a divide by zero and could be tuned to limit overly
+        # aggressive turns.
+        turn_radius = math.copysign(MIN_TURN_RADIUS, turn_radius)
 
     w = velocity / turn_radius
     vl = w * (turn_radius - RobotModel.WHEEL_BASE/2)
@@ -37,15 +43,8 @@ def find_drive_velocities(velocity, turn_radius):
 
 
 def test_find_drive_velocities():
-    DESIRED_VELOCITY = 2  # m/s
-    DESIRED_TURN_RADIUS = 0  # m
-    EXPECTED_VL = DESIRED_VELOCITY
-    EXPECTED_VR = DESIRED_VELOCITY
-    (vl, vr) = find_drive_velocities(DESIRED_VELOCITY, DESIRED_TURN_RADIUS)
-    assert vl == EXPECTED_VL
-    assert vr == EXPECTED_VR
-
-    # TODO  Keep adding tests
+    pass
+    # TODO  Keep adding tests / incorporate Carson and Aleem's code for this
 
 
 def find_new_pose(pose, drive_velocities, dt):

@@ -1,4 +1,12 @@
 import math
+import logging
+
+
+# Among other things, this module sets the logging level, so import it if you
+# use logging.
+
+LOGGING_LEVEL = logging.INFO  # Default 4910 logging level
+logging.basicConfig(level=LOGGING_LEVEL)
 
 
 call_count = 0

@@ -4,6 +4,7 @@ import path_generator
 import motion_profiler
 import kinematics
 import visualizer
+import random
 
 
 TEST_POINTS = (
@@ -30,11 +31,17 @@ def test_simulate_path():
     t = 0
     print()
     while t <= RUNNING_TIME:
-        # print(f'{t},{pose[0]},{pose[1]},{pose[2]}')
+        # The perturbation throws in some realism
+        PERTURBATION_SIGMA = 0.01  # standard deviation
+        pose = (
+            pose[0] + random.normalvariate(0, PERTURBATION_SIGMA),
+            pose[1] + random.normalvariate(0, PERTURBATION_SIGMA),
+            pose[2] + random.normalvariate(0, PERTURBATION_SIGMA))
+        print(f'{t},{pose[0]},{pose[1]},{pose[2]}')
         visualizer.update(pose)
         drive_velocities = path.follow_path(pose, velocity, motion_profile)
         pose = kinematics.find_new_pose(pose, drive_velocities, DT)
         velocity = (drive_velocities[0] + drive_velocities[1])/2  # I think...
         t += DT
 
-    print(f'{t},{pose[0]},{pose[1]},{pose[2]}')
+    # print(f'{t},{pose[0]},{pose[1]},{pose[2]}')

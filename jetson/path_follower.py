@@ -3,6 +3,8 @@ import utils
 import arcs
 import path_generator
 import kinematics
+import motion_profiler
+import logging
 
 
 def heading_hold(desired_heading, current_heading):  # angles are in RADIANS
@@ -164,6 +166,7 @@ def path_follow(current_x, current_y, current_heading, path):
 
 
 LOOKAHEAD_TIME = 0.5  # s (tunable)
+MIN_LOOKAHEAD_DISTANCE = 1.0  # m (tunable)
 
 
 class Path:
@@ -187,24 +190,26 @@ class Path:
         function should be called iteratively as the path runs.
         '''
 
-        # print(f'  Velocity: {velocity}')
+        logging.debug('  Velocity: %s' % velocity)
 
         # update the position along the path based on current robot state
-        # print(f'  Distance on path before: {self.distance_on_path}')
+        logging.debug('  Distance on path before: %s' % self.distance_on_path)
         self.update_distance_on_path(pose, velocity)
-        # print(f'  Distance on path after: {self.distance_on_path}')
+        logging.debug('  Distance on path after: %s' % self.distance_on_path)
 
         # determine the lookahead point
+        lookahead_distance = max(
+            MIN_LOOKAHEAD_DISTANCE, LOOKAHEAD_TIME*velocity)
         lookahead_point = self.get_point_on_path(
-            self.distance_on_path + LOOKAHEAD_TIME*velocity)
-        # print(f'  Lookahead point: {lookahead_point}')
+            self.distance_on_path + lookahead_distance)
+        logging.debug('  Lookahead point: %s' % str(lookahead_point))
 
         # return the drive velocities to steer toward the lookahead point
         turn_radius = arcs.current_solution(pose, lookahead_point)
-        # print(f'  Turn radius: {turn_radius}')
+        logging.debug('  Turn radius: %s' % turn_radius)
         desired_velocity = motion_profile.get_desired_velocity(
             self.distance_on_path)
-        # print(f'  Desired velocity: {desired_velocity}')
+        logging.debug('  Desired velocity: %s' % desired_velocity)
         if turn_radius == float('inf'):
             velocities = (desired_velocity, desired_velocity)
         elif turn_radius == float('-inf'):
@@ -213,7 +218,7 @@ class Path:
         else:
             velocities = kinematics.find_drive_velocities(
                 desired_velocity, turn_radius)
-        # print(f'  Velocities: {velocities}')
+        logging.debug('  Velocities: %s' % str(velocities))
         return velocities  # (velocity left, velocity right)
 
     # tested by test_update_distance_on_path
@@ -656,3 +661,37 @@ def test_get_point_on_linear_path_segment():
     EXPECTED_POINT = (1, 1)
     point = LinearPathSegment(P1, P2).get_point_on_path(DISTANCE_ON_PATH)
     assert point == EXPECTED_POINT
+
+
+def test_starting_point():
+    # When the robot starts, it has zero velocity.  In our former
+    # implementation, this meant that lookahead point was within an inch or so
+    # of the robot, leading to overly aggressive drivetrain velocities because
+    # of ridiculous curvature.  This makes sure that we have reasonable
+    # velocities in this situation.
+
+    TEST_POINTS = (
+        (0, 0),
+        (3, -1),
+        (7, -1),
+        (7, 1),
+        (3, 1),
+    )
+
+    path = path_generator.generate_path_from_points(TEST_POINTS)
+    motion_profile = motion_profiler.MotionProfile(path)
+
+    INITIAL_ERROR = 0.0001
+    INITIAL_ROBOT_POSE = (
+        TEST_POINTS[0][0] + INITIAL_ERROR,
+        TEST_POINTS[0][1] - INITIAL_ERROR,
+        0)
+
+    pose = INITIAL_ROBOT_POSE
+    velocity = 0
+
+    drive_velocities = path.follow_path(pose, velocity, motion_profile)
+
+    TOO_FAST = 5  # m / s
+    assert abs(drive_velocities[0]) < TOO_FAST
+    assert abs(drive_velocities[1]) < TOO_FAST

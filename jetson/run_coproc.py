@@ -1,17 +1,15 @@
 from proto import jetson_message_pb2 as jetson_msg
 import networking
 import sensors
-import zmq
-import path_follower
 import utils
 import path_generator
 import motion_profiler
+
 
 def main():
     tracking = sensors.RSPipeline(True, False)
     publisher = networking.ZMQServer()
     tracking.start()
-
 
     ##################################################################
     # BEGIN MR ODOM EXPERIMENT - VIRTUAL DRIVER
@@ -19,10 +17,10 @@ def main():
 
     PATH_POINTS = (
         (0, 0),
-        (3, -2),
-        (7, -2),
-        (7, 2),
-        (3, 2),
+        (3, -1),
+        (7, -1),
+        (7, 1),
+        (3, 1),
     )
 
     path = path_generator.generate_path_from_points(PATH_POINTS)
@@ -91,7 +89,8 @@ def main():
             drive_velocities = path.follow_path(pose, velocity, motion_profile)
             update.drive_signal.demand_left = drive_velocities[0]
             update.drive_signal.demand_right = drive_velocities[1]
-            update.drive_signal.demand_type = jetson_msg.DriveSignal.DemandType.Velocity
+            update.drive_signal.demand_type = (
+                jetson_msg.DriveSignal.DemandType.Velocity)
 
             utils.call_increment()
 
