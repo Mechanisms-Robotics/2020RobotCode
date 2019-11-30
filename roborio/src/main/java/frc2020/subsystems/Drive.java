@@ -140,6 +140,9 @@ public class Drive implements Subsystem {
         shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
         state_ = DriveState.OpenLoop;
 
+        rightMaster_.configClosedloopRamp(0.25);
+        leftMaster_.configClosedloopRamp(0.25);
+
         setBrakeMode(true);
 
         loadGains();
