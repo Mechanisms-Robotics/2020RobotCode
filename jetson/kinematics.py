@@ -18,6 +18,8 @@ def find_drive_velocities(velocity, turn_radius):
     '''
     Given a desired translational velocity and a desired turn radius, return
     the differential drive velocities required to obtain those parameters.
+
+    This is inverse kinematics.  What outputs yield the desired motion?
     '''
 
     # Carson and Aleem are working on the correct version of this.  For now,
@@ -95,3 +97,48 @@ def test_find_new_pose():
     utils.assertNear(pose[2], EXPECTED_THETA)
 
     # TODO more tests
+
+
+
+################################################################################
+#
+# CARSON CODE TO INTEGRATE AND TEST  TODO
+#
+################################################################################
+
+# FORWARD KINEMATICS - How will these inputs move me?
+
+#import math
+#import numpy as np
+#
+#def next_pose(turn_radius, pose, left_vel, right_vel, t):
+#        center_v = (left_vel + right_vel)/2 # simpler way to do the above code
+#        angular_v = center_v/turn_radius #full circle degrees / time to finish circumference given robot velocity
+#        delta_theta = angular_v*t #radians robot travels on circular path
+#
+#        new_theta=delta_theta+pose[2]   ##new theta based on old theta and change
+#        delta_x=math.cos(new_theta)-math.cos(pose[2])   #change in x
+#        delta_y=math.sin(new_theta)-math.sin(pose[2])   #change in y
+#        new_x=pose[0]+delta_x   #new x based on old x and change
+#        new_y=pose[1]+delta_y   #new y based on old y and change
+#
+#        return((new_x, new_y, new_theta))
+
+
+# INVERSE KINEMATICS - What outputs will move me there?
+
+#def find_velocities(turn_radius, velocity):
+#    wheel_distance=24
+#
+#    angular_velocity=velocity/turn_radius   #find angular velocity
+#
+#    left_radius=turn_radius-(wheel_distance/2)  #radius of left side of drive train
+#    right_radius=turn_radius+(wheel_distance/2) #radius of right side of drive train
+#
+#    if(turn_radius<0):  #if the radius is negative, it's a right turn
+#        left_radius, right_radius=right_radius, left_radius #swap values
+#
+#    left_velocity=left_radius*angular_velocity  #angular velocity is constant, multiply by radius to get left velocity
+#    right_velocity=right_radius*angular_velocity    #same for right
+#
+#    return((left_velocity, right_velocity)) #return values
