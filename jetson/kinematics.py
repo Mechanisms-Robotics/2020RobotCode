@@ -3,15 +3,15 @@ import utils
 
 
 class RobotModel:
-    WHEEL_BASE = 0.35  # m  (tuned)
-    MAX_VELOCITY = 1.0  # m / s  (3 m/s is about 10 ft/s)
+    WHEEL_BASE = 1.5  # m  (tuned)
+    MAX_VELOCITY = 3.0  # m / s  (3 m/s is about 10 ft/s)
     MIN_VELOCITY = 0.1
 
 
 # thanks http://www.cs.columbia.edu/~allen/F17/NOTES/icckinematics.pdf
 
 
-MIN_TURN_RADIUS = 0.00001  # m  See comment below about possibly turning this
+MIN_TURN_RADIUS = 0.00001  # m  See comment below about possibly tuning this
 
 
 def find_drive_velocities(velocity, turn_radius):
