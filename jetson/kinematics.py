@@ -22,15 +22,14 @@ def find_drive_velocities(velocity, turn_radius):
     This is inverse kinematics.  What outputs yield the desired motion?
     '''
 
-    # Carson and Aleem are working on the correct version of this.  For now,
-    # observe that if turn_radius == float('inf'), vr = vl = velocity.  If
+    # Observe that if turn_radius == float('inf'), vr = vl = velocity.  If
     # velocity == 0, vr = vl = 0.  If turn_radius == 0, vr = -vl (and I guess
     # that any velocity > 0 leads to a collapse of the spacetime continuum).
 
     # According to the handy paper above from the smart folks at Columbia,
     # Vr = w(R + l/2) and Vl = w(R - l/2) where w is omega and l is wheel base.
     # I can use my handy physics degree to realize that w = v/R (radians per
-    # second).
+    # second).  This concords with Magnus's lectures and Carson's solution.
 
     if abs(turn_radius) < MIN_TURN_RADIUS:
         # This idea may be ill conceived or overthinking things, but it at
@@ -38,9 +37,9 @@ def find_drive_velocities(velocity, turn_radius):
         # aggressive turns.
         turn_radius = math.copysign(MIN_TURN_RADIUS, turn_radius)
 
-    w = velocity / turn_radius
-    vl = w * (turn_radius - RobotModel.WHEEL_BASE/2)
-    vr = w * (turn_radius + RobotModel.WHEEL_BASE/2)
+    omega = velocity / turn_radius
+    vl = omega * (turn_radius - RobotModel.WHEEL_BASE/2)
+    vr = omega * (turn_radius + RobotModel.WHEEL_BASE/2)
 
     return (vl, vr)
 
@@ -99,46 +98,55 @@ def test_find_new_pose():
     # TODO more tests
 
 
-
-################################################################################
+###############################################################################
 #
 # CARSON CODE TO INTEGRATE AND TEST  TODO
 #
-################################################################################
+###############################################################################
 
 # FORWARD KINEMATICS - How will these inputs move me?
 
-#import math
-#import numpy as np
-#
-#def next_pose(turn_radius, pose, left_vel, right_vel, t):
-#        center_v = (left_vel + right_vel)/2 # simpler way to do the above code
-#        angular_v = center_v/turn_radius #full circle degrees / time to finish circumference given robot velocity
-#        delta_theta = angular_v*t #radians robot travels on circular path
-#
-#        new_theta=delta_theta+pose[2]   ##new theta based on old theta and change
-#        delta_x=math.cos(new_theta)-math.cos(pose[2])   #change in x
-#        delta_y=math.sin(new_theta)-math.sin(pose[2])   #change in y
-#        new_x=pose[0]+delta_x   #new x based on old x and change
-#        new_y=pose[1]+delta_y   #new y based on old y and change
-#
-#        return((new_x, new_y, new_theta))
+def next_pose(turn_radius, pose, left_vel, right_vel, t):
+    center_v = (left_vel + right_vel)/2  # simpler way to do the above code
+    # full circle degrees/time to finish circumference given robot velocity
+    angular_v = center_v/turn_radius
+    delta_theta = angular_v*t  # radians robot travels on circular path
+
+    new_theta = delta_theta+pose[2]  # new theta based on old theta and change
+    delta_x = math.cos(new_theta)-math.cos(pose[2])   # change in x
+    delta_y = math.sin(new_theta)-math.sin(pose[2])   # change in y
+    new_x = pose[0]+delta_x   # new x based on old x and change
+    new_y = pose[1]+delta_y   # new y based on old y and change
+
+    return((new_x, new_y, new_theta))
 
 
 # INVERSE KINEMATICS - What outputs will move me there?
 
-#def find_velocities(turn_radius, velocity):
-#    wheel_distance=24
-#
-#    angular_velocity=velocity/turn_radius   #find angular velocity
-#
-#    left_radius=turn_radius-(wheel_distance/2)  #radius of left side of drive train
-#    right_radius=turn_radius+(wheel_distance/2) #radius of right side of drive train
-#
-#    if(turn_radius<0):  #if the radius is negative, it's a right turn
-#        left_radius, right_radius=right_radius, left_radius #swap values
-#
-#    left_velocity=left_radius*angular_velocity  #angular velocity is constant, multiply by radius to get left velocity
-#    right_velocity=right_radius*angular_velocity    #same for right
-#
-#    return((left_velocity, right_velocity)) #return values
+def carson_find_velocities(turn_radius, velocity):  # Carson's solution
+    # TODO: test and incorporate (this is really more for the simulator)
+    wheel_distance = RobotModel.WHEEL_BASE
+
+    angular_velocity = velocity/turn_radius   # find angular velocity
+
+    left_radius = turn_radius-(wheel_distance/2)
+    right_radius = turn_radius+(wheel_distance/2)
+
+    if (turn_radius < 0):  # if the radius is negative, it's a right turn
+        left_radius, right_radius = right_radius, left_radius  # swap values
+
+    # angular velocity is constant, multiply by radius to get left velocity
+    left_velocity = left_radius*angular_velocity
+    right_velocity = right_radius*angular_velocity    # same for right
+
+    return((left_velocity, right_velocity))
+
+
+def test_compare_carson_and_mr_odom():
+    # Simply compare our solutions to sanity check them
+    TURN_RADIUS = 30  # m
+    VELOCITY = 3  # m / s
+
+    carson = carson_find_velocities(TURN_RADIUS, VELOCITY)
+    mr_odom = find_drive_velocities(VELOCITY, TURN_RADIUS)
+    assert carson == mr_odom
