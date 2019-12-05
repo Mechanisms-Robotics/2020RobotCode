@@ -40,10 +40,10 @@ public class Constants {
 
     // Drive Train Control Loop (VELOCITY)
     public final static double VELOCITY_HIGH_GEAR_KP = 1;
-    public final static double VELOCITY_HIGH_GEAR_KI = 0.0;
+    public final static double VELOCITY_HIGH_GEAR_KI = 0.003;
     public final static double VELOCITY_HIGH_GEAR_KD = 0.0; 
     public final static double VELOCITY_HIGH_GEAR_KF = 0.0;
-    public final static int VELOCITY_HIGH_GEAR_I_ZONE = 0;
+    public final static int VELOCITY_HIGH_GEAR_I_ZONE = 300; //sensor units
 
     // The Joysticks
     public final static int LEFT_DRIVER_JOYSTICK_PORT = 0;
