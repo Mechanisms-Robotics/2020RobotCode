@@ -165,7 +165,7 @@ def path_follow(current_x, current_y, current_heading, path):
 ###############################################################################
 
 
-LOOKAHEAD_TIME = 0.25  # s (tunable)
+LOOKAHEAD_TIME = 2.0  # s (tunable)
 MIN_LOOKAHEAD_DISTANCE = 1.0  # m (tunable)
 
 
@@ -180,6 +180,7 @@ class Path:
 
         self.path_segments = path_segments
         self.distance_on_path = 0.0  # meters along path
+        self.last_lookahead_point = None  # this is used by the visualizer
 
     # tested by nothing (need a visualizer to test visually)
     def follow_path(self, pose, velocity, motion_profile):
@@ -203,12 +204,12 @@ class Path:
         lookahead_point = self.get_point_on_path(
             self.distance_on_path + lookahead_distance)
         logging.debug('Lookahead point: %s' % str(lookahead_point))
+        self.last_lookahead_point = lookahead_point
 
         # return the drive velocities to steer toward the lookahead point
         turn_radius = arcs.current_solution(pose, lookahead_point)
         logging.debug('Turn radius: %s' % turn_radius)
-        desired_velocity = motion_profile.get_desired_velocity(
-            self.distance_on_path, velocity)
+        desired_velocity = motion_profile.get_desired_velocity(velocity)
         logging.debug('Desired velocity: %s' % desired_velocity)
         if turn_radius == float('inf'):
             velocities = (desired_velocity, desired_velocity)

@@ -4,7 +4,7 @@ import utils
 
 class RobotModel:
     WHEEL_BASE = 1.5  # m  (tuned)
-    MAX_VELOCITY = 3.0  # m / s  (3 m/s is about 10 ft/s)
+    MAX_VELOCITY = 1.0  # m / s  (3 m/s is about 10 ft/s)
     MIN_VELOCITY = 0.1
 
 
@@ -54,6 +54,19 @@ def find_new_pose(pose, drive_velocities, dt):
     Given a pose (x, y, theta) and velocities (vl, vr), return a new robot
     pose.
     '''
+
+    # based on Magnus lecture
+
+    x, y, theta = pose
+    dl = drive_velocities[0]*dt
+    dr = drive_velocities[1]*dt
+    dc = (dl + dr)/2
+    xp = x + dc*math.cos(theta)
+    yp = y + dc*math.sin(theta)
+    thetap = theta + (dr - dl)/RobotModel.WHEEL_BASE
+    return (xp, yp, thetap)
+
+    # based on Columbia paper
 
     x = pose[0]
     y = pose[1]

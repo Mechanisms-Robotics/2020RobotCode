@@ -5,14 +5,18 @@ import motion_profiler
 import kinematics
 import visualizer
 import random
+import time
+
+
+def feet_to_meters(x):
+    return x/3.28
 
 
 TEST_POINTS = (
     (0, 0),
-    (3, -2),
-    (7, -2),
-    (7, 2),
-    (3, 2),
+    (feet_to_meters(54), -feet_to_meters(27)/2),
+    (feet_to_meters(54), feet_to_meters(27)/2),
+    (0, 0),
 )
 
 
@@ -20,7 +24,7 @@ def test_simulate_path():
     path = path_generator.generate_path_from_points(TEST_POINTS)
     motion_profile = motion_profiler.MotionProfile(path)
 
-    DT = 0.02  # s
+    DT = 0.1  # s
     RUNNING_TIME = 15  # s
 
     INITIAL_ROBOT_POSE = (TEST_POINTS[0][0], TEST_POINTS[0][1], 0)
@@ -30,19 +34,20 @@ def test_simulate_path():
 
     t = 0
     print()
-    while t <= RUNNING_TIME:
+    while True:  # t <= RUNNING_TIME:
         # The perturbation throws in some realism
-        PERTURBATION_SIGMA = 0.01  # standard deviation
+        PERTURBATION_SIGMA = 0  # 0.01  # standard deviation
         pose = (
             pose[0] + random.normalvariate(0, PERTURBATION_SIGMA),
             pose[1] + random.normalvariate(0, PERTURBATION_SIGMA),
             pose[2] + random.normalvariate(0, PERTURBATION_SIGMA))
         # print(f'{t},{pose[0]},{pose[1]},{pose[2]}')
-        visualizer.update(pose)
+        visualizer.move(pose, path.last_lookahead_point)
         drive_velocities = path.follow_path(pose, velocity, motion_profile)
-        print(f'{drive_velocities[0]}, {drive_velocities[1]}')
+        # print(f'{drive_velocities[0]}, {drive_velocities[1]}')
         pose = kinematics.find_new_pose(pose, drive_velocities, DT)
-        velocity = (drive_velocities[0] + drive_velocities[1])/2  # I think...
+        velocity = (drive_velocities[0] + drive_velocities[1])/2
         t += DT
+        # time.sleep(DT)
 
     # print(f'{t},{pose[0]},{pose[1]},{pose[2]}')

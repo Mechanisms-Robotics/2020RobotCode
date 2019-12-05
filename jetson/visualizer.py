@@ -4,38 +4,59 @@
 import turtle
 import math
 
+WIDTH = 324   # width of field in inches
+HEIGHT = 648  # height of field in inches
+
+INCHES_PER_METER = 39.37
+
+def field_to_screen(pose):
+    return (
+        -pose[1]*INCHES_PER_METER,
+        pose[0]*INCHES_PER_METER - HEIGHT/2,
+        (pose[2]+(math.pi/2))/math.pi*180)
+
 START_POSE=(0, 0, 0) #initial pose in (in, in, rad)
 
-width=324   #width of field in inches
-height=648  #height of field in inches
-turtle.setup(width+100, height+100, 0, 0)   #+100 for spacing
+turtle.setup(WIDTH+100, HEIGHT+100, 0, 0)   #+100 for spacing
 
 robot=turtle.Turtle()   #create turtle object
 robot.speed(0)          #robot travels faster than the speed of light
 
 #DRAW FIELD
 robot.penup()
-robot.goto(-width/2, -height/2)
+robot.goto(-WIDTH/2, -HEIGHT/2)
 robot.pendown()
-robot.goto(width/2, -height/2)
-robot.goto(width/2, height/2)
-robot.goto(-width/2, height/2)
-robot.goto(-width/2, -height/2)
+robot.goto(WIDTH/2, -HEIGHT/2)
+robot.goto(WIDTH/2, HEIGHT/2)
+robot.goto(-WIDTH/2, HEIGHT/2)
+robot.goto(-WIDTH/2, -HEIGHT/2)
 
 #DRAW INITIAL ROBOT POSE
 robot.penup()
-robot.goto(-START_POSE[1], START_POSE[0]-(height/2)) #pos manipulation to suit turtle coordinate system
-robot.seth((START_POSE[2]+(math.pi/2))/math.pi*180)  #rad manipulation to suit turtle heading system
+x, y, theta = field_to_screen(START_POSE)
+robot.goto(x, y)
+robot.seth(theta)
 robot.pendown()
 
-def move(new_pose):  #set new robot pose
-    # print(f'New pose: {new_pose}')
-    robot.goto(-new_pose[1], new_pose[0]-(height/2))
-    robot.seth((new_pose[2]+(math.pi/2))/math.pi*180)
-    # print(f'Robot Coordinates:  ({-robot.ycor()}, {robot.xcor() - height/2})')
+lookahead = turtle.Turtle()
+lookahead.speed(0)
+lookahead.color('red')
+lookahead.penup()
+lookahead.goto(x, y)
+lookahead.seth(theta)
+lookahead.pendown()
+
+def move(pose, lookahead_point):  #set new robot pose
+    x, y, theta = field_to_screen(pose)
+
+    xl, yl = x, y  # not really meaningful
+    if lookahead_point is not None:
+        xl, yl, _ = field_to_screen((lookahead_point[0], lookahead_point[1], 0))
+
+    lookahead.goto(xl, yl)
+    lookahead.seth(theta)
+
+    robot.goto(x, y)
+    robot.seth(theta)
+
 #turtle.done()   #finish
-
-# Begin Mr Odom code
-
-def update(pose):
-    move((pose[0]*39.3701, pose[1]*39.3701, pose[2]))
