@@ -165,7 +165,7 @@ def path_follow(current_x, current_y, current_heading, path):
 ###############################################################################
 
 
-LOOKAHEAD_TIME = 2.0  # s (tunable)
+LOOKAHEAD_TIME = 1.0  # s (tunable)
 MIN_LOOKAHEAD_DISTANCE = 1.0  # m (tunable)
 
 

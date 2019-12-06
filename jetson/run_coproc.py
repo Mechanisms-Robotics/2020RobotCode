@@ -20,8 +20,8 @@ def main():
 
     PATH_POINTS = (
         (0, 0),
-        (10*6.7, 0),
-        (10*6.7, 200),
+        (7, -1),
+        (7, 200),  # TODO workaroud
     )
 
     path = path_generator.generate_path_from_points(PATH_POINTS)
@@ -103,8 +103,6 @@ def main():
             #     VELOCITY, TURN_RADIUS)
 
             # send drive velocities to Rio
-
-            drive_velocities = (1.0, 1.0)
 
             update.drive_signal.demand_left = drive_velocities[0]
             update.drive_signal.demand_right = drive_velocities[1]

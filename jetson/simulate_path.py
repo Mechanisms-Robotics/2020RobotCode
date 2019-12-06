@@ -13,10 +13,9 @@ def feet_to_meters(x):
 
 
 TEST_POINTS = (
-    (0, 0),
-    (feet_to_meters(54), -feet_to_meters(27)/2),
-    (feet_to_meters(54), feet_to_meters(27)/2),
-    (0, 0),
+        (0, 0),
+        (7, -1),
+        (7, 200),  # TODO workaroud
 )
 
 
