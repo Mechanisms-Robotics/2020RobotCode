@@ -9,6 +9,7 @@ import frc2020.loops.ILooper;
 import frc2020.networking.*;
 import frc2020.networking.JetsonMessage.DriveSignal;
 import frc2020.networking.JetsonMessage.JetsonUpdate;
+import frc2020.robot.Constants;
 import frc2020.states.CommandState;
 import frc2020.states.CommandState.DriveDemand;
 import frc2020.util.Units;
@@ -122,6 +123,13 @@ public class Jetson implements Subsystem {
 
     public JetsonStatus getJetsonStatus() {
         return jetsonStatus_;
+    }
+
+    public boolean hasReceivedRecentDemand() {
+        if((Timer.getFPGATimestamp() - lastReceivedTimestamp_) >= Constants.LAST_RECIEVED_MESSAGE_TIMEOUT/1000){
+            return false;
+        } 
+        return true;
     }
 
     @Override
