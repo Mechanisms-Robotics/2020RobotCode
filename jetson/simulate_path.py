@@ -14,8 +14,8 @@ def feet_to_meters(x):
 
 TEST_POINTS = (
         (0, 0),
-        (7, -1),
-        (7, 200),  # TODO workaroud
+        (2, 0),
+        (2, 200),  # TODO workaroud
 )
 
 
@@ -42,6 +42,7 @@ def test_simulate_path():
             pose[2] + random.normalvariate(0, PERTURBATION_SIGMA))
         # print(f'{t},{pose[0]},{pose[1]},{pose[2]}')
         visualizer.move(pose, path.last_lookahead_point)
+        print(f'Distance on path: {path.distance_on_path}')
         drive_velocities = path.follow_path(pose, velocity, motion_profile)
         # print(f'{drive_velocities[0]}, {drive_velocities[1]}')
         pose = kinematics.find_new_pose(pose, drive_velocities, DT)

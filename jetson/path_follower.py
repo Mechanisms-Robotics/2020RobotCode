@@ -199,6 +199,9 @@ class Path:
         logging.debug('Distance on path after: %s' % self.distance_on_path)
 
         # determine the lookahead point
+        # Notice that the lookahead point may appear to jump.  This can happen
+        # when the robot gets closer to the next path than it is to the current
+        # path, and is an artifact of the design, not necessarily a problem.
         lookahead_distance = max(
             MIN_LOOKAHEAD_DISTANCE, LOOKAHEAD_TIME*velocity)
         lookahead_point = self.get_point_on_path(
