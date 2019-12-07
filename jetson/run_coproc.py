@@ -18,13 +18,16 @@ def main():
     # BEGIN MR ODOM EXPERIMENT - VIRTUAL DRIVER
     ##################################################################
 
-    PATH_POINTS = (
-        (0, 0),
+    PATH_POINTS = [
+        (0, 0)
+    ]
+
+    PATH_POINTS.extend([
+        (8, -1.2),
+        (8, 1.4),
+        (2, 1.4),
         (2, -1.2),
-        (9, -1.2),
-        (9, 1.2),
-        (2, 1.2),
-    )
+    ]*100)
 
     path = path_generator.generate_path_from_points(PATH_POINTS)
     motion_profile = motion_profiler.MotionProfile(path)
@@ -90,19 +93,19 @@ def main():
 
             # 4910 PURE PURSUIT
 
-            # pose = (
-            #     update.slam_update.x,
-            #     update.slam_update.y,
-            #     update.slam_update.theta)
-            # velocity = sensors.last_velocity_hack_todo
-            # drive_velocities = path.follow_path(pose, velocity, motion_profile)
+            pose = (
+                update.slam_update.x,
+                update.slam_update.y,
+                update.slam_update.theta)
+            velocity = sensors.last_velocity_hack_todo
+            drive_velocities = path.follow_path(pose, velocity, motion_profile)
 
             # EXPERIMENT FOR TESTING KINEMATICS
 
-            VELOCITY = 1.0  # m / s
-            TURN_RADIUS = 2.0  # m
-            drive_velocities = kinematics.find_drive_velocities(
-                VELOCITY, TURN_RADIUS)
+            # VELOCITY = 1.0  # m / s
+            # TURN_RADIUS = 2.0  # m
+            # drive_velocities = kinematics.find_drive_velocities(
+            #     VELOCITY, TURN_RADIUS)
 
             # send drive velocities to Rio
 

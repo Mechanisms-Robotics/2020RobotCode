@@ -153,6 +153,7 @@ class RSPipeline:
                 update.slam_update.update_epoc = pose_frame.get_timestamp()
                 # TODO:  This is not a permanent velocity solution.  Need
                 # to create a common codebase for common proto file.
+                global last_velocity_hack_todo
                 last_velocity_hack_todo = math.sqrt(
                     pose.velocity.x**2 + pose.velocity.z**2)
                 utils.print_occasional(

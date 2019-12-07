@@ -7,28 +7,30 @@ import path_follower
 import logging
 
 
+RAMP_UP_DISTANCE = 1.0  # m
+
+
 class MotionProfile:
     def __init__(self, path):
         self.path = path
         self.path_length = path.get_length()
 
-    def get_desired_velocity(self, distance_on_path, current_velocity):
+    def get_desired_velocity(self, current_velocity):
         '''
         Given the distance along the path (meters), return the desired
         velocity (m/s).
-
-        TODO: This is just an experimental implementation.  Why do we have
-        distance_on_path here when I can get it from self.path?
         '''
 
-        logging.debug(
-            'Motion profiler distance on path: %s' % distance_on_path)
+        # logging.debug(
+        #     'Motion profiler distance on path: %s' % distance_on_path)
 
-        RAMP_UP_DISTANCE = 1.0  # m
-        ramp_up = min(1.0, distance_on_path/RAMP_UP_DISTANCE)
-        ramp_down = min(1.0,
-            (self.path_length - distance_on_path)/RAMP_UP_DISTANCE)
-        desired_velocity = kinematics.RobotModel.MAX_VELOCITY*ramp_up*ramp_down
+        # distance_on_path = # TODO calculate from actual pose
+        # ramp_up = min(1.0, distance_on_path/RAMP_UP_DISTANCE)
+        # ramp_down = min(1.0,
+        #     (self.path_length - distance_on_path)/RAMP_UP_DISTANCE)
+        # desired_velocity = kinematics.RobotModel.MAX_VELOCITY*ramp_up*ramp_down
+
+        desired_velocity = 1.0  # m / s
 
 #        if desired_velocity == current_velocity:
 #            return current_velocity

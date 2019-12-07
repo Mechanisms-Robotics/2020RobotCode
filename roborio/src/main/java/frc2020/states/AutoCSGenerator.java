@@ -1,5 +1,6 @@
 package frc2020.states;
 
+import frc2020.robot.Constants;
 import frc2020.states.CommandState.DriveDemand;
 import frc2020.subsystems.Jetson;
 import frc2020.subsystems.Jetson.JetsonStatus;
@@ -24,13 +25,19 @@ public class AutoCSGenerator implements CommandStateGenerator {
     private DriveDemand generateDriveDemand() {
         JetsonStatus status = jetson_.getJetsonStatus();
         double left, right;
-        if (status.driveDemand.type == CommandState.DriveDemand.DemandType.Velocity) {
-            left = Units.metersPerSecondToEncTicksPer100Ms(status.driveDemand.demand.getLeft());
-            right = Units.metersPerSecondToEncTicksPer100Ms(status.driveDemand.demand.getRight());
-        } else {
+        if(jetson_.hasReceivedRecentDemand()){
+            if (status.driveDemand.type == CommandState.DriveDemand.DemandType.Velocity) {
+                left = Units.metersPerSecondToEncTicksPer100Ms(status.driveDemand.demand.getLeft());
+                right = Units.metersPerSecondToEncTicksPer100Ms(status.driveDemand.demand.getRight());
+            } else {
+                left = 0.0;
+                right = 0.0;
+                System.out.println("WARNING: Received Open Loop in Auto");
+            }
+        } else{
             left = 0.0;
             right = 0.0;
-            System.out.println("WARNING: Received Open Loop in Auto");
+            System.out.println("WARNING: Not recieved demand in " + Constants.LAST_RECIEVED_MESSAGE_TIMEOUT + " milliseconds");
         }
         return new DriveDemand(new DriveSignal(left, right), DriveDemand.DemandType.Velocity);
     }
