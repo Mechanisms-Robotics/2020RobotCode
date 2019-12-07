@@ -3,6 +3,7 @@ import math
 import numpy as np
 import utils
 import os.path
+import logging
 
 # Constants used for the depth cam
 # Note that the STRAM_FPS can only be 30, 60, or 90 depending on the
@@ -23,7 +24,7 @@ WINDOW_NAME = 'Pipeline'
 TUNING_MODE = True
 LEFT_ID = 0
 RIGHT_ID = 1
-USE_WHEEL_ODOM = False
+USE_WHEEL_ODOM = True
 
 #
 SETINGS_DIR = 'settings/'
@@ -64,14 +65,16 @@ class RSPipeline:
             self.depth_scale = sensor.get_depth_scale()
             self.align = rs.align(rs.stream.color)
         if self.use_tracking and USE_WHEEL_ODOM:
-            print("Failed")
-            self.wheel_data = profile.get_device().as_tm2().first_pose_sensor().as_wheel_odometer()
+            fp = profile.get_device().as_tm2().first_pose_sensor()
+            self.wheel_data = fp.as_wheel_odometer()
             chars = []
             with open(ODOM_SETTINGS) as f:
                 for line in f:
                     for c in line:
                         chars.append(ord(c))
-            self.wheel_data.load_wheel_odometery_config(chars)
+            logging.debug('Wheel odometry config:\n\n%s' % chars)
+            b = self.wheel_data.load_wheel_odometery_config(chars)
+            logging.info('load_wheel_odometery_config returned %s' % b)
 
     def wait_for_next_frame(self):
         '''
@@ -113,6 +116,7 @@ class RSPipeline:
             right_v = rs.vector()
             left_v.z = -left_vel
             right_v.z = -right_vel
+            logging.debug('Odometry  Left v: %s  Right v: %s' % (left_v, right_v))
             self.wheel_data.send_wheel_odometry(LEFT_ID, 0, left_v)
             self.wheel_data.send_wheel_odometry(RIGHT_ID, 0, right_v)
 

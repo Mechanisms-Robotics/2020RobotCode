@@ -30,7 +30,7 @@ class MotionProfile:
         #     (self.path_length - distance_on_path)/RAMP_UP_DISTANCE)
         # desired_velocity = kinematics.RobotModel.MAX_VELOCITY*ramp_up*ramp_down
 
-        desired_velocity = 1.0  # m / s
+        desired_velocity = 2.0  # m / s
 
 #        if desired_velocity == current_velocity:
 #            return current_velocity

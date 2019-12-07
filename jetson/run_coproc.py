@@ -109,10 +109,8 @@ def main():
 
             # send drive velocities to Rio
 
-            #update.drive_signal.demand_left = drive_velocities[0]
-            #update.drive_signal.demand_right = drive_velocities[1]
-            update.drive_signal.demand_left = 1.0
-            update.drive_signal.demand_right = 1.0
+            update.drive_signal.demand_left = drive_velocities[0]
+            update.drive_signal.demand_right = drive_velocities[1]
             update.drive_signal.demand_type = (
                 jetson_msg.DriveSignal.DemandType.Velocity)
 
