@@ -18,11 +18,16 @@ def main():
     # BEGIN MR ODOM EXPERIMENT - VIRTUAL DRIVER
     ##################################################################
 
-    PATH_POINTS = (
-        (0, 0),
-        (7, -1),
-        (7, 200),  # TODO workaroud
-    )
+    PATH_POINTS = [
+        (0, 0)
+    ]
+
+    PATH_POINTS.extend([
+        (8, -1.2),
+        (8, 1.4),
+        (2, 1.4),
+        (2, -1.2),
+    ]*100)
 
     path = path_generator.generate_path_from_points(PATH_POINTS)
     motion_profile = motion_profiler.MotionProfile(path)

@@ -4,7 +4,7 @@ import utils
 
 class RobotModel:
     WHEEL_BASE = 1.5  # m  (tuned)
-    MAX_VELOCITY = 1.0  # m / s  (3 m/s is about 10 ft/s)
+    MAX_VELOCITY = 3.5  # m / s  (3 m/s is about 10 ft/s)
     MIN_VELOCITY = 0.1
 
 
