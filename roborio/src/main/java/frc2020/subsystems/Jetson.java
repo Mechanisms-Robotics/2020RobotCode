@@ -126,7 +126,9 @@ public class Jetson implements Subsystem {
     }
 
     public boolean hasReceivedRecentDemand() {
-        if((Timer.getFPGATimestamp() - lastReceivedTimestamp_) >= Constants.LAST_RECIEVED_MESSAGE_TIMEOUT/1000){
+        double delta = Timer.getFPGATimestamp() - lastReceivedTimestamp_;
+        if(delta >= Constants.LAST_RECIEVED_MESSAGE_TIMEOUT/1000){
+            System.out.println("Delta (sec): " + delta);
             return false;
         } 
         return true;

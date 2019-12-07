@@ -23,6 +23,7 @@ WINDOW_NAME = 'Pipeline'
 TUNING_MODE = True
 LEFT_ID = 0
 RIGHT_ID = 1
+USE_WHEEL_ODOM = False
 
 #
 SETINGS_DIR = 'settings/'
@@ -45,7 +46,8 @@ class RSPipeline:
         self.depth_scale = 0.0
         self.pipeline = rs.pipeline()
         self.frames_ = None
-        self.wheel_data = None
+        if USE_WHEEL_ODOM:
+            self.wheel_data = None
 
     def start(self):
         '''
@@ -61,7 +63,8 @@ class RSPipeline:
             sensor = profile.get_device().first_depth_sensor()
             self.depth_scale = sensor.get_depth_scale()
             self.align = rs.align(rs.stream.color)
-        if self.use_tracking:
+        if self.use_tracking and USE_WHEEL_ODOM:
+            print("Failed")
             self.wheel_data = profile.get_device().as_tm2().first_pose_sensor().as_wheel_odometer()
             chars = []
             with open(ODOM_SETTINGS) as f:
@@ -105,12 +108,13 @@ class RSPipeline:
         return cfg
 
     def send_wheel_data(self, left_vel, right_vel):
-        left_v = rs.vector()
-        right_v = rs.vector()
-        left_v.z = -left_vel
-        right_v.z = -right_vel
-        self.wheel_data.send_wheel_odometry(LEFT_ID, 0, left_v)
-        self.wheel_data.send_wheel_odometry(RIGHT_ID, 0, right_v)
+        if USE_WHEEL_ODOM:
+            left_v = rs.vector()
+            right_v = rs.vector()
+            left_v.z = -left_vel
+            right_v.z = -right_vel
+            self.wheel_data.send_wheel_odometry(LEFT_ID, 0, left_v)
+            self.wheel_data.send_wheel_odometry(RIGHT_ID, 0, right_v)
 
     def get_slam_update(self, update):
         '''
