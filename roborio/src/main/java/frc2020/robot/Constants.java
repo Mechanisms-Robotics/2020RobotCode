@@ -52,7 +52,7 @@ public class Constants {
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
 
     //Jetson
-    public final static int LAST_RECIEVED_MESSAGE_TIMEOUT = 100;//milliseconds
+    public final static double LAST_RECIEVED_MESSAGE_TIMEOUT = 100;//milliseconds
    
     /**
      * @return the MAC address of the robot
