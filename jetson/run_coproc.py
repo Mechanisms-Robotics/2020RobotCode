@@ -7,6 +7,9 @@ import motion_profiler
 import kinematics
 
 
+ODOMETRY_DEAD_ZONE = 0.0  # m/s
+
+
 def main():
     tracking = sensors.RSPipeline(True, False)
     publisher = networking.ZMQServer()
@@ -46,6 +49,10 @@ def main():
                 if rio_update.odometry_update:
                     wheel_left = rio_update.odometry_update.left
                     wheel_right = rio_update.odometry_update.right
+                    if abs(wheel_left) <= ODOMETRY_DEAD_ZONE:
+                        wheel_left = 0.0
+                    if abs(wheel_right) <= ODOMETRY_DEAD_ZONE:
+                        wheel_right = 0.0
                     tracking.send_wheel_data(wheel_left, wheel_right)
 
             ##################################################################

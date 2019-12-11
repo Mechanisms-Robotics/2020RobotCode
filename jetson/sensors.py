@@ -2,7 +2,6 @@ import pyrealsense2 as rs
 import math
 import numpy as np
 import utils
-import os.path
 import logging
 
 # Constants used for the depth cam
@@ -24,7 +23,7 @@ WINDOW_NAME = 'Pipeline'
 TUNING_MODE = True
 LEFT_ID = 0
 RIGHT_ID = 1
-USE_WHEEL_ODOM = True
+USE_WHEEL_ODOM = False
 
 #
 SETINGS_DIR = 'settings/'
@@ -32,6 +31,7 @@ ODOM_SETTINGS = 'calibration_odometry.json'
 kernal = np.ones((5, 5), np.uint8)
 
 last_velocity_hack_todo = 0.0
+
 
 class RSPipeline:
     '''
@@ -49,6 +49,9 @@ class RSPipeline:
         self.frames_ = None
         if USE_WHEEL_ODOM:
             self.wheel_data = None
+            logging.info('Wheel odometry is ON.')
+        else:
+            logging.info('Wheel odometry is OFF.')
 
     def start(self):
         '''
@@ -116,7 +119,8 @@ class RSPipeline:
             right_v = rs.vector()
             left_v.z = -left_vel
             right_v.z = -right_vel
-            logging.debug('Odometry  Left v: %s  Right v: %s' % (left_v, right_v))
+            logging.debug('Odometry  Left v: %s  Right v: %s'
+                          % (left_v, right_v))
             self.wheel_data.send_wheel_odometry(LEFT_ID, 0, left_v)
             self.wheel_data.send_wheel_odometry(RIGHT_ID, 0, right_v)
 
@@ -160,9 +164,15 @@ class RSPipeline:
                 global last_velocity_hack_todo
                 last_velocity_hack_todo = math.sqrt(
                     pose.velocity.x**2 + pose.velocity.z**2)
-                utils.print_occasional(
-                    'Velocity: %s  m/s' % last_velocity_hack_todo)
-
+                if DEBUG_MODE:
+                    utils.print_occasional(
+                        'Velocity: %s  m/s' % last_velocity_hack_todo)
+                    utils.print_occasional(
+                        'Mapper confidence (0 - failed  3 - high): %s'
+                        % pose.mapper_confidence)
+                    utils.print_occasional(
+                        'Tracker confidence (0 - failed  3 - high): %s'
+                        % pose.tracker_confidence)
 
     def get_rgbd(self):
         if self.started_ and self.depth_camera and self.frames_:
