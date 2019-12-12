@@ -7,7 +7,7 @@ import motion_profiler
 import kinematics
 
 
-ODOMETRY_DEAD_ZONE = 0.0  # m/s
+ODOMETRY_DEAD_ZONE = 0.01  # m/s
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
         (8, 1.4),
         (2, 1.4),
         (2, -1.2),
-    ]*100)
+    ]*1000)
 
     path = path_generator.generate_path_from_points(PATH_POINTS)
     motion_profile = motion_profiler.MotionProfile(path)

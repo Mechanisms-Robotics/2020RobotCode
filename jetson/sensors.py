@@ -23,7 +23,7 @@ WINDOW_NAME = 'Pipeline'
 TUNING_MODE = True
 LEFT_ID = 0
 RIGHT_ID = 1
-USE_WHEEL_ODOM = False
+USE_WHEEL_ODOM = True
 
 #
 SETINGS_DIR = 'settings/'
@@ -167,9 +167,9 @@ class RSPipeline:
                 if DEBUG_MODE:
                     utils.print_occasional(
                         'Velocity: %s  m/s' % last_velocity_hack_todo)
-                    utils.print_occasional(
-                        'Mapper confidence (0 - failed  3 - high): %s'
-                        % pose.mapper_confidence)
+                    # utils.print_occasional(
+                    #    'Mapper confidence (0 - failed  3 - high): %s'
+                    #    % pose.mapper_confidence)
                     utils.print_occasional(
                         'Tracker confidence (0 - failed  3 - high): %s'
                         % pose.tracker_confidence)
