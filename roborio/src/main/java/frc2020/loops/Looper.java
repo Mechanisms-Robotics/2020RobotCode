@@ -47,7 +47,7 @@ public class Looper implements ILooper {
     }
 
     @Override
-    public synchronized void registure(Loop loop) {
+    public synchronized void register(Loop loop) {
         synchronized (syncLock) {
             loops_.add(loop);
         }

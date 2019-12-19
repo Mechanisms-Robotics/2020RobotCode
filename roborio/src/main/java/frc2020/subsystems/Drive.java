@@ -3,6 +3,8 @@ package frc2020.subsystems;
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+
+import frc2020.util.drivers.NavX;
 import frc2020.util.drivers.PhoenixFactory;
 import frc2020.util.drivers.TalonSRXUtil;
 import frc2020.util.geometry.Rotation2d;
@@ -62,6 +64,9 @@ public class Drive implements Subsystem {
 
     // State
     private DriveState state_;
+
+    //NavX
+    private NavX gyro_;
 
     // Motors
     private TalonSRX leftMaster_, rightMaster_;
@@ -140,6 +145,9 @@ public class Drive implements Subsystem {
         shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
         state_ = DriveState.OpenLoop;
 
+        // Configure NavX
+        gyro_ = new NavX(SerialPort.Port.kUSB);
+
         rightMaster_.configClosedloopRamp(0.25);
         leftMaster_.configClosedloopRamp(0.25);
 
@@ -198,7 +206,7 @@ public class Drive implements Subsystem {
 
     @Override
     public void registerLoops(ILooper in){
-        in.registure(DriveLoop);
+        in.register(DriveLoop);
     }
 
     /**
@@ -374,6 +382,15 @@ public class Drive implements Subsystem {
         System.out.println("[INFO] Ramp mode set to " + ramp.toString());
     }
 
+    public synchronized Rotation2d getHeading() {
+        return io_.gyro_heading;
+    }
+
+    public synchronized void setHeading(Rotation2d heading) {
+        Rotation2d adjustment = heading.rotateBy(gyro_.getRawRotation().inverse());
+        gyro_.setAngleAdjustment(adjustment);
+    }
+
     public synchronized boolean getGear() {
         if (shifter_.get() == lowGear_) {
             return true;
@@ -461,6 +478,7 @@ public class Drive implements Subsystem {
         io_.right_position_ticks = rightMaster_.getSelectedSensorPosition(0);
         io_.left_velocity_ticks_per_100ms = leftMaster_.getSelectedSensorVelocity(0);
         io_.right_velocity_ticks_per_100ms = rightMaster_.getSelectedSensorVelocity(0);
+        io_.gyro_heading = gyro_.getYaw();
 
         double deltaLeftTicks = ((io_.left_position_ticks - prevLeftTicks) / 4096.0) * Math.PI;
         if (deltaLeftTicks > 0.0) {

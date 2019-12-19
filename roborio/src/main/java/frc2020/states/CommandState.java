@@ -1,6 +1,7 @@
 package frc2020.states;
 
 import frc2020.subsystems.Drive;
+import frc2020.subsystems.RobotStateEstimator;
 import frc2020.util.DriveSignal;
 
 public class CommandState {

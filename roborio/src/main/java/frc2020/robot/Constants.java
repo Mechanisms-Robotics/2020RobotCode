@@ -29,7 +29,7 @@ public class Constants {
 
     // Drive Train Physical Properties
     // inches NOTE: This is the effective wheel diameter not the measured one
-    public final static double WHEEL_DIAMETER = 6.0;
+    public final static double WHEEL_DIAMETER = 5.9937565;
     public final static double WHEEL_RADIUS = WHEEL_DIAMETER / 2; // inches
     public final static double DRIVE_TRACK_WIDTH = 25.0;
     public final static double TRACK_SCRUB_FACTOR = 1.062; // We use this to calculate effective wheel base

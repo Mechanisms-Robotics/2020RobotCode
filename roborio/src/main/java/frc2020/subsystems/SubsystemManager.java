@@ -79,15 +79,15 @@ public class SubsystemManager implements ILooper {
 
     public void registerEnabledLoops(Looper loop) {
         allSubsystems.forEach((s) -> s.registerLoops(this));
-        loop.registure(new Enabled());
+        loop.register(new Enabled());
     }
 
     public void registerDisabledLoops(Looper loop) {
-        loop.registure(new Disabled());
+        loop.register(new Disabled());
     }
 
     @Override
-    public void registure(Loop loop) {
+    public void register(Loop loop) {
         loops_.add(loop);
     }
 }
