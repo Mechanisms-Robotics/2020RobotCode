@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Composite command, running all sub-command at the same time All command are started then updated until all command
+ * Composite command, running all sub-command at the same time. All command are started then updated until all command
  * report being done.
  *
  * @param A List of Command objects
@@ -12,6 +12,9 @@ import java.util.List;
 public class ParallelCommand implements Command {
     private final ArrayList<Command> commands;
 
+    /**
+    * Default constructor initializes commands
+    */
     public ParallelCommand(List<Command> c) {
         commands = new ArrayList<>(c.size());
         for (Command command : c) {
@@ -19,6 +22,9 @@ public class ParallelCommand implements Command {
         }
     }
 
+    /**
+    * Returns true if all commands are finished running
+    */
     @Override
     public boolean isFinished() {
         boolean all_finished = true;
@@ -30,6 +36,9 @@ public class ParallelCommand implements Command {
         return all_finished;
     }
 
+    /**
+    * Updates every command
+    */
     @Override
     public void update() {
         for (Command command : commands) {
@@ -37,6 +46,9 @@ public class ParallelCommand implements Command {
         }
     }
 
+    /**
+    * Finishes every command
+    */
     @Override
     public void done() {
         for (Command command : commands) {
@@ -44,6 +56,9 @@ public class ParallelCommand implements Command {
         }
     }
 
+    /**
+    * Starts every command
+    */
     @Override
     public void start() {
         for (Command command : commands) {
