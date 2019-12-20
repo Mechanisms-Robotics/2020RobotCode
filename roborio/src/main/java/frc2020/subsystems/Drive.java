@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The base drive train class for the 2019 robot. It contains all functions
- * required to move for both autonomous and telop periods of the game.
+ * required to move for both autonomous and teleop periods of the game.
  * Path following logic inspired by 254
  *
  * @author Team 4910
@@ -26,7 +26,7 @@ public class Drive implements Subsystem {
     private static final double DRIVE_ENCODER_PPR = 4096.0;
     private static final int VELOCITY_SLOT = 0;
 
-    // This is the instance_ of the robot that is running on the Robot
+    // This is the instance_ of the Drive object on the robot
     public static Drive instance_;
 
     /**
@@ -40,7 +40,7 @@ public class Drive implements Subsystem {
     }
 
     /**
-     * The ramp modes supported by DriveTain
+     * The ramp modes supported by Drive
      */
     public enum RampMode {
         None,
@@ -49,9 +49,9 @@ public class Drive implements Subsystem {
     }
 
     /**
-     * The instance_ of DriveTrain
+     * The instance_ of Drive
      *
-     * @return The current instance_ of DriveTrain
+     * @return The current instance_ of Drive
      */
     public static Drive getInstance() {
         if (instance_ == null) {
@@ -67,7 +67,7 @@ public class Drive implements Subsystem {
     private TalonSRX leftMaster_, rightMaster_;
     private TalonSRX leftSlave_, rightSlave_;
 
-    // Shifterd
+    // Shifter
     private DoubleSolenoid shifter_;
     private DoubleSolenoid.Value lowGear_ = DoubleSolenoid.Value.kForward;
     private DoubleSolenoid.Value highGear_ = DoubleSolenoid.Value.kReverse;
@@ -151,7 +151,7 @@ public class Drive implements Subsystem {
     private final Loop DriveLoop = new Loop() {
 
         /**
-         * Handles any enabling tasks for the drive train.
+         * Handles any intialization tasks for the drive train
          */
         public void init() {
             synchronized (Drive.this) {
@@ -161,7 +161,7 @@ public class Drive implements Subsystem {
         }
 
         /**
-         * The function that handles any periodic tasks that the drive needs.
+         * Handles any periodic tasks for the drive train
          */
         public void run() {
             synchronized (Drive.this) {
@@ -177,7 +177,7 @@ public class Drive implements Subsystem {
         }
 
         /**
-         * Handles any tasks for the drive train on disableing
+         * Handles any tasks for the drive train on disabling
          */
         public void end() {
             openLoop(new DriveSignal(0, 0));
@@ -185,7 +185,7 @@ public class Drive implements Subsystem {
     };
 
     /**
-     * Returns the Iterate Drive Loop
+     * Returns the Drive Loop
      *
      * @return The Drive Loop
      */
@@ -193,15 +193,18 @@ public class Drive implements Subsystem {
         return DriveLoop;
     }
 
+    /**
+    * Registers the Drive Loop
+    */
     @Override
     public void registerLoops(ILooper in){
         in.registure(DriveLoop);
     }
 
     /**
-     * Set all the CANTalons breakMode
+     * Set all the CANTalons to Brake Mode
      *
-     * @param mode the mode tio set the break on the CANTalons to
+     * @param mode the mode to set the brake on the CANTalons to
      */
     public synchronized void setBrakeMode(boolean mode) {
         if (mode) {
@@ -217,6 +220,9 @@ public class Drive implements Subsystem {
         }
     }
 
+    /**
+    * Sets all the CANTalons' power to 0
+    */
     @Override
     public void stop(){
         openLoop(DriveSignal.NEUTRAL);
@@ -245,7 +251,7 @@ public class Drive implements Subsystem {
     }
 
     /**
-     * Drive the robot at a velocity this also sets it to path following mode.
+     * Drive the robot at a specified velocity this also sets it to path following mode.
      *
      * @param signal      The velocities to drive at
      * @param feedforward The calculated feedforward values to use
@@ -265,8 +271,9 @@ public class Drive implements Subsystem {
     }
 
     /**
-     * Drive the robot at a given velocity
-     * @param signal The velocity to drive
+     * Drive the robot at a specified velocity this also sets it to path following mode.
+     *
+     * @param signal The velocities to drive at
      */
     public synchronized void driveVelocity(DriveSignal signal) {
         if (state_ != DriveState.Velocity) {
@@ -282,6 +289,9 @@ public class Drive implements Subsystem {
         io_.right_feedforward = Constants.DRIVE_KV;
     }
 
+    /**
+    * Resets encoder ticks
+    */
     @Override
 	public synchronized void zeroSensors(){
 		leftMaster_.setSelectedSensorPosition(0, 0, Constants.CAN_TIMEOUT);
@@ -290,7 +300,7 @@ public class Drive implements Subsystem {
 
 
     /**
-     * Loads the PID gains onto the TalonSRXs
+     * Loads the PID gains onto the CANTalons
      */
     private synchronized void loadGains() {
         leftMaster_.config_kP(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KP, Constants.CAN_TIMEOUT);
@@ -310,14 +320,14 @@ public class Drive implements Subsystem {
     /**
      * Returns the state_ of the drive train
      *
-     * @return The current dive state_.
+     * @return The current drive state_.
      */
     public DriveState getState() {
         return state_;
     }
 
     /**
-     * Cycles the gearing.
+     * Toggles the robot between low gear or high gear
      */
     public synchronized void shift() {
         if (shifter_.get() == highGear_) {
@@ -332,10 +342,6 @@ public class Drive implements Subsystem {
      */
     public synchronized void setHighGear() {
         shifter_.set(highGear_);
-    }
-
-    public synchronized void setHighGear(boolean high_gear) {
-        shifter_.set(high_gear ? highGear_ : lowGear_);
     }
 
     /**
@@ -371,6 +377,11 @@ public class Drive implements Subsystem {
         System.out.println("[INFO] Ramp mode set to " + ramp.toString());
     }
 
+    /**
+    * Gets the current mode the shifter is in low gear or high gear
+    *
+    * @return The current shifter state.
+    */
     public synchronized boolean getGear() {
         if (shifter_.get() == lowGear_) {
             return true;
@@ -379,78 +390,171 @@ public class Drive implements Subsystem {
         }
     }
 
+    /**
+    * Converts wheel rotations to linear inches
+    *
+    * @return Linear inches traveled for x wheel rotations.
+    */
     private static double rotationsToInches(double rotations) {
         return rotations * (Constants.WHEEL_DIAMETER * Math.PI);
     }
 
+    /**
+    * Converts RPM to IPS
+    *
+    * @return The linear inches traveled per second for a wheel moving at x rpm.
+    */
     private static double rpmToInchesPerSecond(double rpm) {
         return rotationsToInches(rpm) / 60;
     }
 
+    /**
+    * Converts linear inches to wheel rotations
+    *
+    * @return Wheel rotations for x linear inches traveled.
+    */
     private static double inchesToRotations(double inches) {
         return inches / (Constants.WHEEL_DIAMETER * Math.PI);
     }
 
+    /**
+    * Converts wheel rotations to encoder ticks
+    *
+    * @return Encoder ticks for x wheel rotations.
+    */
     private static double rotationsToEncoderTicks(double rotations) {
         return rotations * DRIVE_ENCODER_PPR;
     }
 
+    /**
+    * Converts linear inches traveled to encoder ticks
+    *
+    * @return Encoder ticks for x linear inches traveled.
+    */
     private static double inchesToEncoderTicks(double inches) {
         return rotationsToEncoderTicks(inchesToRotations(inches));
     }
 
+    /**
+    * Converts IPS to RPM
+    *
+    * @return The RPM of a wheel that is traveling x IPS.
+    */
     private static double inchesPerSecondToRpm(double inches_per_second) {
         return inchesToRotations(inches_per_second) * 60;
     }
 
+    /**
+    * Converts radians per second to encoder ticks per 100 miliseconds
+    *
+    * @return Encoder ticks per 100 miliseconds for a wheel that is rotating at x radians per second.
+    */
     private static double radiansPerSecondToTicksPer100ms(double rad_s) {
         return rad_s / (Math.PI * 2.0) * 4096.0 / 10.0;
     }
 
+    /**
+    * Gets the left encoder rotations
+    *
+    * @return Left encoder rotations.
+    */
     public double getLeftEncoderRotations() {
         return io_.left_position_ticks / DRIVE_ENCODER_PPR;
     }
 
+    /**
+    * Gets the right encoder rotations
+    *
+    * @return Right encoder rotations.
+    */
     public double getRightEncoderRotations() {
         return io_.right_position_ticks / DRIVE_ENCODER_PPR;
     }
 
+    /**
+    * Gets the left distance traveled in inches
+    *
+    * @return Left distance in inches.
+    */
     public double getLeftEncoderDistance() {
         return rotationsToInches(getLeftEncoderRotations());
     }
 
+    /**
+    * Gets the right distance traveled in inches
+    *
+    * @return Right distance in inches.
+    */
     public double getRightEncoderDistance() {
         return rotationsToInches(getRightEncoderRotations());
     }
 
+    /**
+    * Gets the right velocity in native units
+    *
+    * @return Right velocity in native units.
+    */
     public double getRightVelocityNativeUnits() {
         return io_.right_velocity_ticks_per_100ms;
     }
 
+    /**
+    * Gets the right velocity in IPS
+    *
+    * @return Right velocity in IPS.
+    */
     public double getRightLinearVelocity() {
         return rotationsToInches(getRightVelocityNativeUnits() * 10.0 / DRIVE_ENCODER_PPR);
     }
 
+    /**
+    * Gets the left velocity in native units
+    *
+    * @return Left velocity in native units.
+    */
     public double getLeftVelocityNativeUnits() {
         return io_.left_velocity_ticks_per_100ms;
     }
 
+    /**
+    * Gets the left velocity in IPS
+    *
+    * @return Left velocity in IPS.
+    */
     public double getLeftLinearVelocity() {
         return rotationsToInches(getLeftVelocityNativeUnits() * 10.0 / DRIVE_ENCODER_PPR);
     }
 
+    /**
+    * Gets the total linear velocity of the robot
+    *
+    * @return Linear velocity of robot.
+    */
     public double getLinearVelocity() {
         return (getLeftLinearVelocity() + getRightLinearVelocity()) / 2.0;
     }
 
+    /**
+    * Gets the total angular velocity of the robot
+    *
+    * @return Angular velocity of robot.
+    */
     public double getAngularVelocity() {
         return (getRightLinearVelocity() - getLeftLinearVelocity()) / Constants.DRIVE_TRACK_WIDTH;
     }
 
+    /**
+    * Gets the total average voltage of the robot
+    *
+    * @return Average voltage of robot.
+    */
     public double getAvgVoltage() {
         return (io_.left_voltage+io_.right_volatge)/2;
     }
 
+    /**
+    * Handles reading all of the data from encoders/CANTalons periodically
+    */
     public synchronized void readPeriodicInputs() {
         double prevLeftTicks = io_.left_position_ticks;
         double prevRightTicks = io_.right_position_ticks;
@@ -481,6 +585,9 @@ public class Drive implements Subsystem {
         }
     }
 
+    /**
+    * Handles writing outputs to CANTalons periodically
+    */
     public synchronized void writePeriodicOutputs() {
         if (state_ == DriveState.OpenLoop) {
             leftMaster_.set(ControlMode.PercentOutput, io_.left_demand, DemandType.ArbitraryFeedForward, 0.0);
@@ -520,12 +627,18 @@ public class Drive implements Subsystem {
 
     }
 
+    /**
+    * Starts logging data to a csv
+    */
     public synchronized void startLogging() {
         if (CSVWriter_ == null) {
             CSVWriter_ = new ReflectingCSVWriter<>("/home/lvuser/DRIVE-LOGS.csv", PeriodicIO.class);
         }
     }
 
+    /**
+    * Stops logging data to a csv
+    */
     public synchronized void stopLogging() {
         if (CSVWriter_ != null) {
             CSVWriter_.flush();
@@ -533,6 +646,9 @@ public class Drive implements Subsystem {
         }
     }
 
+    /**
+    * Outputs telemetry to SmartDashboard and csv
+    */
     @Override
     public void outputTelemetry() {
         SmartDashboard.putNumber("Right Drive Distance", io_.right_distance);
