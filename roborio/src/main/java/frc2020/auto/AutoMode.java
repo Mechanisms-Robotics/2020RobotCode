@@ -17,6 +17,9 @@ public abstract class AutoMode {
 
     protected abstract void routine() throws AutoModeEndedException;
 
+    /**
+    * Will run the AutoMode's routine until it is finished
+    */
     public void run() {
         running = true;
         try {
@@ -49,6 +52,9 @@ public abstract class AutoMode {
         return isRunning();
     }
 
+    /**
+    * Will start command then update it every 20 milliseconds until finished
+    */
     public void runCommand(Command command) throws AutoModeEndedException {
         isRunningWithThrow();
         command.start();
