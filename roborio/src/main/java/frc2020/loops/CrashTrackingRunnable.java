@@ -1,7 +1,7 @@
 package frc2020.loops;
 
 /**
- * Runnable class with reports all uncaught throws to CrashTracker
+ * Runnable class which reports all uncaught throws to CrashTracker
  */
 public abstract class CrashTrackingRunnable implements Runnable {
 
