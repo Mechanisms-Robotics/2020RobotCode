@@ -1,6 +1,7 @@
 package frc2020.robot;
 
 import frc2020.util.DriveSignal;
+import frc2020.util.geometry.Pose2d;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
@@ -46,7 +47,8 @@ public class Robot extends TimedRobot {
         manager = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
-                  Jetson.getInstance()
+                  Jetson.getInstance(),
+                  RobotStateEstimator.getInstance()
                 )
         );
         
@@ -135,6 +137,7 @@ public class Robot extends TimedRobot {
             }
             drive_.setRampMode(Drive.RampMode.None);
             drive_.setHighGear();
+            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
             enabledIterator.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -160,6 +163,7 @@ public class Robot extends TimedRobot {
             CrashTracker.logTeleopInit();
             disabledIterator.stop();
             compressor_.setClosedLoopControl(true);
+            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
             enabledIterator.start();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setRampMode(Drive.RampMode.LowLift);
