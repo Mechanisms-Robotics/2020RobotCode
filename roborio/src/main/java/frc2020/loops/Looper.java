@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * This class handles everything that needs to iterate
- * Thank you to team 245 for profiding the base for this code!
+ * Thank you to team 254 for providing the base for this code!
  * Original Code:
  * Copyright (c) 2017 Team 254
  */
@@ -24,6 +24,10 @@ public class Looper implements ILooper {
     private double timestamp = 0;
     private double dt = 0;
 
+    /**
+    * This is the runnable object that the notifier_ will take in and call
+    * runCrashTracked() every 10 miliseconds
+    */
     private final CrashTrackingRunnable runnable = new CrashTrackingRunnable() {
         @Override
         public void runCrashTracked() {
@@ -40,19 +44,28 @@ public class Looper implements ILooper {
         }
     };
 
+    /**
+    * Default constructor for Looper will initialize the notifier and loops
+    */
     public Looper() {
         notifier_ = new Notifier(runnable);
         isRunning = false;
         loops_ = new ArrayList<>();
     }
 
+    /**
+    * Will register a new loop.
+    */
     @Override
-    public synchronized void registure(Loop loop) {
+    public synchronized void register(Loop loop) {
         synchronized (syncLock) {
             loops_.add(loop);
         }
     }
 
+    /**
+    * Will run init() on all loops and start the notifier's periodic loop
+    */
     public synchronized void start() {
         if (!isRunning) {
             System.out.println("Starting loops");
@@ -67,6 +80,9 @@ public class Looper implements ILooper {
         }
     }
 
+    /**
+    * Will run end() on all loops and stop the notifier's periodic loop
+    */
     public synchronized void stop() {
         if (isRunning) {
             System.out.println("Stopping loops");
@@ -81,6 +97,9 @@ public class Looper implements ILooper {
         }
     }
 
+    /**
+    * Will output the delta_time to SmartDashboard
+    */
     public void outputToSmartDashboard() {
         SmartDashboard.putNumber("looper_dt", dt);
     }

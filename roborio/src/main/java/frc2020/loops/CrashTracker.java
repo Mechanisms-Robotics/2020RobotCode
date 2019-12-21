@@ -7,44 +7,71 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * Tracks start-up and caught crash events, logging them to a file which dosn't roll over
+ * Tracks start-up and caught crash events, logging them to a file which doesn't roll over
  */
 public class CrashTracker {
 
     private static final UUID RUN_INSTANCE_UUID = UUID.randomUUID();
 
+    /**
+    * Logs robot startup
+    */
     public static void logRobotStartup() {
         logMarker("robot startup");
     }
 
+    /**
+    * Logs robot startup
+    */
     public static void logRobotConstruction() {
-        logMarker("robot startup");
+        logMarker("robot construction");
     }
 
+    /**
+    * Logs robot init
+    */
     public static void logRobotInit() {
         logMarker("robot init");
     }
 
+    /**
+    * Logs teleop init
+    */
     public static void logTeleopInit() {
         logMarker("teleop init");
     }
 
+    /**
+    * Logs auto init
+    */
     public static void logAutoInit() {
         logMarker("auto init");
     }
 
+    /**
+    * Logs disabled init
+    */
     public static void logDisabledInit() {
         logMarker("disabled init");
     }
 
+    /**
+    * Logs throwable crash
+    */
     public static void logThrowableCrash(Throwable throwable) {
         logMarker("Exception", throwable);
     }
 
+    /**
+    * Writes UUID, string, and date
+    */
     protected static void logMarker(String mark) {
         logMarker(mark, null);
     }
 
+    /**
+    * Writes UUID, string, date, and a stack trace if it was passed an exception
+    */
     protected static void logMarker(String mark, Throwable nullableException) {
 
         try (PrintWriter writer = new PrintWriter(new FileWriter("/home/lvuser/crash_tracking.txt", true))) {

@@ -1,6 +1,7 @@
 package frc2020.robot;
 
 import frc2020.util.DriveSignal;
+import frc2020.util.geometry.Pose2d;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
@@ -37,6 +38,11 @@ public class Robot extends TimedRobot {
     private TeleopCSGenerator teleopCSGenerator_;
     private AutoCSGenerator autoCSGenerator_;
 
+    /**
+    * Default constructor, initializes the enabledIterator, disabledIterator,
+    * SubsystemManager, Drive instance, compressor, PDP, TeleopCSGenerator, and
+    * the AutoChooser
+    */
     public Robot() {
 
         enabledIterator = new Looper();
@@ -46,10 +52,11 @@ public class Robot extends TimedRobot {
         manager = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
-                  Jetson.getInstance()
+                  Jetson.getInstance(),
+                  RobotStateEstimator.getInstance()
                 )
         );
-        
+
 
         drive_ = Drive.getInstance();
         jetson_ = Jetson.getInstance();
@@ -62,8 +69,8 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * This function is run when the robot is first started up and should be
-     * used for any initialization code.
+     * Logs the robot init, registers subsystem loops with the SubsystemManager,
+     * outputs PDP data to SmartDashboard, and logs crashes.
      */
     @Override
     public void robotInit() {
@@ -81,7 +88,8 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * The periodic function that runs for the entire runtime of the robot
+     * Tells the SubsystemManager to get all subsystems to output their telemetry
+     * to the SmartDashboard and logs crashes.
      */
     @Override
     public void robotPeriodic() {
@@ -95,7 +103,8 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * This function preforms all tasks that are needed to disable the robot
+     * Logs disabled init, stops the enabledIterator and autoRunner, enables the
+     * disabledIterator, stops drive_, and logs crashes
      */
     @Override
     public void disabledInit() {
@@ -115,15 +124,13 @@ public class Robot extends TimedRobot {
         }
     }
 
-    /**
-     * Any periotic tasks that need to run while the robot is disabled
-     */
     @Override
     public void disabledPeriodic() {
     }
 
     /**
-     * This function configures the robot for atonomous and starts the atuo thread
+     * Stops the disabledIterator and autoRunner, sets ramp mode and shifter mode
+     * on drive, starts the enabledIterator, and logs crashes
      */
     @Override
     public void autonomousInit() {
@@ -135,6 +142,7 @@ public class Robot extends TimedRobot {
             }
             drive_.setRampMode(Drive.RampMode.None);
             drive_.setHighGear();
+            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
             enabledIterator.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -142,16 +150,15 @@ public class Robot extends TimedRobot {
         }
     }
 
-    /**
-     * This function is called periodically during autonomous.
-     */
     @Override
     public void autonomousPeriodic() {
         autoCSGenerator_.getCommandState().updateSubsystems(drive_);
     }
 
     /**
-     * Configures the robot for teleop
+     * Logs teleop init, stops the disabledIterator, sets the compressor to use
+     * closed loop control, starts the enabledIterator, sets ramp mode and shifter
+     * mode of drive, stops the autoRunner, starts a new autoRunner, and logs crashes
      */
     @Override
     public void teleopInit() {
@@ -160,6 +167,7 @@ public class Robot extends TimedRobot {
             CrashTracker.logTeleopInit();
             disabledIterator.stop();
             compressor_.setClosedLoopControl(true);
+            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
             enabledIterator.start();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setRampMode(Drive.RampMode.LowLift);
@@ -178,15 +186,14 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * This function is called periodically during operator control.
-     */
+    * Tells the TeleopCSGenerator to update subsystems and logs crashes
+    */
     @Override
     public void teleopPeriodic() {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
             teleopCSGenerator_.getCommandState().updateSubsystems(drive_);
-            
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -194,7 +201,7 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * This function is called at the start of test mode.
+     * Stops the disabledIterator, starts the enabledIterator, and logs crashes
      */
     @Override
     public void testInit() {
@@ -209,12 +216,12 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * This function is called periodically during test mode.
+     * Logs crashes
      */
     @Override
     public void testPeriodic() {
         try {
-           
+
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
