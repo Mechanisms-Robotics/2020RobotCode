@@ -137,6 +137,7 @@ public class Robot extends TimedRobot {
             }
             drive_.setRampMode(Drive.RampMode.None);
             drive_.setHighGear();
+            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
             enabledIterator.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
