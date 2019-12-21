@@ -10,10 +10,16 @@ public class WaitCommand implements Command {
     private double timeToWait;
     private double startTime;
 
+    /**
+    * Default construtor, initializes timeToWait
+    */
     public WaitCommand(double time) {
         timeToWait = time;
     }
 
+    /**
+    * Will return true if has waited timeToWait
+    */
     @Override
     public boolean isFinished() {
         return Timer.getFPGATimestamp() - startTime >= timeToWait;
@@ -29,6 +35,9 @@ public class WaitCommand implements Command {
 
     }
 
+    /**
+    * Initializes startTime
+    */
     @Override
     public void start() {
         startTime = Timer.getFPGATimestamp();
