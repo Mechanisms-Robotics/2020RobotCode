@@ -63,6 +63,7 @@ class RSPipeline:
         self.started_ = True
         cfg = self.generate_config()
         profile = self.pipeline.start(cfg)
+        self.print_options(profile)
         if self.depth_camera:
             sensor = profile.get_device().first_depth_sensor()
             self.depth_scale = sensor.get_depth_scale()
@@ -87,7 +88,7 @@ class RSPipeline:
 
     def stop(self):
         '''
-        Stops the realsence pipeline.
+        Stops the RealSense pipeline.
         '''
         if self.started_:
             self.pipeline.stop()
@@ -185,6 +186,13 @@ class RSPipeline:
         if self.started_ and self.depth_camera and self.frames_:
             return np.asanyarray(self.frames_.get_depth_frame().get_data())
 
+    def print_options(self, profile):
+        '''
+        Print the current options to the screen.  Used for debugging.
+        '''
+        print('Currenty configured options:')
+        # help(profile.get_device())
+        print('JVO: %s' % profile.get_device().first_pose_sensor().get_supported_options())
 
 def get_robot_rotation(x, y, z, w):
     '''
