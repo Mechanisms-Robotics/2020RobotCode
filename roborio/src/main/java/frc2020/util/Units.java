@@ -1,5 +1,7 @@
 package frc2020.util;
 
+import frc2020.subsystems.Drive;
+
 public class Units {
     public static double rpm_to_rads_per_sec(double rpm) {
         return rpm * 2.0 * Math.PI / 60.0;
@@ -15,6 +17,10 @@ public class Units {
 
     public static double meters_to_inches(double meters) {
         return meters / 0.0254;
+    }
+
+    public static double metersPerSecondToEncTicksPer100Ms(double mps) {
+        return Drive.inchesToEncoderTicks(meters_to_inches(mps)) / 10;
     }
 
     public static double feet_to_meters(double feet) {

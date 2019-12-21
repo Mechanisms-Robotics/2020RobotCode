@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package frc2020.networking;
+
+message RioUpdate {
+	WheelOdometryUpdate odometry_update = 1;
+	CodeState code_state = 2;
+}
+
+message WheelOdometryUpdate {
+	float time_stamp = 1;
+	float left = 2;
+	float right = 3;
+}
+
+message CodeState {
+	bool pre_start = 1;
+	enum EnabledState {
+		Disabled = 0;
+		Auto = 1;
+		Tellop = 2;
+	}
+	EnabledState enabled_state = 2;
+}

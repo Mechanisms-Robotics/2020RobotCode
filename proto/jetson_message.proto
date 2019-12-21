@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package frc2020.networking;
+
+message JetsonUpdate {
+	VisionTargetsUpdate target_updates = 1;
+    SLAMPose slam_update = 2;
+    DriveSignal drive_signal = 3;
+}
+
+message VisionTargetsUpdate {
+	repeated VisionTarget targets = 1;
+	message VisionTarget {
+		float frame_epoc = 1;
+		float x = 2;
+		float y = 3;
+		float theta = 4;
+	}
+}
+
+message SLAMPose {
+	float update_epoc = 1;
+	float x = 2;
+	float y = 3;
+	float theta = 4;
+}
+
+message DriveSignal {
+    float demand_left = 1;
+    float demand_right = 2;
+	enum DemandType {
+		OpenLoop = 0;
+		Velocity = 1;
+	}
+	DemandType demand_type = 3;
+}

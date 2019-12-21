@@ -13,8 +13,6 @@ public interface Command {
     /**
      * Returns whether or not the code has finished execution. When implementing this interface, this method is used by
      * the runCommand method every cycle to know when to stop running the command
-     *
-     * @return boolean
      */
     boolean isFinished();
 

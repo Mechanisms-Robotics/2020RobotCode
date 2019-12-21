@@ -12,6 +12,9 @@ public class SeriesCommand implements Command {
     private final ArrayList<Command> remainingCommands;
     private boolean done;
 
+    /**
+    * Default constructor, initializes remainingCommands
+    */
     public SeriesCommand(List<Command> commands) {
         remainingCommands = new ArrayList<>(commands.size());
 
@@ -23,6 +26,9 @@ public class SeriesCommand implements Command {
         done = false;
     }
 
+    /**
+    * Returns done
+    */
     @Override
     public boolean isFinished() {
         return done;
@@ -32,6 +38,9 @@ public class SeriesCommand implements Command {
     public void start() {
     }
 
+    /**
+    * Will start/update curCommand until it is finished then move on to the next
+    */
     @Override
     public void update() {
         if (curCommand == null) {

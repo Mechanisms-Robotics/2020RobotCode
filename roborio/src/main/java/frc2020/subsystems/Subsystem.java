@@ -2,6 +2,11 @@ package frc2020.subsystems;
 
 import frc2020.loops.ILooper;
 
+/**
+* The interface that all subsystems implement.
+*
+* @author Team 4910
+*/
 public interface Subsystem {
 
     static Subsystem getInstance(){
@@ -16,6 +21,5 @@ public interface Subsystem {
     void stop();
     void registerLoops(ILooper enabledLooper);
 
-    void writeToLog();
     void outputTelemetry();
 }

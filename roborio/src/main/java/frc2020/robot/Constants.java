@@ -29,7 +29,7 @@ public class Constants {
 
     // Drive Train Physical Properties
     // inches NOTE: This is the effective wheel diameter not the measured one
-    public final static double WHEEL_DIAMETER = 6.0;
+    public final static double WHEEL_DIAMETER = 5.9937565;
     public final static double WHEEL_RADIUS = WHEEL_DIAMETER / 2; // inches
     public final static double DRIVE_TRACK_WIDTH = 25.0;
     public final static double TRACK_SCRUB_FACTOR = 1.062; // We use this to calculate effective wheel base
@@ -39,17 +39,20 @@ public class Constants {
     public final static double DRIVE_KA = 0.066; // V per rad/s^2
 
     // Drive Train Control Loop (VELOCITY)
-    public final static double VELOCITY_HIGH_GEAR_KP = 0.7;
-    public final static double VELOCITY_HIGH_GEAR_KI = 0.0;
-    public final static double VELOCITY_HIGH_GEAR_KD = 10.0; 
+    public final static double VELOCITY_HIGH_GEAR_KP = 1;
+    public final static double VELOCITY_HIGH_GEAR_KI = 0.003;
+    public final static double VELOCITY_HIGH_GEAR_KD = 0.0; 
     public final static double VELOCITY_HIGH_GEAR_KF = 0.0;
-    public final static int VELOCITY_HIGH_GEAR_I_ZONE = 0;
+    public final static int VELOCITY_HIGH_GEAR_I_ZONE = 300; //sensor units
 
     // The Joysticks
     public final static int LEFT_DRIVER_JOYSTICK_PORT = 0;
     public final static int RIGHT_DRIVER_JOYSTICK_PORT = 1;
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
+
+    //Jetson
+    public final static double LAST_RECIEVED_MESSAGE_TIMEOUT = 100;//milliseconds
    
     /**
      * @return the MAC address of the robot

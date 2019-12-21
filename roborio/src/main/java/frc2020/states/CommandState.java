@@ -1,29 +1,40 @@
 package frc2020.states;
 
 import frc2020.subsystems.Drive;
+import frc2020.subsystems.RobotStateEstimator;
 import frc2020.util.DriveSignal;
 
 public class CommandState {
     //Demand variables, these are modified in the CSGenerators
     public DriveDemand driveDemand;
-    
+
     //Subsystem demands are defined as mini classes
     public static class DriveDemand {
         public DriveSignal demand;
         public DemandType type;
         public boolean inLowGear;
 
+        /**
+        * Default constructor, initializes demand, type, and lowGear
+        */
         public DriveDemand(DriveSignal demand, DemandType type, boolean lowGear) {
             this.demand = demand;
             this.type = type;
             this.inLowGear = type.equals(DemandType.OpenLoop) ? lowGear : false;
         }
+
+        /**
+        * Default constructor, initializes demand, type, and lowGear
+        */
         public DriveDemand(DriveSignal demand, DemandType type) {
             this.demand = demand;
             this.type = type;
             this.inLowGear = false;
         }
 
+        /**
+        * Default constructor, initializes demand, type, and lowGear
+        */
         public DriveDemand(DriveSignal demand) {
             this.demand = demand;
             this.type = DemandType.OpenLoop;
@@ -33,6 +44,14 @@ public class CommandState {
         public static enum DemandType {
             OpenLoop,
             Velocity
+        }
+
+        public static DemandType fromDSType(int dsType) {
+            if (dsType == 0) {
+                return DemandType.OpenLoop;
+            } else {
+                return DemandType.Velocity;
+            }
         }
     }
 
