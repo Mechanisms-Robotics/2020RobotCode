@@ -60,10 +60,49 @@ class RSPipeline:
         (e.g. the tracking camera restarts at pose (0, 0, 0))
         '''
         self.stop()
+
         self.started_ = True
         cfg = self.generate_config()
         profile = self.pipeline.start(cfg)
-        self.print_options(profile)
+
+        # configure the pipeline
+
+        self.pipeline.stop()  # do I really have to stop and restart it?
+
+        tracking_camera = profile.get_device().first_pose_sensor()
+
+        # No mapping means Visual Inertial Odometry only.  Turning mapping off
+        # means that you can't set or even query about pose jumping or
+        # relocalization.
+
+        # Experiment: does this clear the map?
+        tracking_camera.set_option(rs.option.enable_mapping, 0)
+        self.pipeline.start(cfg)
+        self.pipeline.stop()
+
+        tracking_camera.set_option(rs.option.enable_mapping, 1)
+        tracking_camera.set_option(rs.option.enable_pose_jumping, 0)
+        tracking_camera.set_option(rs.option.enable_relocalization, 1)
+
+        self.pipeline.start(cfg)
+
+        i = rs.camera_info(rs.camera_info.firmware_version)
+        logging.info('Firmware Version: %s' % tracking_camera.get_info(i))
+
+        o = tracking_camera.get_supported_options()
+        logging.info('Supported Options: %s' % o)
+
+        v = tracking_camera.get_option(rs.option.enable_pose_jumping)
+        logging.info('Pose jumping option: %s' % v)
+
+        v = tracking_camera.get_option(rs.option.enable_mapping)
+        logging.info('Mapping option: %s' % v)
+
+        v = tracking_camera.get_option(rs.option.enable_relocalization)
+        logging.info('Relocalization option: %s' % v)
+
+        # start the pipeline
+
         if self.depth_camera:
             sensor = profile.get_device().first_depth_sensor()
             self.depth_scale = sensor.get_depth_scale()
@@ -120,8 +159,8 @@ class RSPipeline:
             right_v = rs.vector()
             left_v.z = -left_vel
             right_v.z = -right_vel
-            logging.debug('Odometry  Left v: %s  Right v: %s'
-                          % (left_v, right_v))
+            utils.print_occasional('Odometry  Left v: %s  Right v: %s'
+                                   % (left_v, right_v))
             self.wheel_data.send_wheel_odometry(LEFT_ID, 0, left_v)
             self.wheel_data.send_wheel_odometry(RIGHT_ID, 0, right_v)
 
@@ -186,13 +225,6 @@ class RSPipeline:
         if self.started_ and self.depth_camera and self.frames_:
             return np.asanyarray(self.frames_.get_depth_frame().get_data())
 
-    def print_options(self, profile):
-        '''
-        Print the current options to the screen.  Used for debugging.
-        '''
-        print('Currenty configured options:')
-        # help(profile.get_device())
-        print('JVO: %s' % profile.get_device().first_pose_sensor().get_supported_options())
 
 def get_robot_rotation(x, y, z, w):
     '''

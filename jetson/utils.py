@@ -14,7 +14,7 @@ call_count = 0
 
 def print_occasional(s):  # for debugging
     global call_count
-    PERIOD = 400  # wait this many calls
+    PERIOD = 300  # wait this many calls
     if call_count % PERIOD == 0:
         print(s)
 
