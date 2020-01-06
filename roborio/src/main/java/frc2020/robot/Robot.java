@@ -1,14 +1,13 @@
 package frc2020.robot;
 
 import frc2020.util.DriveSignal;
-import frc2020.util.geometry.Pose2d;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
 import frc2020.loops.*;
-import frc2020.states.AutoCSGenerator;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
+import frc2020.robot.Constants;
 
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -31,12 +30,11 @@ public class Robot extends TimedRobot {
     private AutoModeRunner autoRunner_;
     private SubsystemManager manager;
     private Drive drive_;
-    private Jetson jetson_;
+
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
 
     private TeleopCSGenerator teleopCSGenerator_;
-    private AutoCSGenerator autoCSGenerator_;
 
     /**
     * Default constructor, initializes the enabledIterator, disabledIterator,
@@ -51,20 +49,16 @@ public class Robot extends TimedRobot {
 
         manager = new SubsystemManager(
                 Arrays.asList(
-                  Drive.getInstance(),
-                  Jetson.getInstance(),
-                  RobotStateEstimator.getInstance()
+                  Drive.getInstance()
                 )
         );
 
 
         drive_ = Drive.getInstance();
-        jetson_ = Jetson.getInstance();
         compressor_ = new Compressor();
         PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
-        autoCSGenerator_ = new AutoCSGenerator(jetson_);
         autoChooser_ = AutoChooser.getAutoChooser();
     }
 
@@ -140,9 +134,7 @@ public class Robot extends TimedRobot {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
-            drive_.setRampMode(Drive.RampMode.None);
             drive_.setHighGear();
-            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
             enabledIterator.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -152,7 +144,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousPeriodic() {
-        autoCSGenerator_.getCommandState().updateSubsystems(drive_);
+
     }
 
     /**
@@ -167,10 +159,8 @@ public class Robot extends TimedRobot {
             CrashTracker.logTeleopInit();
             disabledIterator.stop();
             compressor_.setClosedLoopControl(true);
-            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
             enabledIterator.start();
             drive_.openLoop(new DriveSignal(0, 0));
-            drive_.setRampMode(Drive.RampMode.LowLift);
             drive_.setHighGear();
             if (autoRunner_ != null) {
                 autoRunner_.stop();

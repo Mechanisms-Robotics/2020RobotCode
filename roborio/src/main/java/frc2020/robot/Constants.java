@@ -17,21 +17,21 @@ public class Constants {
     public final static int STATUS_FRAME_TIME = 50;
 
     // Drive Train Ports
-    public final static int LEFT_MASTER_PORT = 1; // TalonSRX
-    public final static int LEFT_SLAVE_PORT = 2; // VictorSPX
+    public final static int LEFT_MASTER_PORT = 1; // Spark Max
+    public final static int LEFT_SLAVE_PORT = 2; // Spark Max
 
-    public final static int RIGHT_MASTER_PORT = 3;// TalonSRX
-    public final static int RIGHT_SLAVE_PORT = 4; // VictorSPX
+    public final static int RIGHT_MASTER_PORT = 3; // Spark Max
+    public final static int RIGHT_SLAVE_PORT = 4; // Spark Max
 
     //The Shifters (drive)
     public final static int SHIFT_FORWARD = 4;
     public final static int SHIFT_REVERSE = 3;
 
     // Drive Train Physical Properties
-    // inches NOTE: This is the effective wheel diameter not the measured one
-    public final static double WHEEL_DIAMETER = 5.9937565;
-    public final static double WHEEL_RADIUS = WHEEL_DIAMETER / 2; // inches
-    public final static double DRIVE_TRACK_WIDTH = 25.0;
+    // meters NOTE: This is the effective wheel diameter not the measured one
+    public final static double WHEEL_DIAMETER = 0.1522414151; // meters
+    public final static double WHEEL_RADIUS = WHEEL_DIAMETER / 2; // meters
+    public final static double DRIVE_TRACK_WIDTH = 0.635; // meters
     public final static double TRACK_SCRUB_FACTOR = 1.062; // We use this to calculate effective wheel base
 
     public final static double DRIVE_V_INTERCEPT = 0.799;  // Volts
@@ -51,9 +51,6 @@ public class Constants {
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
 
-    //Jetson
-    public final static double LAST_RECIEVED_MESSAGE_TIMEOUT = 100;//milliseconds
-   
     /**
      * @return the MAC address of the robot
      */

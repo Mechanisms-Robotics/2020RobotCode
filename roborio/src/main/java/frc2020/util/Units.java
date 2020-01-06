@@ -20,7 +20,7 @@ public class Units {
     }
 
     public static double metersPerSecondToEncTicksPer100Ms(double mps) {
-        return Drive.inchesToEncoderTicks(meters_to_inches(mps)) / 10;
+        return Drive.metersToEncoderTicks(mps) / 10;
     }
 
     public static double feet_to_meters(double feet) {
