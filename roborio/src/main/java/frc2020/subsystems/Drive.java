@@ -1,16 +1,19 @@
 package frc2020.subsystems;
 
 import frc2020.util.drivers.NavX;
-
 import frc2020.util.DriveSignal;
 import frc2020.util.ReflectingCSVWriter;
 import frc2020.loops.Loop;
 import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
 
+import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.sensors.*;
+
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SerialPort;
 
 /**
@@ -26,8 +29,6 @@ public class Drive implements Subsystem {
     private static final double NEO_ENCODER_PPR = 46.0;
     private static final double HIGH_GEAR_RATIO = 8.96; 
     
-    private static final int VELOCITY_SLOT = 0;
-
     // This is the instance_ of the Drive object on the robot
     public static Drive instance_;
 
@@ -42,9 +43,9 @@ public class Drive implements Subsystem {
     }
 
     /**
-     * The instance_ of Drive
+     * The instance of Drive
      *
-     * @return The current instance_ of Drive
+     * @return The current instance of Drive
      */
     public static Drive getInstance() {
         if (instance_ == null) {
@@ -63,7 +64,11 @@ public class Drive implements Subsystem {
     // TODO: SPARK MAX Definitions
 
     //Encoders
-    // TODO: Implement CANCoders
+    private CANCoder leftCanCoder;
+    private CANCoder rightCanCoder;
+
+    private CANCoderConfiguration leftCoderConfig;
+    private CANCoderConfiguration rightCoderConfig;
 
     // Shifter
     private DoubleSolenoid shifter_;
@@ -76,10 +81,6 @@ public class Drive implements Subsystem {
 
     private ReflectingCSVWriter<PeriodicIO> CSVWriter_ = null;
 
-    // Inversion
-    private boolean invertLeft_ = true;
-    private boolean invertRight_ = false;
-
 
     /**
      * The default constructor starts the drive train and sets it up to be in
@@ -90,7 +91,9 @@ public class Drive implements Subsystem {
         // See if there is a way to check there errors like
         // We did with the Talons
 
+
         io_ = new PeriodicIO();
+        configCanCoders();
         // Configure NavX
         gyro_ = new NavX(SerialPort.Port.kUSB);
         setBrakeMode(true);
@@ -154,9 +157,9 @@ public class Drive implements Subsystem {
     }
 
     /**
-     * Set all the CANTalons to Brake Mode
+     * Set all the Spark Maxes to Brake Mode
      *
-     * @param mode the mode to set the brake on the CANTalons to
+     * @param mode the mode to set the brake on the Spark Maxes to
      */
     public synchronized void setBrakeMode(boolean mode) {
         // ADD Brake mode cofiction for SPARK MAX
@@ -168,7 +171,7 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Sets all the CANTalons' power to 0
+    * Sets all the Spark Maxes' power to 0
     */
     @Override
     public void stop(){
@@ -235,21 +238,81 @@ public class Drive implements Subsystem {
     */
     @Override
 	public synchronized void zeroSensors(){
-		// TODO Resect Neo Encoders and CAN Coders
+        // TODO Resect Neo Encoders
+        ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
+        if(rv != ErrorCode.OK) {
+            DriverStation.reportError("Left CAN coder reset failed with error: " + rv.toString(), false);
+        }
+
+        rv = rightCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
+        if(rv != ErrorCode.OK) {
+            DriverStation.reportError("Right CAN coder reset failed with error: " + rv.toString(), false);
+        }
 	}
 
 
     /**
-     * Loads the PID gains onto the CANTalons
+     * Loads the PID gains onto the Spark Maxes
      */
     private synchronized void loadGains() {
-        // TODO Config Velocity PID on SparkMax
+        // TODO Config Velocity PID on Spark Max
     }
 
+    private synchronized void configCanCoders() {
+        System.out.println("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion());
+        System.out.println("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion());
+
+        MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
+        if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+            DriverStation.reportError("Left CAN Coder magnet in the red (out of range)", false);
+        } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+            DriverStation.reportWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", false);
+        } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
+            System.out.println("Left CAN Coder magnet is green (healthy)");
+        } else {
+            DriverStation.reportError("Left CAN Coder magnet not detected", false);
+        }
+
+        MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
+        if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+            DriverStation.reportError("Right CAN Coder magnet in the red (out of range)", false);
+        } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+            DriverStation.reportWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", false);
+        } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
+            System.out.println("Right CAN Coder magnet is green (healthy)");
+        } else {
+            DriverStation.reportError("Right CAN Coder magnet not detected", false);
+        }
+        
+        
+        leftCoderConfig = new CANCoderConfiguration();
+        rightCoderConfig = new CANCoderConfiguration();
+
+        leftCoderConfig.sensorDirection = true;
+        rightCoderConfig.sensorDirection = false;
+
+        double sensorCoefficient = Constants.WHEEL_DIAMETER * Math.PI / DRIVE_ENCODER_PPR;
+
+        leftCoderConfig.sensorCoefficient = sensorCoefficient;
+        rightCoderConfig.sensorCoefficient = sensorCoefficient;
+
+        leftCoderConfig.unitString = "meters";
+        rightCoderConfig.unitString = "meters";
+
+        ErrorCode rv = leftCanCoder.configAllSettings(leftCoderConfig, Constants.CAN_TIMEOUT);
+        if (rv != ErrorCode.OK) {
+            DriverStation.reportError("Left CAN coder config failed with error: " + rv.toString(), false);
+        }
+
+        rv = rightCanCoder.configAllSettings(rightCoderConfig, Constants.CAN_TIMEOUT);
+        if (rv != ErrorCode.OK) {
+            DriverStation.reportError("Right CAN coder config failed with error: " + rv.toString(), false);
+        }
+    }
     /**
-     * Returns the state_ of the drive train
+     * Returns the state of the drive train
      *
-     * @return The current drive state_.
+     * @return The current drive state.
      */
     public DriveState getState() {
         return state_;
@@ -312,7 +375,7 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Converts RPM to IPS
+    * Converts RPM to MPS
     *
     * @return The linear meters traveled per second for a wheel moving at x rpm.
     */
@@ -348,9 +411,9 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Converts IPS to RPM
+    * Converts MPS to RPM
     *
-    * @return The RPM of a wheel that is traveling x IPS.
+    * @return The RPM of a wheel that is traveling x MPS.
     */
     private static double metersPerSecondToRpm(double meters_per_second) {
         return metersToRotations(meters_per_second) * 60;
@@ -366,30 +429,12 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Gets the left encoder rotations
-    *
-    * @return Left encoder rotations.
-    */
-    public double getLeftEncoderRotations() {
-        return io_.left_position_ticks / DRIVE_ENCODER_PPR;
-    }
-
-    /**
-    * Gets the right encoder rotations
-    *
-    * @return Right encoder rotations.
-    */
-    public double getRightEncoderRotations() {
-        return io_.right_position_ticks / DRIVE_ENCODER_PPR;
-    }
-
-    /**
     * Gets the left distance traveled in meters
     *
     * @return Left distance in meters.
     */
     public double getLeftEncoderDistance() {
-        return rotationsToMeters(getLeftEncoderRotations());
+        return io_.left_distance;
     }
 
     /**
@@ -398,7 +443,7 @@ public class Drive implements Subsystem {
     * @return Right distance in meters.
     */
     public double getRightEncoderDistance() {
-        return rotationsToMeters(getRightEncoderRotations());
+        return io_.right_distance;
     }
 
     /**
@@ -459,31 +504,21 @@ public class Drive implements Subsystem {
     * Handles reading all of the data from encoders/CANTalons periodically
     */
     public synchronized void readPeriodicInputs() {
-        double prevLeftTicks = io_.left_position_ticks;
-        double prevRightTicks = io_.right_position_ticks;
+        double prevLeftMeters = io_.left_distance;
+        double prevRightMeters = io_.right_distance;
 
         // Get this from the CAN coders
-        io_.left_position_ticks = 0;
-        io_.right_position_ticks = 0;
+        io_.left_distance = leftCanCoder.getPosition();
+        io_.right_distance = rightCanCoder.getPosition();
 
         // Get this from the Spark Maxes
         io_.left_velocity_rpm = 0 / HIGH_GEAR_RATIO;
         io_.right_velocity_rpm = 0 / HIGH_GEAR_RATIO;
         io_.gyro_heading = gyro_.getYaw();
 
-        double deltaLeftTicks = ((io_.left_position_ticks - prevLeftTicks) / 4096.0) * Math.PI;
-        if (deltaLeftTicks > 0.0) {
-            io_.left_distance += deltaLeftTicks * Constants.WHEEL_DIAMETER;
-        } else {
-            io_.left_distance += deltaLeftTicks * Constants.WHEEL_DIAMETER;
-        }
-
-        double deltaRightTicks = ((io_.right_position_ticks - prevRightTicks) / 4096.0) * Math.PI;
-        if (deltaRightTicks > 0.0) {
-            io_.right_distance += deltaRightTicks * Constants.WHEEL_DIAMETER;
-        } else {
-            io_.right_distance += deltaRightTicks * Constants.WHEEL_DIAMETER;
-        }
+        // Used for odometry
+        double deltaLeftMeters = io_.left_distance - prevLeftMeters;
+        double deltaRightMeters = io_.right_distance - prevRightMeters;
 
         if (CSVWriter_ != null) {
             CSVWriter_.add(io_);
@@ -491,26 +526,26 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Handles writing outputs to CANTalons periodically
+    * Handles writing outputs to Spark Maxes periodically
     */
     public synchronized void writePeriodicOutputs() {
         if (state_ == DriveState.OpenLoop) {
             // TODO Set output of Spark Maxes in open loop and an 
             // feedforward of 0.0
         } else {
-            // TODO Set velocity output of spark maxes and make sure
+            // TODO Set velocity output of Spark Maxes and make sure
             // to pass it the feedforward
         }
     }
 
     public static class PeriodicIO {
         // INPUTS
-        int left_position_ticks;
-        int right_position_ticks;
         double left_distance;
         double right_distance;
         double left_velocity_rpm;
         double right_velocity_rpm;
+        double left_velocity_mps;
+        double right_velocity_mps;
         Rotation2d gyro_heading = new Rotation2d();
 
 
@@ -548,9 +583,7 @@ public class Drive implements Subsystem {
     */
     @Override
     public void outputTelemetry() {
-        SmartDashboard.putNumber("Right Drive Distance", io_.right_distance);
-        SmartDashboard.putNumber("Right Drive Ticks", io_.right_position_ticks);
-        SmartDashboard.putNumber("Left Drive Ticks", io_.left_position_ticks);
+        SmartDashboard.putNumber("Right Drive Distance", io_.right_distance);;
         SmartDashboard.putNumber("Left Drive Distance", io_.left_distance);
         SmartDashboard.putNumber("Right Linear Velocity", getRightLinearVelocity());
         SmartDashboard.putNumber("Left Linear Velocity", getLeftLinearVelocity());
@@ -563,6 +596,6 @@ public class Drive implements Subsystem {
     @Override
     public boolean checkSystem(){
         System.out.println("[ERROR] System Check Not implemented");
-        return false;
+        return true;
     }
 }

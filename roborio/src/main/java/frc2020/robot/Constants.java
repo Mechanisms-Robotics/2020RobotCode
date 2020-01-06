@@ -51,6 +51,10 @@ public class Constants {
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
 
+    //CANcoder IDs
+    public final static int LEFT_CAN_CODER_ID = 0;
+    public final static int RIGHT_CAN_CODER_ID = 1;
+
     /**
      * @return the MAC address of the robot
      */
