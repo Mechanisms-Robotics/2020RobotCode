@@ -23,6 +23,10 @@ public class Constants {
     public final static int RIGHT_MASTER_PORT = 3; // Spark Max
     public final static int RIGHT_SLAVE_PORT = 4; // Spark Max
 
+    // Motor Controller Properties
+    public final static double OPEN_LOOP_RAMP = 0.25; // seconds
+    public final static double CLOSED_LOOP_RAMP = 0.25; // seconds
+
     //The Shifters (drive)
     public final static int SHIFT_FORWARD = 4;
     public final static int SHIFT_REVERSE = 3;
