@@ -3,6 +3,7 @@ package frc2020.subsystems;
 import frc2020.util.drivers.NavX;
 import frc2020.util.DriveSignal;
 import frc2020.util.ReflectingCSVWriter;
+import frc2020.util.Logger;
 import frc2020.loops.Loop;
 import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
@@ -11,10 +12,19 @@ import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.*;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.controller.RamseteController;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 
 /**
  * The base drive train class for the 2019 robot. It contains all functions
@@ -39,7 +49,8 @@ public class Drive implements Subsystem {
      */
     public enum DriveState {
         OpenLoop,
-        Velocity
+        Velocity,
+        Trajectory_Following
     }
 
     /**
@@ -81,6 +92,14 @@ public class Drive implements Subsystem {
 
     private ReflectingCSVWriter<PeriodicIO> CSVWriter_ = null;
 
+    // Path Following
+    private DifferentialDriveKinematics kinematics_;
+    private DifferentialDriveOdometry odometry_;
+    private Trajectory currentTrajectory_;
+    private double trajectoryStartTime_;
+    private RamseteController controller_;
+    private SimpleMotorFeedforward feedforward_;
+    private boolean doneWithTrajectory_;
 
     /**
      * The default constructor starts the drive train and sets it up to be in
@@ -98,6 +117,14 @@ public class Drive implements Subsystem {
         gyro_ = new NavX(SerialPort.Port.kUSB);
         setBrakeMode(true);
         loadGains();
+
+        kinematics_ = new DifferentialDriveKinematics(
+            Constants.TRACK_SCRUB_FACTOR * Constants.DRIVE_TRACK_WIDTH
+        );
+        odometry_ = new DifferentialDriveOdometry(new Rotation2d(0.0));
+        currentTrajectory_ = null;
+        trajectoryStartTime_ = -1.0;
+        doneWithTrajectory_ = true;
     }
 
     /**
@@ -123,10 +150,13 @@ public class Drive implements Subsystem {
                 switch (state_) {
                     case OpenLoop:
                         break;
+                    case Trajectory_Following:
+                        updateTrajectoryFollower();
+                        break;
                     case Velocity:
                         break;
                     default:
-                        System.out.println("Invalid drive state_: " + state_);
+                        Logger.logWarning("Invalid drive state_: " + state_);
                 }
             }
         }
@@ -139,13 +169,44 @@ public class Drive implements Subsystem {
         }
     };
 
-    /**
-     * Returns the Drive Loop
-     *
-     * @return The Drive Loop
-     */
-    public Loop getLoop() {
-        return DriveLoop;
+    private void updateTrajectoryFollower() {
+        if (doneWithTrajectory_) {
+
+            // Check that we know our start time and have a trajectory to follow
+            if (trajectoryStartTime_ > 0.0 && currentTrajectory_ != null) {
+                
+                // Check to see if we are done with the trajectory
+                if (trajectoryStartTime_ + currentTrajectory_.getTotalTimeSeconds() > Timer.getFPGATimestamp()) {
+
+                    // Lookup where we are supposed to be on the trajetory
+                    double lookup_time = Timer.getFPGATimestamp() - trajectoryStartTime_;
+                    Trajectory.State trajectory_state = currentTrajectory_.sample(lookup_time);
+
+                    // Get our adjusted wheel speeds from the ramset controller and send them to the drive train
+                    ChassisSpeeds speeds = controller_.calculate(getOdometryPose(), trajectory_state);
+                    DifferentialDriveWheelSpeeds drive_speeds = kinematics_.toWheelSpeeds(speeds);
+                    driveVelocity(new DriveSignal(drive_speeds, false));
+                } else {
+                    // TODO: We could write an pose2pose controller that runs if the
+                    // robot is too far off from the desired end state of the trajectory
+                    
+                    // Set the wheels to the desired end velocity of the trajectory
+                    double end_speed = currentTrajectory_.sample(
+                        currentTrajectory_.getTotalTimeSeconds()).velocityMetersPerSecond;
+                    driveVelocity(new DriveSignal(end_speed, end_speed));
+                    state_ = DriveState.Velocity;
+                    doneWithTrajectory_ = true;
+                }
+            } else {
+                Logger.logError(
+                    "Unable to follow trajectory due to invaded start time or trajectory");
+                openLoop(new DriveSignal(0, 0, true));
+            }
+        } else {
+            Logger.logWarning(
+                "Update path follower called when tarjectory has already been completed"
+            );
+        }
     }
 
     /**
@@ -182,7 +243,7 @@ public class Drive implements Subsystem {
      * Drive the robot off of voltage.
      * going off position and use power
      *
-     * @param signal
+     * @param signal - the desired DriveSignal
      */
     public synchronized void openLoop(DriveSignal signal) {
         if (state_ != DriveState.OpenLoop) {
@@ -203,7 +264,7 @@ public class Drive implements Subsystem {
      * @param feedforward The calculated feedforward values to use
      */
     public synchronized void driveVelocity(DriveSignal signal, DriveSignal feedforward) {
-        if (state_ != DriveState.Velocity) {
+        if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
             // TODO Select correct PID Proflie on Spark Max
 
             state_ = DriveState.Velocity;
@@ -221,7 +282,7 @@ public class Drive implements Subsystem {
      * @param signal The velocities to drive at
      */
     public synchronized void driveVelocity(DriveSignal signal) {
-        if (state_ != DriveState.Velocity) {
+        if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
             // TOTO Select correct PID Proflie on Spark Max
 
             state_ = DriveState.Velocity;
@@ -234,21 +295,60 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Resets encoder ticks
+     * Drive the robot atomosly on a pre-defined trajectory
+     * @param trajectory The trajectory to follow
+     */
+    public synchronized void driveTrajectory(Trajectory trajectory) {
+        if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
+            // TODO Set correct PID Profile on the Spark Max
+
+            state_ = DriveState.Trajectory_Following;
+        }
+        doneWithTrajectory_ = false;
+        currentTrajectory_ = trajectory;
+        trajectoryStartTime_ = Timer.getFPGATimestamp();
+        updateTrajectoryFollower();
+    }
+
+    /**
+     * @return the doneWithTrajectory_
+     */
+    public boolean isDoneWithTrajectory() {
+        return doneWithTrajectory_;
+    }
+
+    /**
+    * Resets encoder ticks for CAN Coders and NEO Encoders
     */
     @Override
 	public synchronized void zeroSensors(){
-        // TODO Resect Neo Encoders
+        // TODO Reset Neo Encoders
+        
+        // Sends identity Pose and Rotation2d to resetOdometry function so we're using the same function
+        resetOdometry(new Pose2d(), new Rotation2d());
+    }
+    
+    /**
+     * Resets the odometry and gyroscope to the desired pose and rotation
+     */
+    public synchronized void resetOdometry(Pose2d pose, Rotation2d rotation) {
+        // Sets odometry to desired pose and rotation
+        odometry_.resetPosition(pose, rotation);
+        
+        // Prints the stack if there are any errors in setting the position of the CAN Coders
         ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
         if(rv != ErrorCode.OK) {
-            DriverStation.reportError("Left CAN coder reset failed with error: " + rv.toString(), false);
+            Logger.logError("Left CAN coder reset failed with error: " + rv.toString());
         }
 
         rv = rightCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
         if(rv != ErrorCode.OK) {
-            DriverStation.reportError("Right CAN coder reset failed with error: " + rv.toString(), false);
+            Logger.logError("Right CAN coder reset failed with error: " + rv.toString());
         }
-	}
+        
+        // Sets the gyroscope to the desired rotation
+        setHeading(rotation);
+    }
 
 
     /**
@@ -258,55 +358,65 @@ public class Drive implements Subsystem {
         // TODO Config Velocity PID on Spark Max
     }
 
+    /**
+     * Loads the CAN Coder Configuration files to the CAN Coders. Also reports magnet alignment and config errors
+     * Encoder polarity, unit coefficients also managed here
+     */
     private synchronized void configCanCoders() {
-        System.out.println("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion());
-        System.out.println("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion());
-
+        // Reports firmware version for logging purposes
+        Logger.logInfo("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion());
+        Logger.logInfo("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion());
+        
+        // Checks for alignment of magnet with encoder (the encoder light color)
         MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
         if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
-            DriverStation.reportError("Left CAN Coder magnet in the red (out of range)", false);
+            Logger.logError("Left CAN Coder magnet in the red (out of range)");
         } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
-            DriverStation.reportWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", false);
+            Logger.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)");
         } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            System.out.println("Left CAN Coder magnet is green (healthy)");
+            Logger.logDebug("Left CAN Coder magnet is green (healthy)");
         } else {
-            DriverStation.reportError("Left CAN Coder magnet not detected", false);
+            Logger.logError("Left CAN Coder magnet not detected");
         }
 
         MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
         if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
-            DriverStation.reportError("Right CAN Coder magnet in the red (out of range)", false);
+            Logger.logError("Right CAN Coder magnet in the red (out of range)");
         } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
-            DriverStation.reportWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", false);
+            Logger.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)");
         } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            System.out.println("Right CAN Coder magnet is green (healthy)");
+            Logger.logDebug("Right CAN Coder magnet is green (healthy)");
         } else {
-            DriverStation.reportError("Right CAN Coder magnet not detected", false);
+            Logger.logError("Right CAN Coder magnet not detected");
         }
         
-        
+        // CANCoder configuration objects
         leftCoderConfig = new CANCoderConfiguration();
         rightCoderConfig = new CANCoderConfiguration();
-
+        
+        // Opposite values because of the orientation of the drives. Switch if the robot is reading distance backwards
         leftCoderConfig.sensorDirection = true;
         rightCoderConfig.sensorDirection = false;
 
+        // This is used to directly convert from encoder units to meters. Note that this coefficient is in m/enc
         double sensorCoefficient = Constants.WHEEL_DIAMETER * Math.PI / DRIVE_ENCODER_PPR;
 
         leftCoderConfig.sensorCoefficient = sensorCoefficient;
         rightCoderConfig.sensorCoefficient = sensorCoefficient;
-
+        
+        // Sets unit name
         leftCoderConfig.unitString = "meters";
         rightCoderConfig.unitString = "meters";
 
+        // Prints the stack if there are any errors in pushing the configuration objects
         ErrorCode rv = leftCanCoder.configAllSettings(leftCoderConfig, Constants.CAN_TIMEOUT);
         if (rv != ErrorCode.OK) {
-            DriverStation.reportError("Left CAN coder config failed with error: " + rv.toString(), false);
+            Logger.logError("Left CAN coder config failed with error: " + rv.toString());
         }
 
         rv = rightCanCoder.configAllSettings(rightCoderConfig, Constants.CAN_TIMEOUT);
         if (rv != ErrorCode.OK) {
-            DriverStation.reportError("Right CAN coder config failed with error: " + rv.toString(), false);
+            Logger.logError("Right CAN coder config failed with error: " + rv.toString());
         }
     }
     /**
@@ -343,10 +453,20 @@ public class Drive implements Subsystem {
         shifter_.set(lowGear_);
     }
 
+    /**
+     * Gets the gyroscope's current heading
+     * 
+     * @return Gyro heading as a Rotation2d
+     */
     public synchronized Rotation2d getHeading() {
         return io_.gyro_heading;
     }
 
+    /**
+     * Sets the gyroscope's heading to a desired Rotation2d
+     * 
+     * @param heading - the desired gyro heading as a Rotation2d
+     */
     public synchronized void setHeading(Rotation2d heading) {
         Rotation2d adjustment = heading.rotateBy(gyro_.getRawRotation().unaryMinus());
         gyro_.setAngleAdjustment(adjustment);
@@ -500,13 +620,14 @@ public class Drive implements Subsystem {
         return (getRightLinearVelocity() - getLeftLinearVelocity()) / Constants.DRIVE_TRACK_WIDTH;
     }
 
+    public Pose2d getOdometryPose() {
+        return odometry_.getPoseMeters();
+    }
+
     /**
     * Handles reading all of the data from encoders/CANTalons periodically
     */
     public synchronized void readPeriodicInputs() {
-        double prevLeftMeters = io_.left_distance;
-        double prevRightMeters = io_.right_distance;
-
         // Get this from the CAN coders
         io_.left_distance = leftCanCoder.getPosition();
         io_.right_distance = rightCanCoder.getPosition();
@@ -516,9 +637,7 @@ public class Drive implements Subsystem {
         io_.right_velocity_rpm = 0 / HIGH_GEAR_RATIO;
         io_.gyro_heading = gyro_.getYaw();
 
-        // Used for odometry
-        double deltaLeftMeters = io_.left_distance - prevLeftMeters;
-        double deltaRightMeters = io_.right_distance - prevRightMeters;
+        odometry_.update(io_.gyro_heading, getLeftEncoderDistance(), getRightEncoderDistance());
 
         if (CSVWriter_ != null) {
             CSVWriter_.add(io_);
@@ -588,14 +707,20 @@ public class Drive implements Subsystem {
         SmartDashboard.putNumber("Right Linear Velocity", getRightLinearVelocity());
         SmartDashboard.putNumber("Left Linear Velocity", getLeftLinearVelocity());
 
+        Pose2d odometry_pose = getOdometryPose();
+        SmartDashboard.putNumber("Odometery X", odometry_pose.getTranslation().getX());
+        SmartDashboard.putNumber("Odometery Y", odometry_pose.getTranslation().getY());
+        SmartDashboard.putNumber("Odometery Rotation", odometry_pose.getRotation().getDegrees());
+
+
         if (CSVWriter_ != null) {
             CSVWriter_.write();
         }
     }
 
+    // TODO: Implement system check
     @Override
     public boolean checkSystem(){
-        System.out.println("[ERROR] System Check Not implemented");
         return true;
     }
 }

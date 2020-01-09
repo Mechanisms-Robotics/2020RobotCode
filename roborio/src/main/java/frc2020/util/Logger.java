@@ -34,7 +34,7 @@ public class Logger {
         }
     }
 
-    public static void logWaring(String msg) {
+    public static void logWarning(String msg) {
         if (LOGGER_LEVEL.getValue() >= Level.Waring.getValue()) {
             DriverStation.reportWarning(msg, false);
         }
