@@ -28,8 +28,8 @@ public class Constants {
     public final static double CLOSED_LOOP_RAMP = 0.25; // seconds
 
     //The Shifters (drive)
-    public final static int SHIFT_FORWARD = 4;
-    public final static int SHIFT_REVERSE = 3;
+    public final static int SHIFT_FORWARD = 3;
+    public final static int SHIFT_REVERSE = 4;
 
     // Drive Train Physical Properties
     // meters NOTE: This is the effective wheel diameter not the measured one
@@ -56,8 +56,8 @@ public class Constants {
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
 
     //CANcoder IDs
-    public final static int LEFT_CAN_CODER_ID = 0;
-    public final static int RIGHT_CAN_CODER_ID = 1;
+    public final static int LEFT_CAN_CODER_ID = 1;
+    public final static int RIGHT_CAN_CODER_ID = 2;
 
     /**
      * @return the MAC address of the robot

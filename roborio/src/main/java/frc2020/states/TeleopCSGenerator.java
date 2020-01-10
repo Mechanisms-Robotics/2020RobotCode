@@ -33,7 +33,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private DriveDemand generateDriveDemand() {
         double leftDrive = -Math.abs(leftJoystick_.getY()) <= 0.1 ? -leftJoystick_.getY() : 0;
         double rightDrive = -Math.abs(rightJoystick_.getY()) <= 0.1 ? -rightJoystick_.getY() : 0;
-        DriveSignal demand = new DriveSignal(leftDrive, rightDrive);
+        DriveSignal demand = new DriveSignal(leftDrive, rightDrive, true);
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) ? !driveLowGear : driveLowGear;
         return new DriveDemand(demand, DriveDemand.DemandType.OpenLoop, driveLowGear);
     }

@@ -10,10 +10,12 @@ import frc2020.robot.Constants;
 
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.*;
+
 import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
@@ -24,7 +26,6 @@ import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.controller.RamseteController;
@@ -42,6 +43,9 @@ public class Drive implements Subsystem {
     private static final double DRIVE_ENCODER_PPR = 4096.0;
     private static final double NEO_ENCODER_PPR = 46.0;
     private static final double HIGH_GEAR_RATIO = 8.96; 
+
+    private static final int VELOCITY_PID = 0;
+    private static final int EMPTY_PID = 1;
     
     // This is the instance_ of the Drive object on the robot
     public static Drive instance_;
@@ -94,8 +98,8 @@ public class Drive implements Subsystem {
 
     // Shifter
     private DoubleSolenoid shifter_;
-    private DoubleSolenoid.Value lowGear_ = DoubleSolenoid.Value.kForward;
-    private DoubleSolenoid.Value highGear_ = DoubleSolenoid.Value.kReverse;
+    private DoubleSolenoid.Value lowGear_ = DoubleSolenoid.Value.kReverse;
+    private DoubleSolenoid.Value highGear_ = DoubleSolenoid.Value.kForward;
 
     // IO
     // This is to prevent overwhelming the CAN Bus / HAL
@@ -117,8 +121,10 @@ public class Drive implements Subsystem {
      * OpenLoop mode
      */
     private Drive() {
-        io_ = new PeriodicIO();
+        configSparkMaxs();
         configCanCoders();
+
+        io_ = new PeriodicIO();
         // Configure NavX
         gyro_ = new NavX(SerialPort.Port.kUSB);
         setBrakeMode(true);
@@ -130,6 +136,13 @@ public class Drive implements Subsystem {
         currentTrajectory_ = null;
         trajectoryStartTime_ = -1.0;
         doneWithTrajectory_ = true;
+        feedforward_ = new SimpleMotorFeedforward(
+            Constants.DRIVE_V_INTERCEPT,
+            Constants.DRIVE_KV,
+            Constants.DRIVE_KA
+        );
+
+        shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
     }
 
     /**
@@ -137,6 +150,9 @@ public class Drive implements Subsystem {
      * Encoder polarity, unit coefficients also managed here
      */
     private void configCanCoders() {
+        leftCanCoder = new CANCoder(Constants.LEFT_CAN_CODER_ID);
+        rightCanCoder = new CANCoder(Constants.RIGHT_CAN_CODER_ID);
+
         // Reports firmware version for logging purposes
         Logger.logInfo("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion());
         Logger.logInfo("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion());
@@ -205,8 +221,11 @@ public class Drive implements Subsystem {
         rightMaster_.restoreFactoryDefaults();
         rightSlave_.restoreFactoryDefaults();
         
-        leftSlave_.follow(leftMaster_, false);
-        rightSlave_.follow(rightMaster_, false);
+        leftMaster_.setInverted(true);
+        rightMaster_.setInverted(false);
+
+        leftSlave_.follow(leftMaster_);
+        rightSlave_.follow(rightMaster_);
 
         leftMaster_.setOpenLoopRampRate(Constants.OPEN_LOOP_RAMP);
         leftMaster_.setClosedLoopRampRate(Constants.CLOSED_LOOP_RAMP);
@@ -219,11 +238,16 @@ public class Drive implements Subsystem {
         leftVelocityPID_ = leftMaster_.getPIDController();
         rightVelocityPID_ = rightMaster_.getPIDController();
         
-        leftVelocityPID_.setP(Constants.VELOCITY_HIGH_GEAR_KP);
-        leftVelocityPID_.setI(Constants.VELOCITY_HIGH_GEAR_KI);
-        leftVelocityPID_.setD(Constants.VELOCITY_HIGH_GEAR_KD);
-        leftVelocityPID_.setIZone(Constants.VELOCITY_HIGH_GEAR_I_ZONE);
-        leftVelocityPID_.setFF(Constants.VELOCITY_HIGH_GEAR_KF);
+        leftVelocityPID_.setP(Constants.VELOCITY_HIGH_GEAR_KP, VELOCITY_PID);
+        leftVelocityPID_.setI(Constants.VELOCITY_HIGH_GEAR_KI, VELOCITY_PID);
+        leftVelocityPID_.setD(Constants.VELOCITY_HIGH_GEAR_KD, VELOCITY_PID);
+        leftVelocityPID_.setIZone(Constants.VELOCITY_HIGH_GEAR_I_ZONE, VELOCITY_PID);
+        leftVelocityPID_.setFF(Constants.VELOCITY_HIGH_GEAR_KF, VELOCITY_PID);
+        rightVelocityPID_.setP(Constants.VELOCITY_HIGH_GEAR_KP, VELOCITY_PID);
+        rightVelocityPID_.setI(Constants.VELOCITY_HIGH_GEAR_KI, VELOCITY_PID);
+        rightVelocityPID_.setD(Constants.VELOCITY_HIGH_GEAR_KD, VELOCITY_PID);
+        rightVelocityPID_.setIZone(Constants.VELOCITY_HIGH_GEAR_I_ZONE, VELOCITY_PID);
+        rightVelocityPID_.setFF(Constants.VELOCITY_HIGH_GEAR_KF, VELOCITY_PID);
     }
 
     /**
@@ -269,7 +293,7 @@ public class Drive implements Subsystem {
     };
 
     private void updateTrajectoryFollower() {
-        if (doneWithTrajectory_) {
+        if (!doneWithTrajectory_) {
 
             // Check that we know our start time and have a trajectory to follow
             if (trajectoryStartTime_ > 0.0 && currentTrajectory_ != null) {
@@ -284,7 +308,13 @@ public class Drive implements Subsystem {
                     // Get our adjusted wheel speeds from the ramset controller and send them to the drive train
                     ChassisSpeeds speeds = controller_.calculate(getOdometryPose(), trajectory_state);
                     DifferentialDriveWheelSpeeds drive_speeds = kinematics_.toWheelSpeeds(speeds);
-                    driveVelocity(new DriveSignal(drive_speeds, false));
+
+                    // Claculate the feedforwards
+                    double left_feedforward = feedforward_.calculate(drive_speeds.leftMetersPerSecond);
+                    double right_feedforward = feedforward_.calculate(drive_speeds.rightMetersPerSecond);
+
+                    driveVelocity(new DriveSignal(drive_speeds, false),
+                                    new DriveSignal(left_feedforward, right_feedforward));
                 } else {
                     // TODO: We could write an pose2pose controller that runs if the
                     // robot is too far off from the desired end state of the trajectory
@@ -292,7 +322,11 @@ public class Drive implements Subsystem {
                     // Set the wheels to the desired end velocity of the trajectory
                     double end_speed = currentTrajectory_.sample(
                         currentTrajectory_.getTotalTimeSeconds()).velocityMetersPerSecond;
-                    driveVelocity(new DriveSignal(end_speed, end_speed));
+
+                    // Calculate feedforward
+                    double feedforward = feedforward_.calculate(end_speed);
+                    driveVelocity(new DriveSignal(end_speed, end_speed),
+                                    new DriveSignal(feedforward, feedforward));
                     state_ = DriveState.Velocity;
                     doneWithTrajectory_ = true;
                 }
@@ -348,7 +382,6 @@ public class Drive implements Subsystem {
      */
     public synchronized void openLoop(DriveSignal signal) {
         if (state_ != DriveState.OpenLoop) {
-            // TODO Config Nominal Ouptus of Spark Maxes
             state_ = DriveState.OpenLoop;
         }
         setBrakeMode(signal.getBrakeMode());
@@ -366,8 +399,6 @@ public class Drive implements Subsystem {
      */
     public synchronized void driveVelocity(DriveSignal signal, DriveSignal feedforward) {
         if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
-            // TODO Select correct PID Proflie on Spark Max
-
             state_ = DriveState.Velocity;
         }
         setBrakeMode(signal.getBrakeMode());
@@ -384,8 +415,6 @@ public class Drive implements Subsystem {
      */
     public synchronized void driveVelocity(DriveSignal signal) {
         if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
-            // TOTO Select correct PID Proflie on Spark Max
-
             state_ = DriveState.Velocity;
         }
         setBrakeMode(signal.getBrakeMode());
@@ -401,8 +430,6 @@ public class Drive implements Subsystem {
      */
     public synchronized void driveTrajectory(Trajectory trajectory) {
         if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
-            // TODO Set correct PID Profile on the Spark Max
-
             state_ = DriveState.Trajectory_Following;
         }
         doneWithTrajectory_ = false;
@@ -684,15 +711,11 @@ public class Drive implements Subsystem {
     */
     public synchronized void writePeriodicOutputs() {
         if (state_ == DriveState.OpenLoop) {
-            // TODO Set output of Spark Maxes in open loop and an 
-            // feedforward of 0.0
-            leftMaster_.set(io_.left_demand);
-            rightMaster_.set(io_.right_demand);
+            leftVelocityPID_.setReference(io_.left_demand, ControlType.kDutyCycle, EMPTY_PID, io_.left_feedforward);
+            rightVelocityPID_.setReference(io_.right_demand, ControlType.kDutyCycle, EMPTY_PID, io_.right_feedforward);
         } else {
-            // TODO Set velocity output of Spark Maxes and make sure
-            // to pass it the feedforward
-            leftVelocityPID_.setReference(io_.left_demand, ControlType.kVelocity, 0, io_.left_feedforward);
-            rightVelocityPID_.setReference(io_.right_demand, ControlType.kVelocity, 0, io_.right_feedforward);
+            leftVelocityPID_.setReference(io_.left_demand, ControlType.kVelocity, VELOCITY_PID, io_.left_feedforward);
+            rightVelocityPID_.setReference(io_.right_demand, ControlType.kVelocity, VELOCITY_PID, io_.right_feedforward);
         }
     }
 
@@ -711,7 +734,9 @@ public class Drive implements Subsystem {
 
         // OUTPUTS
         public double left_demand;
+        public double last_left_demand;
         public double right_demand;
+        public double last_right_demand;
         public double left_accel;
         public double right_accel;
         public double left_feedforward;
@@ -743,7 +768,7 @@ public class Drive implements Subsystem {
     */
     @Override
     public void outputTelemetry() {
-        SmartDashboard.putNumber("Right Drive Distance", io_.right_distance);;
+        SmartDashboard.putNumber("Right Drive Distance", io_.right_distance);
         SmartDashboard.putNumber("Left Drive Distance", io_.left_distance);
         SmartDashboard.putNumber("Right Linear Velocity", getRightLinearVelocity());
         SmartDashboard.putNumber("Left Linear Velocity", getLeftLinearVelocity());
