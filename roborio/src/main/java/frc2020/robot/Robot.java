@@ -4,6 +4,7 @@ import frc2020.util.DriveSignal;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
+import frc2020.auto.modes.TestMode;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
@@ -60,6 +61,9 @@ public class Robot extends TimedRobot {
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
         autoChooser_ = AutoChooser.getAutoChooser();
+
+        // Pre-Generate Trajectories
+        TestMode.generateTrajectories();
     }
 
     /**
@@ -137,7 +141,9 @@ public class Robot extends TimedRobot {
             drive_.zeroSensors();
             drive_.setHighGear();
             enabledIterator.start();
-            drive_.driveVelocity(new DriveSignal(.5, .5, true));
+            autoRunner_ = new AutoModeRunner();
+            autoRunner_.setAutoMode(new TestMode());
+            autoRunner_.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -169,9 +175,6 @@ public class Robot extends TimedRobot {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
-            autoRunner_ = new AutoModeRunner();
-            currentAutoMode_ = null;
-            autoRunner_.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

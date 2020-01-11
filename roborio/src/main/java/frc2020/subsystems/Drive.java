@@ -141,6 +141,7 @@ public class Drive implements Subsystem {
             Constants.DRIVE_KV,
             Constants.DRIVE_KA
         );
+        controller_ = new RamseteController();
 
         shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
     }
@@ -252,10 +253,20 @@ public class Drive implements Subsystem {
         rightVelocityPID_.setFF(Constants.VELOCITY_HIGH_GEAR_KF, VELOCITY_PID);
     }
 
+    public DifferentialDriveKinematics getKinematics() {
+        return kinematics_;
+    }
+
+    public SimpleMotorFeedforward getFeedforward() {
+        return feedforward_;
+    }
+
     /**
      * Handles the periodic function for the drive train
      */
     private final Loop DriveLoop = new Loop() {
+
+        DriveState last_state = null;
 
         /**
          * Handles any intialization tasks for the drive train
@@ -272,6 +283,10 @@ public class Drive implements Subsystem {
          */
         public void run() {
             synchronized (Drive.this) {
+                if (last_state != state_) {
+                    Logger.logInfo("Drive State Changed to " + state_.toString());
+                    last_state = state_;
+                }
                 switch (state_) {
                     case OpenLoop:
                         break;
@@ -310,6 +325,7 @@ public class Drive implements Subsystem {
                     // Get our adjusted wheel speeds from the ramset controller and send them to the drive train
                     ChassisSpeeds speeds = controller_.calculate(getOdometryPose(), trajectory_state);
                     DifferentialDriveWheelSpeeds drive_speeds = kinematics_.toWheelSpeeds(speeds);
+                    System.out.println("L: " + drive_speeds.leftMetersPerSecond + " R: " + drive_speeds.rightMetersPerSecond);
 
                     driveVelocity(new DriveSignal(drive_speeds, false));
                 } else {
@@ -395,7 +411,7 @@ public class Drive implements Subsystem {
      * @param feedforward The calculated feedforward values to use
      */
     public synchronized void driveVelocity(DriveSignal signal, DriveSignal feedforward) {
-        if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
+        if (state_ != DriveState.Velocity && state_ != DriveState.Trajectory_Following) {
             state_ = DriveState.Velocity;
         }
         setBrakeMode(signal.getBrakeMode());
@@ -411,7 +427,7 @@ public class Drive implements Subsystem {
      * @param signal The velocities to drive at
      */
     public synchronized void driveVelocity(DriveSignal signal) {
-        if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
+        if (state_ != DriveState.Velocity && state_ != DriveState.Trajectory_Following) {
             state_ = DriveState.Velocity;
         }
         setBrakeMode(signal.getBrakeMode());
@@ -425,9 +441,7 @@ public class Drive implements Subsystem {
      * @param trajectory The trajectory to follow
      */
     public synchronized void driveTrajectory(Trajectory trajectory) {
-        if (state_ != DriveState.Velocity || state_ != DriveState.Trajectory_Following) {
-            state_ = DriveState.Trajectory_Following;
-        }
+        state_ = DriveState.Trajectory_Following;
         doneWithTrajectory_ = false;
         currentTrajectory_ = trajectory;
         trajectoryStartTime_ = Timer.getFPGATimestamp();
