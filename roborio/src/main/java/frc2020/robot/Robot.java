@@ -137,6 +137,7 @@ public class Robot extends TimedRobot {
             drive_.zeroSensors();
             drive_.setHighGear();
             enabledIterator.start();
+            drive_.driveVelocity(new DriveSignal(.5, .5, true));
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

@@ -45,8 +45,8 @@ public class Constants {
     public final static double DRIVE_KA = 0.494; // V per rad/s^2
 
     // Drive Train Control Loop (VELOCITY)
-    public final static double VELOCITY_HIGH_GEAR_KP = 2.28;
-    public final static double VELOCITY_HIGH_GEAR_KI = 0.003;
+    public final static double VELOCITY_HIGH_GEAR_KP = 0.0005; //2.28
+    public final static double VELOCITY_HIGH_GEAR_KI = 0.0; //0.003
     public final static double VELOCITY_HIGH_GEAR_KD = 0.0; 
     public final static double VELOCITY_HIGH_GEAR_KF = 0.0;
     public final static int VELOCITY_HIGH_GEAR_I_ZONE = 300; //sensor units

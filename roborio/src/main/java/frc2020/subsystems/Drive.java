@@ -311,12 +311,7 @@ public class Drive implements Subsystem {
                     ChassisSpeeds speeds = controller_.calculate(getOdometryPose(), trajectory_state);
                     DifferentialDriveWheelSpeeds drive_speeds = kinematics_.toWheelSpeeds(speeds);
 
-                    // Claculate the feedforwards
-                    double left_feedforward = feedforward_.calculate(drive_speeds.leftMetersPerSecond);
-                    double right_feedforward = feedforward_.calculate(drive_speeds.rightMetersPerSecond);
-
-                    driveVelocity(new DriveSignal(drive_speeds, false),
-                                    new DriveSignal(left_feedforward, right_feedforward));
+                    driveVelocity(new DriveSignal(drive_speeds, false));
                 } else {
                     // TODO: We could write an pose2pose controller that runs if the
                     // robot is too far off from the desired end state of the trajectory
@@ -422,10 +417,9 @@ public class Drive implements Subsystem {
         setBrakeMode(signal.getBrakeMode());
         io_.left_demand = metersPerSecondToRpm(signal.getLeft()) * HIGH_GEAR_RATIO;
         io_.right_demand = metersPerSecondToRpm(signal.getRight()) * HIGH_GEAR_RATIO;
-        io_.left_feedforward = Constants.DRIVE_KV;
-        io_.right_feedforward = Constants.DRIVE_KV;
+        io_.left_feedforward = feedforward_.calculate(signal.getLeft());
+        io_.right_feedforward = feedforward_.calculate(signal.getRight());
     }
-
     /**
      * Drive the robot atomosly on a pre-defined trajectory
      * @param trajectory The trajectory to follow
@@ -790,6 +784,8 @@ public class Drive implements Subsystem {
         SmartDashboard.putNumber("Odometery X", odometry_pose.getTranslation().getX());
         SmartDashboard.putNumber("Odometery Y", odometry_pose.getTranslation().getY());
         SmartDashboard.putNumber("Odometery Rotation", odometry_pose.getRotation().getDegrees());
+        SmartDashboard.putNumber("Left FeedForward", io_.left_feedforward);
+        SmartDashboard.putNumber("Right FeedForward", io_.right_feedforward);
 
 
         if (CSVWriter_ != null) {
