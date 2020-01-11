@@ -40,12 +40,12 @@ public class Constants {
     public final static double DRIVE_TRACK_WIDTH = 0.635; // meters
     public final static double TRACK_SCRUB_FACTOR = 1.062; // We use this to calculate effective wheel base
 
-    public final static double DRIVE_V_INTERCEPT = 0.799;  // Volts
-    public final static double DRIVE_KV = 0.262;  // V per rad/s
-    public final static double DRIVE_KA = 0.066; // V per rad/s^2
+    public final static double DRIVE_V_INTERCEPT = 0.189;  // Volts
+    public final static double DRIVE_KV = 2.28;  // V per rad/s
+    public final static double DRIVE_KA = 0.494; // V per rad/s^2
 
     // Drive Train Control Loop (VELOCITY)
-    public final static double VELOCITY_HIGH_GEAR_KP = 1;
+    public final static double VELOCITY_HIGH_GEAR_KP = 2.28;
     public final static double VELOCITY_HIGH_GEAR_KI = 0.003;
     public final static double VELOCITY_HIGH_GEAR_KD = 0.0; 
     public final static double VELOCITY_HIGH_GEAR_KF = 0.0;
