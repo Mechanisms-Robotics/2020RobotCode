@@ -42,7 +42,7 @@ public class Drive implements Subsystem {
 
     private static final double DRIVE_ENCODER_PPR = 4096.0;
     private static final double NEO_ENCODER_PPR = 46.0;
-    private static final double HIGH_GEAR_RATIO = 8.96; 
+    private static final double HIGH_GEAR_RATIO = 8.63;
 
     private static final int VELOCITY_PID = 0;
     private static final int EMPTY_PID = 1;
@@ -230,10 +230,12 @@ public class Drive implements Subsystem {
         leftMaster_.setOpenLoopRampRate(Constants.OPEN_LOOP_RAMP);
         leftMaster_.setClosedLoopRampRate(Constants.CLOSED_LOOP_RAMP);
         leftMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
+        leftMaster_.setSmartCurrentLimit(Constants.STALL_LIMIT, Constants.FREE_LIMIT);
         
         rightMaster_.setOpenLoopRampRate(Constants.OPEN_LOOP_RAMP);
         rightMaster_.setClosedLoopRampRate(Constants.CLOSED_LOOP_RAMP);
         rightMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
+        rightMaster_.setSmartCurrentLimit(Constants.STALL_LIMIT, Constants.FREE_LIMIT);
         
         leftVelocityPID_ = leftMaster_.getPIDController();
         rightVelocityPID_ = rightMaster_.getPIDController();
@@ -690,10 +692,14 @@ public class Drive implements Subsystem {
         // Get this from the CAN coders
         io_.left_distance = leftCanCoder.getPosition();
         io_.right_distance = rightCanCoder.getPosition();
+        io_.left_neo_distance = rotationsToMeters(leftMaster_.getEncoder().getPosition());
+        io_.right_neo_distance = rotationsToMeters(rightMaster_.getEncoder().getPosition());
 
         // Get this from the Spark Maxes
-        io_.left_velocity_rpm = 0 / HIGH_GEAR_RATIO;
-        io_.right_velocity_rpm = 0 / HIGH_GEAR_RATIO;
+        io_.left_velocity_rpm = leftMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
+        io_.right_velocity_rpm = rightMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
+        io_.left_velocity_mps = leftCanCoder.getVelocity();
+        io_.right_velocity_mps = rightCanCoder.getVelocity();
         io_.gyro_heading = gyro_.getYaw();
 
         io_.left_temperature = leftMaster_.getMotorTemperature();
@@ -722,7 +728,9 @@ public class Drive implements Subsystem {
     public static class PeriodicIO {
         // INPUTS
         double left_distance;
+        double left_neo_distance;
         double right_distance;
+        double right_neo_distance;
         double left_velocity_rpm;
         double right_velocity_rpm;
         double left_velocity_mps;
@@ -734,9 +742,7 @@ public class Drive implements Subsystem {
 
         // OUTPUTS
         public double left_demand;
-        public double last_left_demand;
         public double right_demand;
-        public double last_right_demand;
         public double left_accel;
         public double right_accel;
         public double left_feedforward;
@@ -772,6 +778,13 @@ public class Drive implements Subsystem {
         SmartDashboard.putNumber("Left Drive Distance", io_.left_distance);
         SmartDashboard.putNumber("Right Linear Velocity", getRightLinearVelocity());
         SmartDashboard.putNumber("Left Linear Velocity", getLeftLinearVelocity());
+        SmartDashboard.putNumber("Left CANCoder MPS", io_.left_velocity_mps);
+        SmartDashboard.putNumber("Right CANCoder MPS", io_.right_velocity_mps);
+        SmartDashboard.putNumber("Left NEO Distance", io_.left_neo_distance);
+        SmartDashboard.putNumber("Right NEO Distance", io_.right_neo_distance);
+
+        SmartDashboard.putNumber("Left Master Temperature: ", io_.left_temperature);
+        SmartDashboard.putNumber("Right Master Temperature: ", io_.right_temperature);
 
         Pose2d odometry_pose = getOdometryPose();
         SmartDashboard.putNumber("Odometery X", odometry_pose.getTranslation().getX());

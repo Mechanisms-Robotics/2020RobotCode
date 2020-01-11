@@ -26,6 +26,8 @@ public class Constants {
     // Motor Controller Properties
     public final static double OPEN_LOOP_RAMP = 0.25; // seconds
     public final static double CLOSED_LOOP_RAMP = 0.25; // seconds
+    public final static int STALL_LIMIT = 45; // Amps DC
+    public final static int FREE_LIMIT = 40; // Amps DC
 
     //The Shifters (drive)
     public final static int SHIFT_FORWARD = 3;

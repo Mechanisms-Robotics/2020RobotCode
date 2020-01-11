@@ -134,6 +134,7 @@ public class Robot extends TimedRobot {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
+            drive_.zeroSensors();
             drive_.setHighGear();
             enabledIterator.start();
         } catch (Throwable t) {
@@ -160,6 +161,7 @@ public class Robot extends TimedRobot {
             disabledIterator.stop();
             compressor_.setClosedLoopControl(true);
             enabledIterator.start();
+            drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setHighGear();
             if (autoRunner_ != null) {
