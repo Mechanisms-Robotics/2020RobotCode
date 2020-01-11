@@ -27,8 +27,8 @@ public class TestMode extends AutoMode {
     
     public static void generateTrajectories() {
         var maxVoltage = 10.0; // Voltes
-        var maxAccel = 0.75; // m/s
-        var maxVelocity = 0.75; // m/s
+        var maxAccel = 1.5; // m/s
+        var maxVelocity = 1.5; // m/s
 
         var startPose = new Pose2d();
 
@@ -37,9 +37,9 @@ public class TestMode extends AutoMode {
         // generate a quntic spline instead of a cubic
         // spline. (This may take longer)
         var midPoints = List.of(
-            new Translation2d(1.5, 0)
+            new Translation2d(1.0, 0)
         );
-        var endPose = new Pose2d(3.0, 0, Rotation2d.fromDegrees(0.0));
+        var endPose = new Pose2d(3.5, -1, Rotation2d.fromDegrees(-90.0));
         
         // Define other constraintes
         var voltageConstraint = 
