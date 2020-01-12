@@ -1,6 +1,7 @@
 package frc2020.robot;
 
 import frc2020.util.DriveSignal;
+import frc2020.subsystems.Limelight;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
@@ -36,6 +37,10 @@ public class Robot extends TimedRobot {
     private AutoMode currentAutoMode_;
 
     private TeleopCSGenerator teleopCSGenerator_;
+
+
+
+    private Limelight limelight_ = new Limelight();
 
     /**
     * Default constructor, initializes the enabledIterator, disabledIterator,
@@ -77,6 +82,8 @@ public class Robot extends TimedRobot {
 
             manager.registerEnabledLoops(enabledIterator);
             manager.registerDisabledLoops(disabledIterator);
+            
+            limelight_.setLEDMode(true);
 
             SmartDashboard.putData("PDP", PDP);
         } catch (Throwable t) {
@@ -115,6 +122,9 @@ public class Robot extends TimedRobot {
             autoRunner_ = null;
             currentAutoMode_ = null;
             disabledIterator.start();
+            limelight_.setLEDMode(true);
+            limelight_.setDriverMode(false);
+
             drive_.openLoop(new DriveSignal(0,0, false));
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -171,6 +181,7 @@ public class Robot extends TimedRobot {
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setHighGear();
+            limelight_.setDriverMode(true);
             if (autoRunner_ != null) {
                 autoRunner_.stop();
                 autoRunner_ = null;
