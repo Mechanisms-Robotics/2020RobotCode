@@ -62,19 +62,29 @@ public class Constants {
     public final static int RIGHT_CAN_CODER_ID = 2;
 
     //Limelight
-    public static final double kImageCaptureLatency = 11.0 / 1000.0; // seconds
+    public static final double LIMELIGHT_RES_X = 320.0;
+    public static final double LIMELIGHT_RES_Y = 240.0;
+    public static final double LIMELIGHT_HORIZONTAL_FOV = 59.6;
+    public static final double LIMELIGHT_VERTICAL_FOV = 49.7;
+    
+    // Defines the plane 1.0 unit away from the camerar
+    public static final double VERTICAL_PLANE_HEIGHT = 2.0 *
+        Math.tan(Math.toRadians(LIMELIGHT_VERTICAL_FOV / 2.0)); 
+    public static final double VERTICAL_PLANE_WIDTH = 2.0 *
+        Math.tan(Math.toRadians(LIMELIGHT_HORIZONTAL_FOV / 2.0));
+    public static final double IMAGE_CAPTURE_LANTECY = 11.0 / 1000.0; // seconds
 
     /**
      * @return the MAC address of the robot
      */
     public static String getMACAddress() {
         try {
-            Enumeration<NetworkInterface> nwInterface = NetworkInterface.getNetworkInterfaces();
-            StringBuilder ret = new StringBuilder();
+            final Enumeration<NetworkInterface> nwInterface = NetworkInterface.getNetworkInterfaces();
+            final StringBuilder ret = new StringBuilder();
             while (nwInterface.hasMoreElements()) {
-                NetworkInterface nis = nwInterface.nextElement();
+                final NetworkInterface nis = nwInterface.nextElement();
                 if (nis != null) {
-                    byte[] mac = nis.getHardwareAddress();
+                    final byte[] mac = nis.getHardwareAddress();
                     if (mac != null) {
                         for (int i = 0; i < mac.length; i++) {
                             ret.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
@@ -87,9 +97,9 @@ public class Constants {
                     System.out.println("Network Interface for the specified address is not found.");
                 }
             }
-        } catch (SocketException e) {
+        } catch (final SocketException e) {
             e.printStackTrace();
-        } catch (NullPointerException e) {
+        } catch (final NullPointerException e) {
             e.printStackTrace();
         }
         return "";

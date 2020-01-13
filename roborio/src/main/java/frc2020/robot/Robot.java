@@ -2,6 +2,7 @@ package frc2020.robot;
 
 import frc2020.util.DriveSignal;
 import frc2020.subsystems.Limelight;
+import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
@@ -12,6 +13,7 @@ import frc2020.subsystems.*;
 import frc2020.robot.Constants;
 
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -38,9 +40,7 @@ public class Robot extends TimedRobot {
 
     private TeleopCSGenerator teleopCSGenerator_;
 
-
-
-    private Limelight limelight_ = new Limelight();
+    private Limelight limelight_;
 
     /**
     * Default constructor, initializes the enabledIterator, disabledIterator,
@@ -53,9 +53,18 @@ public class Robot extends TimedRobot {
         disabledIterator = new Looper();
         autoRunner_ = null;
 
+        var limelight_config = new Limelight.LimelightConfig();
+        limelight_config.height = 0.66;
+        limelight_config.horizontalPlaneToLens = Rotation2d.fromDegrees(-15.0);
+        limelight_config.tableName = "limelight";
+        limelight_config.name = "Test";
+        limelight_ = new Limelight(limelight_config);
+        limelight_.setLed(LedMode.PIPELINE);
+
         manager = new SubsystemManager(
                 Arrays.asList(
-                  Drive.getInstance()
+                  Drive.getInstance(),
+                  limelight_
                 )
         );
 
@@ -66,6 +75,8 @@ public class Robot extends TimedRobot {
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
         autoChooser_ = AutoChooser.getAutoChooser();
+
+        
 
         // Pre-Generate Trajectories
         TestMode.generateTrajectories();
@@ -83,8 +94,6 @@ public class Robot extends TimedRobot {
             manager.registerEnabledLoops(enabledIterator);
             manager.registerDisabledLoops(disabledIterator);
             
-            limelight_.setLEDMode(true);
-
             SmartDashboard.putData("PDP", PDP);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -122,9 +131,6 @@ public class Robot extends TimedRobot {
             autoRunner_ = null;
             currentAutoMode_ = null;
             disabledIterator.start();
-            limelight_.setLEDMode(true);
-            limelight_.setDriverMode(false);
-
             drive_.openLoop(new DriveSignal(0,0, false));
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -181,7 +187,6 @@ public class Robot extends TimedRobot {
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setHighGear();
-            limelight_.setDriverMode(true);
             if (autoRunner_ != null) {
                 autoRunner_.stop();
                 autoRunner_ = null;
