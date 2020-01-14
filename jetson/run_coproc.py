@@ -5,9 +5,11 @@ import utils
 import path_generator
 import motion_profiler
 import kinematics
+import logging
 
 
-ODOMETRY_DEAD_ZONE = 0.01  # m/s
+ODOMETRY_DEAD_ZONE = 0.00  # m/s
+ODOMETRY_FUDGE_FACTOR = 1.0  # Mr. Odom's experiment
 
 
 def main():
@@ -42,7 +44,11 @@ def main():
     try:
         while True:
             update = jetson_msg.JetsonUpdate()
-            tracking.wait_for_next_frame()
+            try:
+                tracking.wait_for_next_frame()
+            except RuntimeError as e:
+                logging.warning('RuntimeError in wait_for_next_frame: %s' % e)
+                continue
             tracking.get_slam_update(update)
             rio_update = subscriber.rio_update()
             if rio_update:
@@ -53,7 +59,9 @@ def main():
                         wheel_left = 0.0
                     if abs(wheel_right) <= ODOMETRY_DEAD_ZONE:
                         wheel_right = 0.0
-                    tracking.send_wheel_data(wheel_left, wheel_right)
+                    tracking.send_wheel_data(
+                        wheel_left*ODOMETRY_FUDGE_FACTOR,
+                        wheel_right*ODOMETRY_FUDGE_FACTOR)
 
             ##################################################################
             # BEGIN MR ODOM EXPERIMENT - VIRTUAL DRIVER
@@ -118,11 +126,14 @@ def main():
 
             update.drive_signal.demand_left = drive_velocities[0]
             update.drive_signal.demand_right = drive_velocities[1]
+            update.drive_signal.demand_left = 1.0
+            update.drive_signal.demand_right = 1.0
             update.drive_signal.demand_type = (
                 jetson_msg.DriveSignal.DemandType.Velocity)
 
             utils.print_occasional(
-                'Vl: %s  Vr %s' % (drive_velocities))
+                'Vl: %s  Vr %s' % (update.drive_signal.demand_left,
+                                   update.drive_signal.demand_right))
 
             utils.call_increment()
 
