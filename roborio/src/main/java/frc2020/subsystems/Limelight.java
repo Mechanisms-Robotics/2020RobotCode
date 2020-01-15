@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
 import frc2020.util.Logger;
-import frc2020.util.TargetInfo;
+import frc2020.util.vision.TargetInfo;
 import frc2020.util.Util;
 
 /**

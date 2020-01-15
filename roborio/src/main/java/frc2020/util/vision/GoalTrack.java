@@ -1,4 +1,4 @@
-package frc2020.util;
+package frc2020.util.vision;
 
 import frc2020.robot.Constants;
 import edu.wpi.first.wpilibj.geometry.Pose2d;

@@ -1,4 +1,4 @@
-package frc2020.util;
+package frc2020.util.vision;
 
 import java.util.ArrayList;
 import java.util.Comparator;
