@@ -66,6 +66,19 @@ public class Constants {
     public static final double LIMELIGHT_RES_Y = 240.0;
     public static final double LIMELIGHT_HORIZONTAL_FOV = 59.6;
     public static final double LIMELIGHT_VERTICAL_FOV = 49.7;
+    public static final double TARGET_HEIGHT = 2.496; // meters
+
+    public static final double MAX_TRACK_DISTANCE = 0.2286; // meters
+    public static final double MAX_TRACK_AGE = 2.5; // sec
+    public static final double MAX_GOAL_TRACK_AGE_NOT_TRACKING = 0.1; // sec
+    public static final double MAX_GOAL_TRACK_SMOOTHING_TIME = 0.5; // sec
+    public static final double TRACK_STABILITY_WEIGHT = 0.0;
+    public static final double TRACK_AGE_WEIGHT = 10.0;
+    public static final double TRACK_SWITCHING_WEIGHT = 100.0;
+
+    public static final double CAMERA_FRAME_RATE = 90.0;
+    public static final double MIN_STABILITY = 0.5;
+
     
     // Defines the plane 1.0 unit away from the camerar
     public static final double VERTICAL_PLANE_HEIGHT = 2.0 *

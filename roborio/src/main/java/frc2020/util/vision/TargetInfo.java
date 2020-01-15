@@ -1,4 +1,4 @@
-package frc2020.util;
+package frc2020.util.vision;
 
 /**
  * A container class for Targets detected by the vision system, containing the location in three-dimensional space.
