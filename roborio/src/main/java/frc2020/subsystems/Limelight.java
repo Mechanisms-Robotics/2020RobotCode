@@ -9,6 +9,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
@@ -27,7 +28,7 @@ public class Limelight implements Subsystem {
         public String name = "";
         public String tableName = "";
         public double height = 0.0;
-        public Pose2d turretToLens = new Pose2d();
+        public Transform2d turretToLens = new Transform2d();
         public Rotation2d horizontalPlaneToLens = new Rotation2d();
     }
 
@@ -61,7 +62,7 @@ public class Limelight implements Subsystem {
     private List<TargetInfo> targets_ = new ArrayList<>();
     private boolean hasTarget_ = false;
 
-    public Pose2d getTurretToLens() {
+    public Transform2d getTurretToLens() {
         return config_.turretToLens;
     }
 
@@ -157,7 +158,6 @@ public class Limelight implements Subsystem {
         if (hasTarget() && targets != null) {
             return targets;
         }
-
         return null;
     }
 
@@ -180,9 +180,9 @@ public class Limelight implements Subsystem {
             // Normilize the pixel coordinats to use the center of the frame
             // as (0, 0)
             double nY = -((y_pixels - (Constants.LIMELIGHT_RES_X / 2)) /
-                ((Constants.LIMELIGHT_RES_X / 2) - 0.5));
+                ((Constants.LIMELIGHT_RES_X / 2)));
             double nZ = -((z_pixels - (Constants.LIMELIGHT_RES_Y / 2)) /
-                ((Constants.LIMELIGHT_RES_Y / 2) - 0.5));
+                ((Constants.LIMELIGHT_RES_Y / 2)));
 
             // Project the normilized coordinates onto a plane 1.0
             // unit away from the camera
@@ -206,15 +206,22 @@ public class Limelight implements Subsystem {
 
         // Get the list of x and y position in pixels(?) if we have a valid target
         double[] emptyArray = {};
-        double[] xCorners = networkTable_.getEntry("tcornx").getDoubleArray(emptyArray);
-        double[] yCorners = networkTable_.getEntry("tcorny").getDoubleArray(emptyArray);
+        double[] corners = networkTable_.getEntry("tcornxy").getDoubleArray(emptyArray);
         hasTarget_ = networkTable_.getEntry("tv").getDouble(0) == 1.0;
 
         // If we don't have a valid target or the corners list is empty
         // something went wrong so we return null
-        if (!hasTarget_ || Arrays.equals(xCorners, emptyArray) || Arrays.equals(yCorners, emptyArray)
-                || xCorners.length <= 4 || yCorners.length <= 4) {
+        if (!hasTarget_ || Arrays.equals(corners, emptyArray) || corners.length <= 8 || corners.length % 2 != 0) {
             return null;
+        }
+
+        double[] xCorners = new double[corners.length/2];
+        double[] yCorners = new double[corners.length/2];
+        int idx = 0;
+        for (int i = 1; i < corners.length; i += 2) {
+            xCorners[idx] = corners[i-1];
+            yCorners[idx] = corners[i];
+            idx++;
         }
 
         return extractTopCornersFromBoundingBoxes(xCorners, yCorners);

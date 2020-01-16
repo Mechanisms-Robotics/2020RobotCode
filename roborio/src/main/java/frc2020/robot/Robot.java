@@ -1,5 +1,6 @@
 package frc2020.robot;
 
+import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc2020.util.DriveSignal;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Limelight.LedMode;
@@ -41,6 +42,7 @@ public class Robot extends TimedRobot {
     private TeleopCSGenerator teleopCSGenerator_;
 
     private Limelight limelight_;
+    private TargetTracker targetTracker_;
 
     /**
     * Default constructor, initializes the enabledIterator, disabledIterator,
@@ -54,17 +56,20 @@ public class Robot extends TimedRobot {
         autoRunner_ = null;
 
         var limelight_config = new Limelight.LimelightConfig();
-        limelight_config.height = 0.66;
-        limelight_config.horizontalPlaneToLens = Rotation2d.fromDegrees(-15.0);
+        limelight_config.height = 1.12;
+        limelight_config.horizontalPlaneToLens = Rotation2d.fromDegrees(15.0);
         limelight_config.tableName = "limelight";
         limelight_config.name = "Test";
         limelight_ = new Limelight(limelight_config);
         limelight_.setLed(LedMode.PIPELINE);
+        targetTracker_ = new TargetTracker(limelight_);
+
 
         manager = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
-                  limelight_
+                  limelight_,
+                        targetTracker_
                 )
         );
 
@@ -109,6 +114,12 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         try {
             manager.outputToSmartDashboard();
+            Pose2d target = targetTracker_.getRobotToVisionTarget();
+            if (target != null) {
+                SmartDashboard.putNumber("Distance", target.getTranslation().getX());
+            } else {
+                SmartDashboard.putNumber("Distance", 0.0);
+            }
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;

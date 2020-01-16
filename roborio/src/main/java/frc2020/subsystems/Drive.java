@@ -1,9 +1,7 @@
 package frc2020.subsystems;
 
+import frc2020.util.*;
 import frc2020.util.drivers.NavX;
-import frc2020.util.DriveSignal;
-import frc2020.util.ReflectingCSVWriter;
-import frc2020.util.Logger;
 import frc2020.loops.Loop;
 import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
@@ -89,12 +87,15 @@ public class Drive implements Subsystem {
     private CANPIDController leftVelocityPID_;
     private CANPIDController rightVelocityPID_;
 
-    //Encoders
+    // Encoders and Odometry
     private CANCoder leftCanCoder;
     private CANCoder rightCanCoder;
 
     private CANCoderConfiguration leftCoderConfig;
     private CANCoderConfiguration rightCoderConfig;
+
+    private DifferentialDriveOdometry odometry_;
+    private InterpolatingTreeMap<InterpolatingDouble, InterpolatingPose2d> odometryHistory;
 
     // Shifter
     private DoubleSolenoid shifter_;
@@ -109,7 +110,6 @@ public class Drive implements Subsystem {
 
     // Path Following
     private DifferentialDriveKinematics kinematics_;
-    private DifferentialDriveOdometry odometry_;
     private Trajectory currentTrajectory_;
     private double trajectoryStartTime_;
     private RamseteController controller_;
@@ -129,10 +129,12 @@ public class Drive implements Subsystem {
         gyro_ = new NavX(SerialPort.Port.kUSB);
         setBrakeMode(true);
 
+        odometry_ = new DifferentialDriveOdometry(new Rotation2d(0.0));
+        odometryHistory = new InterpolatingTreeMap<>(100);
+
         kinematics_ = new DifferentialDriveKinematics(
             Constants.TRACK_SCRUB_FACTOR * Constants.DRIVE_TRACK_WIDTH
         );
-        odometry_ = new DifferentialDriveOdometry(new Rotation2d(0.0));
         currentTrajectory_ = null;
         trajectoryStartTime_ = -1.0;
         doneWithTrajectory_ = true;
@@ -689,6 +691,10 @@ public class Drive implements Subsystem {
         return (getRightLinearVelocity() - getLeftLinearVelocity()) / Constants.DRIVE_TRACK_WIDTH;
     }
 
+    public Pose2d getOdometryPose(double timestamp) {
+        return odometryHistory.getInterpolated(new InterpolatingDouble(timestamp));
+    }
+
     public Pose2d getOdometryPose() {
         return odometry_.getPoseMeters();
     }
@@ -714,6 +720,9 @@ public class Drive implements Subsystem {
         io_.right_temperature = rightMaster_.getMotorTemperature();
 
         odometry_.update(io_.gyro_heading, getLeftEncoderDistance(), getRightEncoderDistance());
+        double timestamp = Timer.getFPGATimestamp();
+        odometryHistory.put(new InterpolatingDouble(timestamp),
+                new InterpolatingPose2d(odometry_.getPoseMeters()));
 
         if (CSVWriter_ != null) {
             CSVWriter_.add(io_);
