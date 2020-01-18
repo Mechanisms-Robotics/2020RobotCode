@@ -7,7 +7,6 @@ import java.util.List;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
@@ -76,7 +75,7 @@ public class Limelight implements Subsystem {
 
     @Override
     public synchronized void readPeriodicInputs() {
-        io_.latency = networkTable_.getEntry("tl").getDouble(0) / 1000.0 + Constants.IMAGE_CAPTURE_LANTECY;
+        io_.latency = networkTable_.getEntry("tl").getDouble(0) / 1000.0 + Constants.IMAGE_CAPTURE_LATENCY;
         io_.givenLedMode = (int) networkTable_.getEntry("ledMode").getDouble(1.0);
         io_.givenPipeline = (int) networkTable_.getEntry("pipeline").getDouble(0);
         io_.xOffset = networkTable_.getEntry("tx").getDouble(0.0);
@@ -154,14 +153,14 @@ public class Limelight implements Subsystem {
      *         targets are found
      */
     public synchronized List<TargetInfo> getTarget() {
-        List<TargetInfo> targets = getRawTargetInfos();
+        List<TargetInfo> targets = getRawTargetInfo();
         if (hasTarget() && targets != null) {
             return targets;
         }
         return null;
     }
 
-    private synchronized List<TargetInfo> getRawTargetInfos() {
+    private synchronized List<TargetInfo> getRawTargetInfo() {
         List<double[]> corners = getTopCorners();
         if (corners == null) {
             return null;
@@ -177,14 +176,16 @@ public class Limelight implements Subsystem {
             double y_pixels = corners.get(i)[0];
             double z_pixels = corners.get(i)[1];
 
-            // Normilize the pixel coordinats to use the center of the frame
+            // Normalize the pixel coordinate to use the center of the frame
             // as (0, 0)
+            // Note the negation is so that z is up and y is left to
+            // correspond to the coordinate system we use on the bot
             double nY = -((y_pixels - (Constants.LIMELIGHT_RES_X / 2)) /
-                ((Constants.LIMELIGHT_RES_X / 2)));
-            double nZ = -((z_pixels - (Constants.LIMELIGHT_RES_Y / 2)) /
-                ((Constants.LIMELIGHT_RES_Y / 2)));
+                (Constants.LIMELIGHT_RES_X / 2));
+            double nZ = -(((Constants.LIMELIGHT_RES_Y / 2) - z_pixels) /
+                (Constants.LIMELIGHT_RES_Y / 2));
 
-            // Project the normilized coordinates onto a plane 1.0
+            // Project the normalized coordinates onto a plane 1.0
             // unit away from the camera
             double y = Constants.VERTICAL_PLANE_WIDTH / 2 * nY;
             double z = Constants.VERTICAL_PLANE_HEIGHT / 2 * nZ;
@@ -246,7 +247,9 @@ public class Limelight implements Subsystem {
 
         // Sort the corners by the by the x-vaules to
         // sort them from left to right
+        Logger.logDebug("Before sort: " + corners);
         corners.sort(xSort);
+        Logger.logDebug("After sort: " + corners);
 
         Translation2d leftCorner = corners.get(0);
         Translation2d rightCorner = corners.get(corners.size() - 1);

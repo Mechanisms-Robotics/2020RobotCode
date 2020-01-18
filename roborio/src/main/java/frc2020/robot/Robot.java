@@ -30,13 +30,13 @@ import java.util.Arrays;
 public class Robot extends TimedRobot {
     private Looper enabledIterator;
     private Looper disabledIterator;
-    private PowerDistributionPanel PDP;
+    //private PowerDistributionPanel PDP;
     private SendableChooser<AutoChooser.AutoModeChoices> autoChooser_;
     private AutoModeRunner autoRunner_;
     private SubsystemManager manager;
     private Drive drive_;
 
-    private Compressor compressor_;
+   // private Compressor compressor_;
     private AutoMode currentAutoMode_;
 
     private TeleopCSGenerator teleopCSGenerator_;
@@ -75,8 +75,8 @@ public class Robot extends TimedRobot {
 
 
         drive_ = Drive.getInstance();
-        compressor_ = new Compressor();
-        PDP = new PowerDistributionPanel();
+       // compressor_ = new Compressor();
+        //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
         autoChooser_ = AutoChooser.getAutoChooser();
@@ -99,7 +99,7 @@ public class Robot extends TimedRobot {
             manager.registerEnabledLoops(enabledIterator);
             manager.registerDisabledLoops(disabledIterator);
             
-            SmartDashboard.putData("PDP", PDP);
+            //SmartDashboard.putData("PDP", PDP);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -193,7 +193,7 @@ public class Robot extends TimedRobot {
             System.out.println("Entering teleopInit");
             CrashTracker.logTeleopInit();
             disabledIterator.stop();
-            compressor_.setClosedLoopControl(true);
+            //compressor_.setClosedLoopControl(true);
             enabledIterator.start();
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));

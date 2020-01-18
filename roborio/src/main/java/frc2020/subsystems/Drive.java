@@ -1,5 +1,6 @@
 package frc2020.subsystems;
 
+import frc2020.robot.Robot;
 import frc2020.util.*;
 import frc2020.util.drivers.NavX;
 import frc2020.loops.Loop;
@@ -116,36 +117,39 @@ public class Drive implements Subsystem {
     private SimpleMotorFeedforward feedforward_;
     private boolean doneWithTrajectory_;
 
+    private boolean REMOVE_ME = false;
+
     /**
      * The default constructor starts the drive train and sets it up to be in
      * OpenLoop mode
      */
     private Drive() {
-        configSparkMaxs();
-        configCanCoders();
+        if (Robot.isReal() && REMOVE_ME) {
+            configSparkMaxs();
+            configCanCoders();
 
-        io_ = new PeriodicIO();
-        // Configure NavX
-        gyro_ = new NavX(SerialPort.Port.kUSB);
-        setBrakeMode(true);
+            // Configure NavX
+            gyro_ = new NavX(SerialPort.Port.kUSB);
+            setBrakeMode(true);
 
+            shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
+        }
         odometry_ = new DifferentialDriveOdometry(new Rotation2d(0.0));
         odometryHistory = new InterpolatingTreeMap<>(100);
 
         kinematics_ = new DifferentialDriveKinematics(
-            Constants.TRACK_SCRUB_FACTOR * Constants.DRIVE_TRACK_WIDTH
+                Constants.TRACK_SCRUB_FACTOR * Constants.DRIVE_TRACK_WIDTH
         );
         currentTrajectory_ = null;
         trajectoryStartTime_ = -1.0;
         doneWithTrajectory_ = true;
         feedforward_ = new SimpleMotorFeedforward(
-            Constants.DRIVE_V_INTERCEPT,
-            Constants.DRIVE_KV,
-            Constants.DRIVE_KA
+                Constants.DRIVE_V_INTERCEPT,
+                Constants.DRIVE_KV,
+                Constants.DRIVE_KA
         );
         controller_ = new RamseteController();
-
-        shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
+        io_ = new PeriodicIO();
     }
 
     /**
@@ -371,13 +375,15 @@ public class Drive implements Subsystem {
      * @param mode the mode to set the brake on the Spark Maxes to
      */
     public synchronized void setBrakeMode(boolean mode) {
-        // ADD Brake mode cofiction for SPARK MAX
-        if (mode) {
-            leftMaster_.setIdleMode(CANSparkMax.IdleMode.kBrake);
-            rightMaster_.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        } else {
-            leftMaster_.setIdleMode(CANSparkMax.IdleMode.kCoast);
-            rightMaster_.setIdleMode(CANSparkMax.IdleMode.kCoast);
+        if (Robot.isReal() && REMOVE_ME) {
+            // ADD Brake mode cofiction for SPARK MAX
+            if (mode) {
+                leftMaster_.setIdleMode(CANSparkMax.IdleMode.kBrake);
+                rightMaster_.setIdleMode(CANSparkMax.IdleMode.kBrake);
+            } else {
+                leftMaster_.setIdleMode(CANSparkMax.IdleMode.kCoast);
+                rightMaster_.setIdleMode(CANSparkMax.IdleMode.kCoast);
+            }
         }
     }
 
@@ -474,20 +480,22 @@ public class Drive implements Subsystem {
     public synchronized void resetOdometry(Pose2d pose, Rotation2d rotation) {
         // Sets odometry to desired pose and rotation
         odometry_.resetPosition(pose, rotation);
-        
-        // Prints the stack if there are any errors in setting the position of the CAN Coders
-        ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
-        if(rv != ErrorCode.OK) {
-            Logger.logError("Left CAN coder reset failed with error: " + rv.toString());
-        }
 
-        rv = rightCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
-        if(rv != ErrorCode.OK) {
-            Logger.logError("Right CAN coder reset failed with error: " + rv.toString());
+        if (Robot.isReal() && REMOVE_ME) {
+            // Prints the stack if there are any errors in setting the position of the CAN Coders
+            ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
+            if (rv != ErrorCode.OK) {
+                Logger.logError("Left CAN coder reset failed with error: " + rv.toString());
+            }
+
+            rv = rightCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
+            if (rv != ErrorCode.OK) {
+                Logger.logError("Right CAN coder reset failed with error: " + rv.toString());
+            }
+
+            // Sets the gyroscope to the desired rotation
+            setHeading(rotation);
         }
-        
-        // Sets the gyroscope to the desired rotation
-        setHeading(rotation);
     }
 
     /**
@@ -503,10 +511,12 @@ public class Drive implements Subsystem {
      * Toggles the robot between low gear or high gear
      */
     public synchronized void shift() {
-        if (shifter_.get() == highGear_) {
-            shifter_.set(lowGear_);
-        } else {
-            shifter_.set(highGear_);
+        if (Robot.isReal()) {
+            if (shifter_.get() == highGear_) {
+                shifter_.set(lowGear_);
+            } else {
+                shifter_.set(highGear_);
+            }
         }
     }
 
@@ -514,14 +524,18 @@ public class Drive implements Subsystem {
      * Sets drive to high gear
      */
     public synchronized void setHighGear() {
-        shifter_.set(highGear_);
+        if (Robot.isReal()) {
+            shifter_.set(highGear_);
+        }
     }
 
     /**
      * Sets drive to low gear
      */
     public synchronized void setLowGear() {
-        shifter_.set(lowGear_);
+        if (Robot.isReal()) {
+            shifter_.set(lowGear_);
+        }
     }
 
     /**
@@ -540,19 +554,8 @@ public class Drive implements Subsystem {
      */
     public synchronized void setHeading(Rotation2d heading) {
         Rotation2d adjustment = heading.rotateBy(gyro_.getRawRotation().unaryMinus());
-        gyro_.setAngleAdjustment(adjustment);
-    }
-
-    /**
-    * Gets the current mode the shifter is in low gear or high gear
-    *
-    * @return The current shifter state.
-    */
-    public synchronized boolean getGear() {
-        if (shifter_.get() == lowGear_) {
-            return true;
-        } else {
-            return false;
+        if (Robot.isReal()) {
+            gyro_.setAngleAdjustment(adjustment);
         }
     }
 
@@ -703,26 +706,28 @@ public class Drive implements Subsystem {
     * Handles reading all of the data from encoders/CANTalons periodically
     */
     public synchronized void readPeriodicInputs() {
-        // Get this from the CAN coders
-        io_.left_distance = leftCanCoder.getPosition();
-        io_.right_distance = rightCanCoder.getPosition();
-        io_.left_neo_distance = rotationsToMeters(leftMaster_.getEncoder().getPosition());
-        io_.right_neo_distance = rotationsToMeters(rightMaster_.getEncoder().getPosition());
+        if (Robot.isReal() && REMOVE_ME) {
+            // Get this from the CAN coders
+            io_.left_distance = leftCanCoder.getPosition();
+            io_.right_distance = rightCanCoder.getPosition();
+            io_.left_neo_distance = rotationsToMeters(leftMaster_.getEncoder().getPosition());
+            io_.right_neo_distance = rotationsToMeters(rightMaster_.getEncoder().getPosition());
 
-        // Get this from the Spark Maxes
-        io_.left_velocity_rpm = leftMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
-        io_.right_velocity_rpm = rightMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
-        io_.left_velocity_mps = leftCanCoder.getVelocity();
-        io_.right_velocity_mps = rightCanCoder.getVelocity();
-        io_.gyro_heading = gyro_.getYaw();
+            // Get this from the Spark Maxes
+            io_.left_velocity_rpm = leftMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
+            io_.right_velocity_rpm = rightMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
+            io_.left_velocity_mps = leftCanCoder.getVelocity();
+            io_.right_velocity_mps = rightCanCoder.getVelocity();
+            io_.gyro_heading = gyro_.getYaw();
 
-        io_.left_temperature = leftMaster_.getMotorTemperature();
-        io_.right_temperature = rightMaster_.getMotorTemperature();
+            io_.left_temperature = leftMaster_.getMotorTemperature();
+            io_.right_temperature = rightMaster_.getMotorTemperature();
 
-        odometry_.update(io_.gyro_heading, getLeftEncoderDistance(), getRightEncoderDistance());
-        double timestamp = Timer.getFPGATimestamp();
-        odometryHistory.put(new InterpolatingDouble(timestamp),
-                new InterpolatingPose2d(odometry_.getPoseMeters()));
+            odometry_.update(io_.gyro_heading, getLeftEncoderDistance(), getRightEncoderDistance());
+            double timestamp = Timer.getFPGATimestamp();
+            odometryHistory.put(new InterpolatingDouble(timestamp),
+                    new InterpolatingPose2d(odometry_.getPoseMeters()));
+        }
 
         if (CSVWriter_ != null) {
             CSVWriter_.add(io_);
@@ -733,12 +738,14 @@ public class Drive implements Subsystem {
     * Handles writing outputs to Spark Maxes periodically
     */
     public synchronized void writePeriodicOutputs() {
-        if (state_ == DriveState.OpenLoop) {
-            leftVelocityPID_.setReference(io_.left_demand, ControlType.kDutyCycle, EMPTY_PID, io_.left_feedforward);
-            rightVelocityPID_.setReference(io_.right_demand, ControlType.kDutyCycle, EMPTY_PID, io_.right_feedforward);
-        } else {
-            leftVelocityPID_.setReference(io_.left_demand, ControlType.kVelocity, VELOCITY_PID, io_.left_feedforward);
-            rightVelocityPID_.setReference(io_.right_demand, ControlType.kVelocity, VELOCITY_PID, io_.right_feedforward);
+        if (Robot.isReal() && REMOVE_ME) {
+            if (state_ == DriveState.OpenLoop) {
+                leftVelocityPID_.setReference(io_.left_demand, ControlType.kDutyCycle, EMPTY_PID, io_.left_feedforward);
+                rightVelocityPID_.setReference(io_.right_demand, ControlType.kDutyCycle, EMPTY_PID, io_.right_feedforward);
+            } else {
+                leftVelocityPID_.setReference(io_.left_demand, ControlType.kVelocity, VELOCITY_PID, io_.left_feedforward);
+                rightVelocityPID_.setReference(io_.right_demand, ControlType.kVelocity, VELOCITY_PID, io_.right_feedforward);
+            }
         }
     }
 

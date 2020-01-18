@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.geometry.*;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 import frc2020.loops.Loop;
 import frc2020.robot.Constants;
@@ -44,13 +45,16 @@ public class TargetTracker implements Subsystem {
         double x = xz_plane_translation.getX();
         double y = target.getY();
         double z = xz_plane_translation.getY();
+        Rotation2d angle = new Rotation2d(target.getX(), target.getZ());
 
         // Find the intersection with the goal
-        double differential_height = source.getLensHeight() - Constants.TARGET_HEIGHT;
-        if ((z < 0.0) == (differential_height > 0.0)) {
-			double scaling = differential_height / -z;
+        double differential_height =  Constants.TARGET_HEIGHT - source.getLensHeight();
+        double test_distance = differential_height/(Math.tan(angle.getRadians() + Math.toRadians(15.0)));
+		SmartDashboard.putNumber("Target Distance", test_distance);
+        if (z > 0.0) {
+			double scaling = differential_height / z;
 			double distance = Math.hypot(x, y) * scaling;
-			Rotation2d angle = new Rotation2d(x, y);
+			//Rotation2d angle = new Rotation2d(x, y);
 			return new Translation2d(distance * angle.getCos(), distance * angle.getSin());
 		}
 		return null;
@@ -163,8 +167,16 @@ public class TargetTracker implements Subsystem {
 
 	@Override
 	public void outputTelemetry() {
-		// TODO Auto-generated method stub
-		
+		Pose2d target_pose = getRobotToVisionTarget();
+		if (target_pose != null) {
+			SmartDashboard.putNumber("Target X", target_pose.getTranslation().getX());
+			SmartDashboard.putNumber("Target Y", target_pose.getTranslation().getY());
+			SmartDashboard.putNumber("Target Rotation", target_pose.getRotation().getDegrees());
+		} else {
+			SmartDashboard.putNumber("Target X", 0.0);
+			SmartDashboard.putNumber("Target Y", 0.0);
+			SmartDashboard.putNumber("Target Rotation", 0.0);
+		}
 	}
 
 }

@@ -68,7 +68,7 @@ public class Constants {
     public static final double LIMELIGHT_VERTICAL_FOV = 49.7;
 
     public static final double TARGET_HEIGHT = 2.496; // meters
-    public static final double TARGET_NORMAL = 0.0; // degrees
+    public static final double TARGET_NORMAL = 180.0; // degrees
 
     public static final double MAX_TRACK_DISTANCE = 0.2286; // meters
     public static final double MAX_TRACK_AGE = 2.5; // sec
@@ -82,12 +82,12 @@ public class Constants {
     public static final double MIN_STABILITY = 0.5;
 
     
-    // Defines the plane 1.0 unit away from the camerar
+    // Defines the plane 1.0 unit away from the camera
     public static final double VERTICAL_PLANE_HEIGHT = 2.0 *
         Math.tan(Math.toRadians(LIMELIGHT_VERTICAL_FOV / 2.0)); 
     public static final double VERTICAL_PLANE_WIDTH = 2.0 *
         Math.tan(Math.toRadians(LIMELIGHT_HORIZONTAL_FOV / 2.0));
-    public static final double IMAGE_CAPTURE_LANTECY = 11.0 / 1000.0; // seconds
+    public static final double IMAGE_CAPTURE_LATENCY = 11.0 / 1000.0; // seconds
 
     /**
      * @return the MAC address of the robot
