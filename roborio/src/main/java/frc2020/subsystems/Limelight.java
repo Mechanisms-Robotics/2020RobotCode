@@ -19,6 +19,9 @@ import frc2020.util.Util;
 
 /**
  * Subsystem for interacting with the Limelight 2
+ * 
+ * This class does not explicitly track the targets but rather
+ * determines whether or not target data recieved is reliable.
  */
 public class Limelight implements Subsystem {
     public final static int DEFAULT_PIPELINE = 0;
@@ -58,7 +61,6 @@ public class Limelight implements Subsystem {
     private LimelightConfig config_ = null;
     private PeriodicIO io_ = new PeriodicIO();
     private boolean outputsHaveChanged_ = true;
-    private List<TargetInfo> targets_ = new ArrayList<>();
     private boolean hasTarget_ = false;
 
     public Transform2d getTurretToLens() {
@@ -160,6 +162,14 @@ public class Limelight implements Subsystem {
         return null;
     }
 
+    /**
+     * Gets the raw target info of the top two corners of the vision target.
+     * This is a unit plane from -1 to 1.
+     * 
+     * @return Returns a list of the x and y values of the top 2 corners of 
+     * the vision target with the first item being the left corner and the 
+     * second being the right corner.
+     */
     private synchronized List<TargetInfo> getRawTargetInfo() {
         List<double[]> corners = getTopCorners();
         if (corners == null) {
@@ -171,7 +181,7 @@ public class Limelight implements Subsystem {
             slope = (corners.get(1)[1] - corners.get(0)[1]) / (corners.get(1)[0] - corners.get(0)[0]);
         }
 
-        targets_.clear();
+        List<TargetInfo> targets = new ArrayList<>();
         for (int i = 0; i < 2; ++i) {
             double y_pixels = corners.get(i)[0];
             double z_pixels = corners.get(i)[1];
@@ -192,10 +202,10 @@ public class Limelight implements Subsystem {
 
             TargetInfo target = new TargetInfo(y, z);
             target.setSkew(slope);
-            targets_.add(target);
+            targets.add(target);
         }
 
-        return targets_;
+        return targets;
     }
 
     /**

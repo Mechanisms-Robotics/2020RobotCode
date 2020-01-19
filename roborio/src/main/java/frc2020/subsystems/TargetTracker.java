@@ -32,7 +32,7 @@ public class TargetTracker implements Subsystem {
 	 * Return the distance to a target seen by a limelight
 	 * @param target The target to calculate the distance too
 	 * @param source The limelight that was used to find the target
-	 * @return a translation 2d that represents the placement of the target reltive to the limelight
+	 * @return a translation 2d that represents the placement of the target relative to the limelight
 	 * @see TargetInfo
 	 * @see Limelight
 	 * @see Translation2d
