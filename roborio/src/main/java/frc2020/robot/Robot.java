@@ -42,7 +42,6 @@ public class Robot extends TimedRobot {
     private TeleopCSGenerator teleopCSGenerator_;
 
     private Limelight limelight_;
-    private TargetTracker targetTracker_;
 
     /**
     * Default constructor, initializes the enabledIterator, disabledIterator,
@@ -62,14 +61,11 @@ public class Robot extends TimedRobot {
         limelight_config.name = "Test";
         limelight_ = new Limelight(limelight_config);
         limelight_.setLed(LedMode.PIPELINE);
-        targetTracker_ = new TargetTracker(limelight_);
-
 
         manager = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
-                  limelight_,
-                        targetTracker_
+                  limelight_
                 )
         );
 
@@ -114,17 +110,16 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         try {
             manager.outputToSmartDashboard();
-            Pose2d target = targetTracker_.getRobotToVisionTarget();
-            if (target != null) {
-                SmartDashboard.putNumber("Distance", target.getTranslation().getX());
-            } else {
-                SmartDashboard.putNumber("Distance", 0.0);
-            }
+//            Pose2d target = targetTracker_.getRobotToVisionTarget();
+//            if (target != null) {
+//                SmartDashboard.putNumber("Distance", target.getTranslation().getX());
+//            } else {
+//                SmartDashboard.putNumber("Distance", 0.0);
+//            }
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;
         }
-
     }
 
     /**
