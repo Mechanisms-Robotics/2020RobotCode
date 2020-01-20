@@ -25,6 +25,7 @@ import frc2020.util.Util;
  */
 public class Limelight implements Subsystem {
     public final static int DEFAULT_PIPELINE = 0;
+    public final static int NONSENSE_VALUE = -4910;
 
     public static class LimelightConfig {
         public String name = "";
@@ -49,6 +50,7 @@ public class Limelight implements Subsystem {
         public double xOffset;
         public double yOffset;
         public double area;
+        public boolean hasTarget;
 
         // OUTPUTS
         public int ledMode = 1; // 0 - use pipeline mode, 1 - off, 2 - blink, 3 - on
@@ -61,7 +63,6 @@ public class Limelight implements Subsystem {
     private LimelightConfig config_ = null;
     private PeriodicIO io_ = new PeriodicIO();
     private boolean outputsHaveChanged_ = true;
-    private boolean hasTarget_ = false;
 
     public Transform2d getTurretToLens() {
         return config_.turretToLens;
@@ -83,7 +84,7 @@ public class Limelight implements Subsystem {
         io_.xOffset = networkTable_.getEntry("tx").getDouble(0.0);
         io_.yOffset = networkTable_.getEntry("ty").getDouble(0.0);
         io_.area = networkTable_.getEntry("ta").getDouble(0.0);
-        hasTarget_ = networkTable_.getEntry("tv").getDouble(0) == 1.0;
+        io_.hasTarget = networkTable_.getEntry("tv").getDouble(0) == 1.0;
     }
 
     @Override
@@ -114,7 +115,7 @@ public class Limelight implements Subsystem {
 
     @Override
     public synchronized void outputTelemetry() {
-        SmartDashboard.putBoolean(config_.name + ": Has Target", hasTarget_);
+        SmartDashboard.putBoolean(config_.name + ": Has Target", io_.hasTarget);
         SmartDashboard.putNumber(config_.name + ": Pipeline Latency (ms)", io_.latency);
     }
 
@@ -147,7 +148,19 @@ public class Limelight implements Subsystem {
     }
 
     public synchronized boolean hasTarget() {
-        return hasTarget_;
+        return io_.hasTarget;
+    }
+
+    public synchronized double getTargetX() {
+        return io_.xOffset;
+    }
+
+    public synchronized double getTargetY() {
+        return io_.yOffset;
+    }
+
+    public synchronized boolean getTargetValid() {
+        return io_.hasTarget;
     }
 
     /**
@@ -218,11 +231,11 @@ public class Limelight implements Subsystem {
         // Get the list of x and y position in pixels(?) if we have a valid target
         double[] emptyArray = {};
         double[] corners = networkTable_.getEntry("tcornxy").getDoubleArray(emptyArray);
-        hasTarget_ = networkTable_.getEntry("tv").getDouble(0) == 1.0;
+        io_.hasTarget = networkTable_.getEntry("tv").getDouble(0) == 1.0;
 
         // If we don't have a valid target or the corners list is empty
         // something went wrong so we return null
-        if (!hasTarget_ || Arrays.equals(corners, emptyArray) || corners.length <= 8 || corners.length % 2 != 0) {
+        if (!io_.hasTarget || Arrays.equals(corners, emptyArray) || corners.length <= 8 || corners.length % 2 != 0) {
             return null;
         }
 
