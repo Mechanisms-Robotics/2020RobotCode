@@ -81,6 +81,7 @@ public class Constants {
     public static final double CAMERA_FRAME_RATE = 90.0;
     public static final double MIN_STABILITY = 0.5;
 
+    // Maybe used for confidence calculation
     public static final double TOP_GOAL_DX = 2.3;
     public static final double TOP_GOAL_DY = 6.0;
     public static final double TOP_GOAL_BDX = 1.3;
