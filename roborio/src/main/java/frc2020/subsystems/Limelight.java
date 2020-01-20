@@ -27,6 +27,8 @@ import frc2020.subsystems.TargetTracker;
 public class Limelight implements Subsystem {
     public final static int DEFAULT_PIPELINE = 0;
     public final static int NONSENSE_VALUE = -4910;
+    public final static double CAMERA_DH = 1.87; // Difference in meters between camera and center of goal
+    public final static double CAMERA_ANGLE = 0.0; // Degrees
 
     public static class LimelightConfig {
         public String name = "";
@@ -169,6 +171,13 @@ public class Limelight implements Subsystem {
 
     public synchronized boolean getTargetValid() {
         return io_.hasTarget;
+    }
+
+    public synchronized double getTargetRange() {
+        TargetTracker.Reading currentReading = targetTracker_.getCurrentReading();
+        Rotation2d elevationR2D = Rotation2d.fromDegrees(currentReading.elevation);
+        elevationR2D.rotateBy(Rotation2d.fromDegrees(CAMERA_ANGLE));
+        return CAMERA_DH / Math.tan(Math.toRadians(elevationR2D.getDegrees()));
     }
 
     /**
