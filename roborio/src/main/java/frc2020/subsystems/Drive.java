@@ -117,14 +117,14 @@ public class Drive implements Subsystem {
     private SimpleMotorFeedforward feedforward_;
     private boolean doneWithTrajectory_;
 
-    private boolean REMOVE_ME = false;
+    private boolean IS_ROBOT = true;
 
     /**
      * The default constructor starts the drive train and sets it up to be in
      * OpenLoop mode
      */
     private Drive() {
-        if (Robot.isReal() && REMOVE_ME) {
+        if (Robot.isReal() && IS_ROBOT) {
             configSparkMaxs();
             configCanCoders();
 
@@ -375,7 +375,7 @@ public class Drive implements Subsystem {
      * @param mode the mode to set the brake on the Spark Maxes to
      */
     public synchronized void setBrakeMode(boolean mode) {
-        if (Robot.isReal() && REMOVE_ME) {
+        if (Robot.isReal() && IS_ROBOT) {
             // ADD Brake mode cofiction for SPARK MAX
             if (mode) {
                 leftMaster_.setIdleMode(CANSparkMax.IdleMode.kBrake);
@@ -481,7 +481,7 @@ public class Drive implements Subsystem {
         // Sets odometry to desired pose and rotation
         odometry_.resetPosition(pose, rotation);
 
-        if (Robot.isReal() && REMOVE_ME) {
+        if (Robot.isReal() && IS_ROBOT) {
             // Prints the stack if there are any errors in setting the position of the CAN Coders
             ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
             if (rv != ErrorCode.OK) {
@@ -706,7 +706,7 @@ public class Drive implements Subsystem {
     * Handles reading all of the data from encoders/CANTalons periodically
     */
     public synchronized void readPeriodicInputs() {
-        if (Robot.isReal() && REMOVE_ME) {
+        if (Robot.isReal() && IS_ROBOT) {
             // Get this from the CAN coders
             io_.left_distance = leftCanCoder.getPosition();
             io_.right_distance = rightCanCoder.getPosition();
@@ -738,7 +738,7 @@ public class Drive implements Subsystem {
     * Handles writing outputs to Spark Maxes periodically
     */
     public synchronized void writePeriodicOutputs() {
-        if (Robot.isReal() && REMOVE_ME) {
+        if (Robot.isReal() && IS_ROBOT) {
             if (state_ == DriveState.OpenLoop) {
                 leftVelocityPID_.setReference(io_.left_demand, ControlType.kDutyCycle, EMPTY_PID, io_.left_feedforward);
                 rightVelocityPID_.setReference(io_.right_demand, ControlType.kDutyCycle, EMPTY_PID, io_.right_feedforward);

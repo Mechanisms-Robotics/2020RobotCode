@@ -39,6 +39,7 @@ public class Constants {
     public final static double WHEEL_RADIUS = WHEEL_DIAMETER / 2; // meters
     public final static double DRIVE_TRACK_WIDTH = 0.635; // meters
     public final static double TRACK_SCRUB_FACTOR = 1.062; // We use this to calculate effective wheel base
+    public final static double ROBOT_LENGTH = 0.97155; //meters
 
     public final static double DRIVE_V_INTERCEPT = 0.189;  // Volts
     public final static double DRIVE_KV = 2.28;  // V per rad/s
