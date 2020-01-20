@@ -3,6 +3,9 @@ package frc2020.subsystems;
 import java.util.ArrayList;
 import java.util.List;
 
+import frc2020.robot.Constants;
+import frc2020.util.Util;
+
 
 /**
  * The target tracker is built to track Infinite Recharge power port vision targets.
@@ -40,7 +43,8 @@ public class TargetTracker {
     }
 
     private static class LimelightRawData {
-        public boolean validTarget;
+		public boolean validTarget;
+		public double[] corners; // This should be in order of top1, top2, bottom1, bottom2
         // TODO: place whatever else here
     }
 
@@ -128,9 +132,35 @@ public class TargetTracker {
     private double determineConfidenceInRawData(LimelightRawData rawData) {
         if (!rawData.validTarget) {
             return 0.0;
-        }
+		}
+		
+		 double[][] topCorners = {{rawData.corners[0], rawData.corners[1]}, {rawData.corners[2], rawData.corners[3]}};
+		 double[][] bottomCorners = {{rawData.corners[4], rawData.corners[5]}, {rawData.corners[6], rawData.corners[7]}};
+ 
+		 // Between 0.0-1.0
+		 double score = 0.0;
+ 
+		 double scoreInc = 0.125;
+ 
+		 // This checks that the bottomCorners are lower than the topCorners by a reasonable amount
+		 for (int j = 0; j < 2; j++)
+			 for (int k = 0; k < 2; k++)
+				 score += (Util.epsilonEquals(Math.abs(topCorners[j][1]-bottomCorners[k][1]), 
+						   Constants.TOP_GOAL_DY, Constants.TARGETING_EPSILON)) ? scoreInc : 0.0;
+ 
+		 // This checks that the bottomCorners are inset on the x axis from the topCorners
+		 for (int j = 0; j < 2; j++)
+			 for (int k = 0; k < 2; k++)
+				 score += j%2==0?((topCorners[j][0]-bottomCorners[k][0])<0.0?scoreInc:0.0):
+								 ((topCorners[j][0]-bottomCorners[k][0])>0.0?scoreInc:0.0);
+		 
+		 // Checks to make sure the topCorners aren't too close together
+		 score += (Math.abs(topCorners[1][0]-topCorners[0][0]) >= Constants.TOP_GOAL_DX) ? scoreInc : 0.0;
+ 
+		 // Checks to make sure the bottomCorners aren't too close together
+		 score += (Math.abs(bottomCorners[1][0]-bottomCorners[0][0]) >= Constants.TOP_GOAL_BDX) ? scoreInc : 0.0;
 
-        return 0.0;  // TODO
+        return score;
     }
 
     /**
