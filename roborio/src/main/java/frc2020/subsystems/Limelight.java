@@ -16,6 +16,7 @@ import frc2020.robot.Constants;
 import frc2020.util.Logger;
 import frc2020.util.vision.TargetInfo;
 import frc2020.util.Util;
+import frc2020.subsystems.TargetTracker;
 
 /**
  * Subsystem for interacting with the Limelight 2
@@ -63,6 +64,7 @@ public class Limelight implements Subsystem {
     private LimelightConfig config_ = null;
     private PeriodicIO io_ = new PeriodicIO();
     private boolean outputsHaveChanged_ = true;
+    private TargetTracker targetTracker_ = new TargetTracker();
 
     public Transform2d getTurretToLens() {
         return config_.turretToLens;
@@ -115,6 +117,11 @@ public class Limelight implements Subsystem {
 
     @Override
     public synchronized void outputTelemetry() {
+        TargetTracker.Reading currentReading = targetTracker_.getCurrentReading();
+        SmartDashboard.putNumber("Azimuth: ", currentReading.azimuth);
+        SmartDashboard.putNumber("Elevation: ", currentReading.elevation);
+        SmartDashboard.putNumber("Range: ", currentReading.range);
+        SmartDashboard.putNumber("Confidence: ", currentReading.confidence);
         SmartDashboard.putBoolean(config_.name + ": Has Target", io_.hasTarget);
         SmartDashboard.putNumber(config_.name + ": Pipeline Latency (ms)", io_.latency);
     }
