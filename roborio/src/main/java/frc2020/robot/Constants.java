@@ -81,6 +81,11 @@ public class Constants {
     public static final double CAMERA_FRAME_RATE = 90.0;
     public static final double MIN_STABILITY = 0.5;
 
+    // Maybe used for confidence calculation
+    public static final double TOP_GOAL_DX = 2.3;
+    public static final double TOP_GOAL_DY = 6.0;
+    public static final double TOP_GOAL_BDX = 1.3;
+    public static final double TARGETING_EPSILON = 0.1;
     
     // Defines the plane 1.0 unit away from the camera
     public static final double VERTICAL_PLANE_HEIGHT = 2.0 *

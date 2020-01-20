@@ -3,6 +3,10 @@ package frc2020.subsystems;
 import java.util.ArrayList;
 import java.util.List;
 
+import frc2020.robot.Constants;
+import frc2020.util.Util;
+import frc2020.util.Logger;
+
 
 /**
  * The target tracker is built to track Infinite Recharge power port vision targets.
@@ -24,6 +28,8 @@ import java.util.List;
 public class TargetTracker {
     private final static double MIN_INITIAL_CONFIDENCE = 0.3;
     private final static double MIN_CONFIDENCE = 0.3;
+    private final static double DEPRECIATION_FACTOR = 0.9;
+    private final static int MAX_READINGS_SIZE = 200;
 
     public static class Reading {
         public double azimuth; // degrees (0 is ahead, positive to right)
@@ -40,8 +46,10 @@ public class TargetTracker {
     }
 
     private static class LimelightRawData {
-        public boolean validTarget;
-        // TODO: place whatever else here
+		public boolean validTarget;
+		public double[] corners; // This should be in order of top1, top2, bottom1, bottom2
+        public double targetX;
+        public double targetY;
     }
 
     // the list of readings
@@ -55,6 +63,7 @@ public class TargetTracker {
      * @param limelight Limelight from which this class will retrieve raw data
      */
     public void addLatestTargetData(Limelight limelight) {
+
         // Perform the initial confidence depreciation
 
         depreciateConfidences();
@@ -63,8 +72,10 @@ public class TargetTracker {
 
         LimelightRawData rawData = new LimelightRawData();
 
-        // TODO: Get tx, ty, tv, corners, whatever we need from the Limelight
-        // and set it on rawData
+        rawData.validTarget = limelight.getTargetValid();
+        rawData.corners = new double[] {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
+        rawData.targetX = limelight.getTargetX();
+        rawData.targetY = limelight.getTargetY();
 
         // Perform an initial confidence pass on the raw data
 
@@ -83,7 +94,7 @@ public class TargetTracker {
         // TODO: determine final confidence based on initial confidence and anything
         // else that makes sense.  Remember to make sure to constrain to 0 to 1
 
-        reading.confidence = 0.0;  // TODO
+        reading.confidence = initialConfidence;  // TODO
 
         // Add the reading to the array, if it's good
 
@@ -91,7 +102,11 @@ public class TargetTracker {
             return; // no reason to add this reading
         }
 
-        readings_.add(reading);
+        if (readings_.size() <= MAX_READINGS_SIZE){
+            readings_.add(reading);
+        } else {
+            Logger.logError("Readings array reached maximum size!");
+        }
     }
 
     /**
@@ -100,15 +115,31 @@ public class TargetTracker {
      * @return A new reading that is the current tracked position of the target.
      */
     public Reading getCurrentReading() {
+
         if (readings_.size() == 0) {
             // return a zero-confidence reading since we have no data
-            return new Reading(0, 0, 0, 0);
+            return new Reading(0.0, 0.0, 0.0, 0.0);
         }
 
-        // TODO: Replace below with confidence-weighted average.  All values, including confidence
-        // itself should be averaged and placed into the returned reading.
+        Reading averageReading = new Reading(0.0, 0.0, 0.0, 0.0);
 
-        return new Reading(0, 0, 0, 0); // TODO
+        double confidenceSum = 0.0;
+
+        // Perform weighted average readings
+        for (int i = 0; i < readings_.size(); i++){
+            averageReading.azimuth += readings_.get(i).confidence*readings_.get(i).azimuth;
+            averageReading.elevation += readings_.get(i).confidence*readings_.get(i).elevation;
+            averageReading.range += readings_.get(i).confidence*readings_.get(i).range;
+            averageReading.confidence += readings_.get(i).confidence*readings_.get(i).confidence;
+            confidenceSum += readings_.get(i).confidence;
+        }
+
+        averageReading.azimuth /= confidenceSum;
+        averageReading.elevation /= confidenceSum;
+        averageReading.range /= confidenceSum;
+        averageReading.confidence /= confidenceSum;
+
+        return averageReading;
     }
 
     /**
@@ -116,7 +147,19 @@ public class TargetTracker {
      * out anything that falls below the minimum confidence interval.
      */
     private void depreciateConfidences() {
-        // TODO, remember to throw out anything less than MIN_CONFIDENCE
+
+        // Loop through every reading
+        for (int i = 0; i < readings_.size(); i++) {
+
+            // Depreciate the reading by the Depreciation Factor
+            readings_.get(i).confidence *= DEPRECIATION_FACTOR;
+
+            //Remove the reading if the confidence is too low
+            if (readings_.get(i).confidence < MIN_CONFIDENCE) {
+                readings_.remove(i);
+                i--;
+            }
+        }
     }
 
     /**
@@ -130,7 +173,37 @@ public class TargetTracker {
             return 0.0;
         }
 
-        return 0.0;  // TODO
+		// double[][] topCorners = {{rawData.corners[0], rawData.corners[1]}, {rawData.corners[2], rawData.corners[3]}};
+		// double[][] bottomCorners = {{rawData.corners[4], rawData.corners[5]}, {rawData.corners[6], rawData.corners[7]}};
+ 
+		// // Between 0.0-1.0
+		// double score = 0.0;
+ 
+		// double scoreInc = 0.125;
+ 
+		// // This checks that the bottomCorners are lower than the topCorners by a reasonable amount
+		// for (int j = 0; j < 2; j++) {
+		// 	 for (int k = 0; k < 2; k++) {
+		// 		 score += (Util.epsilonEquals(Math.abs(topCorners[j][1]-bottomCorners[k][1]), 
+        //                    Constants.TOP_GOAL_DY, Constants.TARGETING_EPSILON)) ? scoreInc : 0.0;
+        //      }
+        //  }
+         
+		//  // This checks that the bottomCorners are inset on the x axis from the topCorners
+		//  for (int j = 0; j < 2; j++) {
+		// 	 for (int k = 0; k < 2; k++) {
+		// 		 score += j%2==0?((topCorners[j][0]-bottomCorners[k][0])<0.0?scoreInc:0.0):
+        //                          ((topCorners[j][0]-bottomCorners[k][0])>0.0?scoreInc:0.0);
+        //      }
+        //  }
+		 
+		//  // Checks to make sure the topCorners aren't too close together
+		//  score += (Math.abs(topCorners[1][0]-topCorners[0][0]) >= Constants.TOP_GOAL_DX) ? scoreInc : 0.0;
+ 
+		//  // Checks to make sure the bottomCorners aren't too close together
+		//  score += (Math.abs(bottomCorners[1][0]-bottomCorners[0][0]) >= Constants.TOP_GOAL_BDX) ? scoreInc : 0.0;
+
+        return 1.0;
     }
 
     /**
@@ -146,7 +219,7 @@ public class TargetTracker {
         // azimuth, elevation and range and calculate it.  Return a ZERO CONFIDENCE
         // reading.
 
-        return new Reading(0, 0, 0, 0); // TODO
+        return new Reading(rawData.targetX, rawData.targetY, 0.0, 0.0); // TODO
     }
 }
 
