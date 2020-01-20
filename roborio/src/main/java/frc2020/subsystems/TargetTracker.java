@@ -5,6 +5,7 @@ import java.util.List;
 
 import frc2020.robot.Constants;
 import frc2020.util.Util;
+import frc2020.util.Logger;
 
 
 /**
@@ -28,6 +29,7 @@ public class TargetTracker {
     private final static double MIN_INITIAL_CONFIDENCE = 0.3;
     private final static double MIN_CONFIDENCE = 0.3;
     private final static double DEPRECIATION_FACTOR = 0.9;
+    private final static int MAX_READINGS_SIZE = 200;
 
     public static class Reading {
         public double azimuth; // degrees (0 is ahead, positive to right)
@@ -61,6 +63,7 @@ public class TargetTracker {
      * @param limelight Limelight from which this class will retrieve raw data
      */
     public void addLatestTargetData(Limelight limelight) {
+
         // Perform the initial confidence depreciation
 
         depreciateConfidences();
@@ -78,6 +81,8 @@ public class TargetTracker {
 
         double initialConfidence = determineConfidenceInRawData(rawData);
 
+        Logger.logDebug(String.format("Confidence: %f", initialConfidence));
+
         if (initialConfidence < MIN_INITIAL_CONFIDENCE) {
             return; // no reason to add this reading or to continue
         }
@@ -91,7 +96,7 @@ public class TargetTracker {
         // TODO: determine final confidence based on initial confidence and anything
         // else that makes sense.  Remember to make sure to constrain to 0 to 1
 
-        // reading.confidence = 0.0;  // TODO
+        reading.confidence = initialConfidence;  // TODO
 
         // Add the reading to the array, if it's good
 
@@ -99,7 +104,11 @@ public class TargetTracker {
             return; // no reason to add this reading
         }
 
-        readings_.add(reading);
+        if (readings_.size() <= MAX_READINGS_SIZE){
+            readings_.add(reading);
+        } else {
+            Logger.logError("Readings array reached maximum size!");
+        }
     }
 
     /**
@@ -108,6 +117,7 @@ public class TargetTracker {
      * @return A new reading that is the current tracked position of the target.
      */
     public Reading getCurrentReading() {
+
         if (readings_.size() == 0) {
             // return a zero-confidence reading since we have no data
             return new Reading(0.0, 0.0, 0.0, 0.0);
@@ -163,7 +173,7 @@ public class TargetTracker {
     private double determineConfidenceInRawData(LimelightRawData rawData) {
         if (!rawData.validTarget) {
             return 0.0;
-		}
+        }
 		
 		 double[][] topCorners = {{rawData.corners[0], rawData.corners[1]}, {rawData.corners[2], rawData.corners[3]}};
 		 double[][] bottomCorners = {{rawData.corners[4], rawData.corners[5]}, {rawData.corners[6], rawData.corners[7]}};
@@ -195,7 +205,7 @@ public class TargetTracker {
 		 // Checks to make sure the bottomCorners aren't too close together
 		 score += (Math.abs(bottomCorners[1][0]-bottomCorners[0][0]) >= Constants.TOP_GOAL_BDX) ? scoreInc : 0.0;
 
-        return score;
+        return 1.0;
     }
 
     /**

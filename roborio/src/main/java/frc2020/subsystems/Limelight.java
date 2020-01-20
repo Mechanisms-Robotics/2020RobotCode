@@ -87,6 +87,7 @@ public class Limelight implements Subsystem {
         io_.yOffset = networkTable_.getEntry("ty").getDouble(0.0);
         io_.area = networkTable_.getEntry("ta").getDouble(0.0);
         io_.hasTarget = networkTable_.getEntry("tv").getDouble(0) == 1.0;
+        targetTracker_.addLatestTargetData(this);
     }
 
     @Override
