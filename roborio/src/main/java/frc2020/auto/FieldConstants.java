@@ -9,4 +9,5 @@ public class FieldConstants {
     public final static double ALLIANCE_WALL_TO_INITIATION_X = 3.048; //nearest edge
     public final static double THIRD_BALL_X = ALLIANCE_WALL_TO_INITIATION_X + 4.943602;
     public final static double THIRD_BALL_Y = 3.400425;
+    public final static double RIGHT_POSITION_Y = THIRD_BALL_Y;
 }

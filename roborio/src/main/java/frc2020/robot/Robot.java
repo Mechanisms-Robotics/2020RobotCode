@@ -8,6 +8,7 @@ import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
 import frc2020.auto.modes.CenterToTrench8;
+import frc2020.auto.modes.RightToTrench8;
 import frc2020.auto.modes.TestMode;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
@@ -165,7 +166,7 @@ public class Robot extends TimedRobot {
             drive_.setHighGear();
             enabledIterator.start();
             autoRunner_ = new AutoModeRunner();
-            autoRunner_.setAutoMode(new CenterToTrench8());
+            autoRunner_.setAutoMode(new RightToTrench8());
             autoRunner_.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
