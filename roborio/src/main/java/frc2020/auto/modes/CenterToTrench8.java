@@ -41,7 +41,7 @@ public class CenterToTrench8 extends AutoMode {
                 midPoint1
             );
 
-            var endPose = new Pose2d(FieldConstants.THIRD_BALL_X, FieldConstants.THIRD_BALL_Y, new Rotation2d());
+            var endPose = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X, FieldConstants.THIRD_TRENCH_BALL_Y, new Rotation2d());
 
             var voltageConstraint = 
                 new DifferentialDriveVoltageConstraint(
@@ -61,7 +61,7 @@ public class CenterToTrench8 extends AutoMode {
 
         {
 
-            var startPose = new Pose2d(FieldConstants.THIRD_BALL_X, FieldConstants.THIRD_BALL_Y, new Rotation2d());
+            var startPose = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X, FieldConstants.THIRD_TRENCH_BALL_Y, new Rotation2d());
 
             List<Translation2d> midPoints = List.of(
                 //new Translation2d(2.471801‬, 0.854075‬)

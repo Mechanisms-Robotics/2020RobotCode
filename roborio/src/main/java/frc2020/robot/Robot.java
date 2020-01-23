@@ -7,6 +7,7 @@ import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
+import frc2020.auto.modes.Basic13Ball;
 import frc2020.auto.modes.CenterToTrench8;
 import frc2020.auto.modes.RightToTrench8;
 import frc2020.auto.modes.TestMode;
@@ -166,7 +167,7 @@ public class Robot extends TimedRobot {
             drive_.setHighGear();
             enabledIterator.start();
             autoRunner_ = new AutoModeRunner();
-            autoRunner_.setAutoMode(new RightToTrench8());
+            autoRunner_.setAutoMode(new Basic13Ball());
             autoRunner_.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
