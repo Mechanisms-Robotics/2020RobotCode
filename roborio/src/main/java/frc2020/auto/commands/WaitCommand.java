@@ -12,6 +12,7 @@ public class WaitCommand implements Command {
 
     /**
     * Default construtor, initializes timeToWait
+    * @param time - time to wait in seconds
     */
     public WaitCommand(double time) {
         timeToWait = time;
