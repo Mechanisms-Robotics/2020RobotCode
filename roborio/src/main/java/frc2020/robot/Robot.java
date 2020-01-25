@@ -2,6 +2,8 @@ package frc2020.robot;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc2020.util.DriveSignal;
+import frc2020.util.Logger;
+import frc2020.util.LoggerNotStartedException;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
@@ -22,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -31,6 +34,9 @@ import java.util.Arrays;
  * project.
  */
 public class Robot extends TimedRobot {
+    private UUID runUUID;
+    private double lastFlushTime_;
+
     private Looper enabledIterator;
     private Looper disabledIterator;
     //private PowerDistributionPanel PDP;
@@ -52,6 +58,10 @@ public class Robot extends TimedRobot {
     * the AutoChooser
     */
     public Robot() {
+
+        runUUID = UUID.randomUUID();
+        Logger.getInstance().start(runUUID,
+         "RobotLog", Logger.Level.Debug);
 
         enabledIterator = new Looper();
         disabledIterator = new Looper();
@@ -96,12 +106,18 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         try {
+            Logger.getInstance().logRobotInit();
             CrashTracker.logRobotInit();
 
             manager.registerEnabledLoops(enabledIterator);
             manager.registerDisabledLoops(disabledIterator);
             
             //SmartDashboard.putData("PDP", PDP);
+        } catch(LoggerNotStartedException e) {
+            Logger.getInstance().setFileLogging(false);
+            DriverStation.reportError(
+                    "Unable to start logging: Disabling File Logging(will still print out messages to console)",
+                    false);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -115,6 +131,11 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         try {
+            double now = Timer.getFPGATimestamp();
+            if (now - lastFlushTime_ > Constants.LOGGER_FLUSH_TIME) {
+                Logger.getInstance().flush();
+                lastFlushTime_ = now;
+            }
             manager.outputToSmartDashboard();
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
 //            if (target != null) {
@@ -135,6 +156,7 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         try {
+            Logger.getInstance().logRobotDisabled();
             CrashTracker.logDisabledInit();
             enabledIterator.stop();
             if (autoRunner_ != null) {
@@ -144,6 +166,11 @@ public class Robot extends TimedRobot {
             currentAutoMode_ = null;
             disabledIterator.start();
             drive_.openLoop(new DriveSignal(0,0, false));
+        } catch(LoggerNotStartedException e) {
+            Logger.getInstance().setFileLogging(false);
+            DriverStation.reportError(
+                    "Unable to start logging: Disabling File Logging(will still print out messages to console)",
+                    false);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -161,6 +188,7 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
         try {
+            Logger.getInstance().logRobotAutoInit();
             disabledIterator.stop();
             if (autoRunner_ != null) {
                 autoRunner_.stop();
@@ -172,6 +200,11 @@ public class Robot extends TimedRobot {
             autoRunner_ = new AutoModeRunner();
             autoRunner_.setAutoMode(new RightToTrench8());
             autoRunner_.start();
+        } catch(LoggerNotStartedException e) {
+            Logger.getInstance().setFileLogging(false);
+            DriverStation.reportError(
+                    "Unable to start logging: Disabling File Logging(will still print out messages to console)",
+                    false);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -192,6 +225,7 @@ public class Robot extends TimedRobot {
     public void teleopInit() {
         try {
             System.out.println("Entering teleopInit");
+            Logger.getInstance().logRobotTeleopInit();
             CrashTracker.logTeleopInit();
             disabledIterator.stop();
             //compressor_.setClosedLoopControl(true);
@@ -203,6 +237,11 @@ public class Robot extends TimedRobot {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
+        } catch(LoggerNotStartedException e) {
+            Logger.getInstance().setFileLogging(false);
+            DriverStation.reportError(
+                    "Unable to start logging: Disabling File Logging(will still print out messages to console)",
+                    false);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

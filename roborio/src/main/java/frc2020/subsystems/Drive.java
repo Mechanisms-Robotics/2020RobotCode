@@ -161,30 +161,30 @@ public class Drive implements Subsystem {
         rightCanCoder = new CANCoder(Constants.RIGHT_CAN_CODER_ID);
 
         // Reports firmware version for logging purposes
-        Logger.logInfo("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion());
-        Logger.logInfo("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion());
+        Logger.getInstance().logInfo("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion());
+        Logger.getInstance().logInfo("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion());
         
         // Checks for alignment of magnet with encoder (the encoder light color)
         MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
         if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
-            Logger.logError("Left CAN Coder magnet in the red (out of range)");
+            Logger.getInstance().logError("Left CAN Coder magnet in the red (out of range)");
         } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
-            Logger.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)");
+            Logger.getInstance().logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)");
         } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            Logger.logDebug("Left CAN Coder magnet is green (healthy)");
+            Logger.getInstance().logDebug("Left CAN Coder magnet is green (healthy)");
         } else {
-            Logger.logError("Left CAN Coder magnet not detected");
+            Logger.getInstance().logError("Left CAN Coder magnet not detected");
         }
 
         MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
         if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
-            Logger.logError("Right CAN Coder magnet in the red (out of range)");
+            Logger.getInstance().logError("Right CAN Coder magnet in the red (out of range)");
         } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
-            Logger.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)");
+            Logger.getInstance().logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)");
         } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            Logger.logDebug("Right CAN Coder magnet is green (healthy)");
+            Logger.getInstance().logDebug("Right CAN Coder magnet is green (healthy)");
         } else {
-            Logger.logError("Right CAN Coder magnet not detected");
+            Logger.getInstance().logError("Right CAN Coder magnet not detected");
         }
         
         // CANCoder configuration objects
@@ -208,12 +208,12 @@ public class Drive implements Subsystem {
         // Prints the stack if there are any errors in pushing the configuration objects
         ErrorCode rv = leftCanCoder.configAllSettings(leftCoderConfig, Constants.CAN_TIMEOUT);
         if (rv != ErrorCode.OK) {
-            Logger.logError("Left CAN coder config failed with error: " + rv.toString());
+            Logger.getInstance().logError("Left CAN coder config failed with error: " + rv.toString());
         }
 
         rv = rightCanCoder.configAllSettings(rightCoderConfig, Constants.CAN_TIMEOUT);
         if (rv != ErrorCode.OK) {
-            Logger.logError("Right CAN coder config failed with error: " + rv.toString());
+            Logger.getInstance().logError("Right CAN coder config failed with error: " + rv.toString());
         }
     }
 
@@ -290,7 +290,7 @@ public class Drive implements Subsystem {
         public void run() {
             synchronized (Drive.this) {
                 if (last_state != state_) {
-                    Logger.logInfo("Drive State Changed to " + state_.toString());
+                    Logger.getInstance().logInfo("Drive State Changed to " + state_.toString());
                     last_state = state_;
                 }
                 switch (state_) {
@@ -302,7 +302,7 @@ public class Drive implements Subsystem {
                     case Velocity:
                         break;
                     default:
-                        Logger.logWarning("Invalid drive state_: " + state_);
+                        Logger.getInstance().logWarning("Invalid drive state_: " + state_);
                 }
             }
         }
@@ -349,12 +349,12 @@ public class Drive implements Subsystem {
                     doneWithTrajectory_ = true;
                 }
             } else {
-                Logger.logError(
+                Logger.getInstance().logError(
                     "Unable to follow trajectory due to invaded start time or trajectory");
                 openLoop(new DriveSignal(0, 0, true));
             }
         } else {
-            Logger.logWarning(
+            Logger.getInstance().logWarning(
                 "Update path follower called when tarjectory has already been completed"
             );
         }
@@ -484,12 +484,12 @@ public class Drive implements Subsystem {
             // Prints the stack if there are any errors in setting the position of the CAN Coders
             ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
             if (rv != ErrorCode.OK) {
-                Logger.logError("Left CAN coder reset failed with error: " + rv.toString());
+                Logger.getInstance().logError("Left CAN coder reset failed with error: " + rv.toString());
             }
 
             rv = rightCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
             if (rv != ErrorCode.OK) {
-                Logger.logError("Right CAN coder reset failed with error: " + rv.toString());
+                Logger.getInstance().logError("Right CAN coder reset failed with error: " + rv.toString());
             }
 
             // Sets the gyroscope to the desired rotation

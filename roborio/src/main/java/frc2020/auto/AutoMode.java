@@ -26,11 +26,11 @@ public abstract class AutoMode {
         try {
             routine();
         } catch (AutoModeEndedException e) {
-            Logger.logWarning("Auto ended and we weren't done!");
+            Logger.getInstance().logWarning("Auto ended and we weren't done!");
         }
 
         done();
-        Logger.logInfo("Auto mode done");
+        Logger.getInstance().logInfo("Auto mode done");
     }
 
     public void done() {

@@ -105,7 +105,7 @@ public class TargetTracker {
         if (readings_.size() <= MAX_READINGS_SIZE){
             readings_.add(reading);
         } else {
-            Logger.logError("Readings array reached maximum size!");
+            Logger.getInstance().logError("Readings array reached maximum size!");
         }
     }
 

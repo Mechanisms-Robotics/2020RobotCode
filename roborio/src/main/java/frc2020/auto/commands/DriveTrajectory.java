@@ -24,7 +24,7 @@ public class DriveTrajectory implements Command {
     @Override
     public boolean isFinished() {
         if (mDrive.isDoneWithTrajectory()){
-            Logger.logInfo("Trajectory finished");
+            Logger.getInstance().logInfo("Trajectory finished");
             return true;
         }
         return false;
@@ -40,7 +40,7 @@ public class DriveTrajectory implements Command {
 
     @Override
     public void start() {
-        Logger.logInfo("Starting Trajectory!");
+        Logger.getInstance().logInfo("Starting Trajectory!");
         if (mResetPose){
             Pose2d startPose = mTrajectory.getInitialPose();
             mDrive.resetOdometry(startPose, startPose.getRotation());

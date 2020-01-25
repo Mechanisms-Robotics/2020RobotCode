@@ -14,16 +14,16 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 
 public class Logger {
-    private static final String LOG_PATH = "/home/lvuser/logs/";
-    private static final int CUT_AFTER = 3; // days
-    private static final int MAX_SIZE = 2*1024*1024; // bytes
-    private static final int MAX_NUMBER_OF_FILES = 100;
-    private static final DriverStation DS = DriverStation.getInstance();
+    private final String LOG_PATH = "/home/lvuser/logs/";
+    private final int CUT_AFTER = 3; // days
+    private final int MAX_SIZE = 2*1024*1024; // bytes
+    private final int MAX_NUMBER_OF_FILES = 100;
+    private final DriverStation DS = DriverStation.getInstance();
     private UUID RUN_INSTANCE_UUID;
 
-    private static PrintWriter writer_;
-    private static boolean isStarted_ = false;
-    private static boolean fileLoggingDisabled_ = false;
+    private PrintWriter writer_;
+    private boolean isStarted_ = false;
+    private boolean fileLoggingDisabled_ = false;
 
     private static Logger instance_ = null;
 
@@ -34,9 +34,9 @@ public class Logger {
         return instance_;
     }
 
-    private static Level LOGGER_LEVEL = Level.Debug;
+    private Level LOGGER_LEVEL = Level.Debug;
 
-    private enum Level {
+    public enum Level {
         Debug(3), 
         Info(2), 
         Warning(1), 
@@ -102,7 +102,7 @@ public class Logger {
         isStarted_ = true;
     }
 
-    private synchronized static void writeToLog(String msg) {
+    private synchronized void writeToLog(String msg) {
         if (fileLoggingDisabled_)
             return;
         if (!isStarted_) {
@@ -147,7 +147,7 @@ public class Logger {
         isStarted_ = false;
     }
 
-    private synchronized static void logMessage(String msg, Level level) {
+    private synchronized void logMessage(String msg, Level level) {
         if(level.getValue() == Level.Warning.getValue()) {
             DriverStation.reportWarning(msg, false);
         } 
@@ -157,7 +157,7 @@ public class Logger {
         else {
             System.out.println(level.toString() + " " + msg);
         }
-        
+
         if (DS.isDSAttached()) {
             writeToLog("[" + level.toString() + "][" + LocalDateTime.now() + "] " + msg);
         } else {
@@ -165,25 +165,25 @@ public class Logger {
         }
     }
 
-    public static void logDebug(String msg) {
+    public void logDebug(String msg) {
         if (LOGGER_LEVEL.getValue() >= Level.Debug.getValue()) {
             logMessage(msg, Level.Debug);
         }
     }
 
-    public static void logInfo(String msg) {
+    public void logInfo(String msg) {
         if (LOGGER_LEVEL.getValue() >= Level.Info.getValue()) {
             logMessage(msg, Level.Info);
         }
     }
 
-    public static void logWarning(String msg) {
+    public void logWarning(String msg) {
         if (LOGGER_LEVEL.getValue() >= Level.Warning.getValue()) {
             logMessage(msg, Level.Warning);
         }
     }
 
-    public static void logError(String msg) {
+    public void logError(String msg) {
         if (LOGGER_LEVEL.getValue() >= Level.Error.getValue()) {
             logMessage(msg, Level.Error);
         }
@@ -193,7 +193,7 @@ public class Logger {
         fileLoggingDisabled_ = !enabled;
     }
 
-    public synchronized static void flush() {
+    public synchronized void flush() {
         writer_.flush();
     }
 
@@ -205,7 +205,7 @@ public class Logger {
      * However, this method is quick and does its best.
      * Thanks Stack Overflow
      */
-    private static long pathSize(Path path) {
+    private long pathSize(Path path) {
 
         final AtomicLong size = new AtomicLong(0);
 
@@ -242,7 +242,7 @@ public class Logger {
         return size.get();
     }
 
-    private static long getNumberOfFiles(Path path){
+    private long getNumberOfFiles(Path path){
         try {
             Stream<Path> files = Files.list(path);
             return files.count();
