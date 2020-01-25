@@ -27,3 +27,4 @@ __pycache__/
 
 # IntelliJ files
 *.idea
+/.idea
