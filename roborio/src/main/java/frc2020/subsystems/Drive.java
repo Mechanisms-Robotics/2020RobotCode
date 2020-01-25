@@ -130,7 +130,7 @@ public class Drive implements Subsystem {
 
             // Configure NavX
             gyro_ = new NavX(SerialPort.Port.kUSB);
-            setBrakeMode(true);
+            setBrakeMode(true); //beginning brake mode (can be changed by CSGenerator)
 
             shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
         }
