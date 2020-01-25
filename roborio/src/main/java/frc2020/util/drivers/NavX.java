@@ -3,7 +3,7 @@ package frc2020.util.drivers;
 import com.kauailabs.navx.AHRSProtocol.AHRSUpdateBase;
 import com.kauailabs.navx.frc.AHRS;
 import com.kauailabs.navx.frc.ITimestampedDataSubscriber;
-import frc2020.util.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SerialPort;
 
@@ -30,7 +30,7 @@ public class NavX {
 
     protected AHRS mAHRS;
 
-    protected Rotation2d mAngleAdjustment = Rotation2d.identity();
+    protected Rotation2d mAngleAdjustment = new Rotation2d();
     protected double mYawDegrees;
     protected double mYawRateDegreesPerSecond;
     protected final long kInvalidTimestamp = -1;

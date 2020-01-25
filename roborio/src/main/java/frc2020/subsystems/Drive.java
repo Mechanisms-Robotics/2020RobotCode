@@ -1,20 +1,34 @@
 package frc2020.subsystems;
 
-import com.ctre.phoenix.motorcontrol.*;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-
+import frc2020.robot.Robot;
+import frc2020.util.*;
 import frc2020.util.drivers.NavX;
-import frc2020.util.drivers.PhoenixFactory;
-import frc2020.util.drivers.TalonSRXUtil;
-import frc2020.util.geometry.Rotation2d;
-import frc2020.util.DriveSignal;
-import frc2020.util.ReflectingCSVWriter;
 import frc2020.loops.Loop;
 import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
-import edu.wpi.first.wpilibj.*;
+
+import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.sensors.*;
+
+import com.revrobotics.CANPIDController;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.ControlType;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
+
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.controller.RamseteController;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 
 /**
  * The base drive train class for the 2019 robot. It contains all functions
@@ -26,8 +40,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Drive implements Subsystem {
 
     private static final double DRIVE_ENCODER_PPR = 4096.0;
-    private static final int VELOCITY_SLOT = 0;
+    private static final double NEO_ENCODER_PPR = 46.0;
+    private static final double HIGH_GEAR_RATIO = 8.63;
 
+    private static final int VELOCITY_PID = 0;
+    private static final int EMPTY_PID = 1;
+    
     // This is the instance_ of the Drive object on the robot
     public static Drive instance_;
 
@@ -38,22 +56,14 @@ public class Drive implements Subsystem {
      */
     public enum DriveState {
         OpenLoop,
-        Velocity
+        Velocity,
+        Trajectory_Following
     }
 
     /**
-     * The ramp modes supported by Drive
-     */
-    public enum RampMode {
-        None,
-        LowLift,
-        HighLift
-    }
-
-    /**
-     * The instance_ of Drive
+     * The instance of Drive
      *
-     * @return The current instance_ of Drive
+     * @return The current instance of Drive
      */
     public static Drive getInstance() {
         if (instance_ == null) {
@@ -69,13 +79,29 @@ public class Drive implements Subsystem {
     private NavX gyro_;
 
     // Motors
-    private TalonSRX leftMaster_, rightMaster_;
-    private TalonSRX leftSlave_, rightSlave_;
+    private CANSparkMax leftMaster_;
+    private CANSparkMax leftSlave_;
+    private CANSparkMax rightMaster_;
+    private CANSparkMax rightSlave_;
+
+    // Moter PIDs
+    private CANPIDController leftVelocityPID_;
+    private CANPIDController rightVelocityPID_;
+
+    // Encoders and Odometry
+    private CANCoder leftCanCoder;
+    private CANCoder rightCanCoder;
+
+    private CANCoderConfiguration leftCoderConfig;
+    private CANCoderConfiguration rightCoderConfig;
+
+    private DifferentialDriveOdometry odometry_;
+    private InterpolatingTreeMap<InterpolatingDouble, InterpolatingPose2d> odometryHistory;
 
     // Shifter
     private DoubleSolenoid shifter_;
-    private DoubleSolenoid.Value lowGear_ = DoubleSolenoid.Value.kForward;
-    private DoubleSolenoid.Value highGear_ = DoubleSolenoid.Value.kReverse;
+    private DoubleSolenoid.Value lowGear_ = DoubleSolenoid.Value.kReverse;
+    private DoubleSolenoid.Value highGear_ = DoubleSolenoid.Value.kForward;
 
     // IO
     // This is to prevent overwhelming the CAN Bus / HAL
@@ -83,83 +109,170 @@ public class Drive implements Subsystem {
 
     private ReflectingCSVWriter<PeriodicIO> CSVWriter_ = null;
 
-    // Inversion
-    private boolean invertLeft_ = true;
-    private boolean invertRight_ = false;
+    // Path Following
+    private DifferentialDriveKinematics kinematics_;
+    private Trajectory currentTrajectory_;
+    private double trajectoryStartTime_;
+    private RamseteController controller_;
+    private SimpleMotorFeedforward feedforward_;
+    private boolean doneWithTrajectory_;
 
+    private boolean IS_ROBOT = true;
 
     /**
      * The default constructor starts the drive train and sets it up to be in
      * OpenLoop mode
      */
     private Drive() {
+        if (Robot.isReal() && IS_ROBOT) {
+            configSparkMaxs();
+            configCanCoders();
+
+            // Configure NavX
+            gyro_ = new NavX(SerialPort.Port.kUSB);
+            setBrakeMode(true); //beginning brake mode (can be changed by CSGenerator)
+
+            shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
+        }
+        odometry_ = new DifferentialDriveOdometry(new Rotation2d(0.0));
+        odometryHistory = new InterpolatingTreeMap<>(100);
+
+        kinematics_ = new DifferentialDriveKinematics(
+                Constants.TRACK_SCRUB_FACTOR * Constants.DRIVE_TRACK_WIDTH
+        );
+        currentTrajectory_ = null;
+        trajectoryStartTime_ = -1.0;
+        doneWithTrajectory_ = true;
+        feedforward_ = new SimpleMotorFeedforward(
+                Constants.DRIVE_V_INTERCEPT,
+                Constants.DRIVE_KV,
+                Constants.DRIVE_KA
+        );
+        controller_ = new RamseteController();
         io_ = new PeriodicIO();
+    }
 
-        // Configure Left Master CANTalon
-        leftMaster_ = PhoenixFactory.createDefaultTalon(Constants.LEFT_MASTER_PORT);
-        TalonSRXUtil.checkError(
-                leftMaster_.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1,
-                        Constants.STATUS_FRAME_TIME,
-                        Constants.CAN_TIMEOUT),
-                "configure left master feedback frame period");
-        leftMaster_.set(ControlMode.PercentOutput, 0);
+    /**
+     * Loads the CAN Coder Configuration files to the CAN Coders. Also reports magnet alignment and config errors
+     * Encoder polarity, unit coefficients also managed here
+     */
+    private void configCanCoders() {
+        leftCanCoder = new CANCoder(Constants.LEFT_CAN_CODER_ID);
+        rightCanCoder = new CANCoder(Constants.RIGHT_CAN_CODER_ID);
 
-        TalonSRXUtil.checkError(
-                leftMaster_.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,
-                        0,
-                        Constants.CAN_TIMEOUT),
-                "configure left master encoder");
-        leftMaster_.setInverted(invertLeft_);
-        leftMaster_.setSensorPhase(false);
+        // Reports firmware version for logging purposes
+        Logger.logInfo("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion());
+        Logger.logInfo("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion());
+        
+        // Checks for alignment of magnet with encoder (the encoder light color)
+        MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
+        if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+            Logger.logError("Left CAN Coder magnet in the red (out of range)");
+        } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+            Logger.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)");
+        } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
+            Logger.logDebug("Left CAN Coder magnet is green (healthy)");
+        } else {
+            Logger.logError("Left CAN Coder magnet not detected");
+        }
 
-        // Configure Right Master CANTalon
-        rightMaster_ = PhoenixFactory.createDefaultTalon(Constants.RIGHT_MASTER_PORT);
-        TalonSRXUtil.checkError(
-                rightMaster_.setStatusFramePeriod(StatusFrameEnhanced.Status_12_Feedback1,
-                    Constants.STATUS_FRAME_TIME,
-                    Constants.CAN_TIMEOUT),
-                "configure right master feedback frame period");
-        rightMaster_.set(ControlMode.PercentOutput, 0);
+        MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
+        if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+            Logger.logError("Right CAN Coder magnet in the red (out of range)");
+        } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+            Logger.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)");
+        } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
+            Logger.logDebug("Right CAN Coder magnet is green (healthy)");
+        } else {
+            Logger.logError("Right CAN Coder magnet not detected");
+        }
+        
+        // CANCoder configuration objects
+        leftCoderConfig = new CANCoderConfiguration();
+        rightCoderConfig = new CANCoderConfiguration();
+        
+        // Opposite values because of the orientation of the drives. Switch if the robot is reading distance backwards
+        leftCoderConfig.sensorDirection = true;
+        rightCoderConfig.sensorDirection = false;
 
-        TalonSRXUtil.checkError(
-                rightMaster_.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,
-                        0,
-                        Constants.CAN_TIMEOUT),
-                "configure right master feedback sensor");
-        rightMaster_.setInverted(invertRight_);
-        rightMaster_.setSensorPhase(false);
+        // This is used to directly convert from encoder units to meters. Note that this coefficient is in m/enc
+        double sensorCoefficient = Constants.WHEEL_DIAMETER * Math.PI / DRIVE_ENCODER_PPR;
 
-        // Configure Left Slave CANTalon
-        leftSlave_ = PhoenixFactory.createPermanentSlaveTalon(
-                Constants.LEFT_SLAVE_PORT,
-                leftMaster_);
-        leftSlave_.setInverted(InvertType.FollowMaster);
+        leftCoderConfig.sensorCoefficient = sensorCoefficient;
+        rightCoderConfig.sensorCoefficient = sensorCoefficient;
+        
+        // Sets unit name
+        leftCoderConfig.unitString = "meters";
+        rightCoderConfig.unitString = "meters";
 
-        // Configure Right Slave CANTalon
-        rightSlave_ = PhoenixFactory.createPermanentSlaveTalon(
-                Constants.RIGHT_SLAVE_PORT,
-                rightMaster_);
-        rightSlave_.setInverted(InvertType.FollowMaster);
+        // Prints the stack if there are any errors in pushing the configuration objects
+        ErrorCode rv = leftCanCoder.configAllSettings(leftCoderConfig, Constants.CAN_TIMEOUT);
+        if (rv != ErrorCode.OK) {
+            Logger.logError("Left CAN coder config failed with error: " + rv.toString());
+        }
 
-        // Configure Shifters
-        shifter_ = new DoubleSolenoid(Constants.SHIFT_FORWARD, Constants.SHIFT_REVERSE);
-        state_ = DriveState.OpenLoop;
+        rv = rightCanCoder.configAllSettings(rightCoderConfig, Constants.CAN_TIMEOUT);
+        if (rv != ErrorCode.OK) {
+            Logger.logError("Right CAN coder config failed with error: " + rv.toString());
+        }
+    }
 
-        // Configure NavX
-        gyro_ = new NavX(SerialPort.Port.kUSB);
+    private void configSparkMaxs() {
+        leftMaster_ = new CANSparkMax(Constants.LEFT_MASTER_PORT, MotorType.kBrushless);
+        leftSlave_ = new CANSparkMax(Constants.LEFT_SLAVE_PORT, MotorType.kBrushless);
+        rightMaster_ = new CANSparkMax(Constants.RIGHT_MASTER_PORT, MotorType.kBrushless);
+        rightSlave_ = new CANSparkMax(Constants.RIGHT_SLAVE_PORT, MotorType.kBrushless);
+        
+        leftMaster_.restoreFactoryDefaults();
+        leftSlave_.restoreFactoryDefaults();
+        rightMaster_.restoreFactoryDefaults();
+        rightSlave_.restoreFactoryDefaults();
+        
+        leftMaster_.setInverted(true);
+        rightMaster_.setInverted(false);
 
-        rightMaster_.configClosedloopRamp(0.25);
-        leftMaster_.configClosedloopRamp(0.25);
+        leftSlave_.follow(leftMaster_);
+        rightSlave_.follow(rightMaster_);
 
-        setBrakeMode(true);
+        leftMaster_.setOpenLoopRampRate(Constants.OPEN_LOOP_RAMP);
+        leftMaster_.setClosedLoopRampRate(Constants.CLOSED_LOOP_RAMP);
+        leftMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
+        leftMaster_.setSmartCurrentLimit(Constants.STALL_LIMIT, Constants.FREE_LIMIT);
+        
+        rightMaster_.setOpenLoopRampRate(Constants.OPEN_LOOP_RAMP);
+        rightMaster_.setClosedLoopRampRate(Constants.CLOSED_LOOP_RAMP);
+        rightMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
+        rightMaster_.setSmartCurrentLimit(Constants.STALL_LIMIT, Constants.FREE_LIMIT);
+        
+        leftVelocityPID_ = leftMaster_.getPIDController();
+        rightVelocityPID_ = rightMaster_.getPIDController();
+        
+        leftVelocityPID_.setP(Constants.VELOCITY_HIGH_GEAR_KP, VELOCITY_PID);
+        leftVelocityPID_.setI(Constants.VELOCITY_HIGH_GEAR_KI, VELOCITY_PID);
+        leftVelocityPID_.setD(Constants.VELOCITY_HIGH_GEAR_KD, VELOCITY_PID);
+        leftVelocityPID_.setIZone(Constants.VELOCITY_HIGH_GEAR_I_ZONE, VELOCITY_PID);
+        leftVelocityPID_.setFF(Constants.VELOCITY_HIGH_GEAR_KF, VELOCITY_PID);
+        rightVelocityPID_.setP(Constants.VELOCITY_HIGH_GEAR_KP, VELOCITY_PID);
+        rightVelocityPID_.setI(Constants.VELOCITY_HIGH_GEAR_KI, VELOCITY_PID);
+        rightVelocityPID_.setD(Constants.VELOCITY_HIGH_GEAR_KD, VELOCITY_PID);
+        rightVelocityPID_.setIZone(Constants.VELOCITY_HIGH_GEAR_I_ZONE, VELOCITY_PID);
+        rightVelocityPID_.setFF(Constants.VELOCITY_HIGH_GEAR_KF, VELOCITY_PID);
+    }
 
-        loadGains();
+    public DifferentialDriveKinematics getKinematics() {
+        return kinematics_;
+    }
+
+    public SimpleMotorFeedforward getFeedforward() {
+        return feedforward_;
     }
 
     /**
      * Handles the periodic function for the drive train
      */
     private final Loop DriveLoop = new Loop() {
+
+        DriveState last_state = null;
 
         /**
          * Handles any intialization tasks for the drive train
@@ -176,13 +289,20 @@ public class Drive implements Subsystem {
          */
         public void run() {
             synchronized (Drive.this) {
+                if (last_state != state_) {
+                    Logger.logInfo("Drive State Changed to " + state_.toString());
+                    last_state = state_;
+                }
                 switch (state_) {
                     case OpenLoop:
+                        break;
+                    case Trajectory_Following:
+                        updateTrajectoryFollower();
                         break;
                     case Velocity:
                         break;
                     default:
-                        System.out.println("Invalid drive state_: " + state_);
+                        Logger.logWarning("Invalid drive state_: " + state_);
                 }
             }
         }
@@ -195,13 +315,49 @@ public class Drive implements Subsystem {
         }
     };
 
-    /**
-     * Returns the Drive Loop
-     *
-     * @return The Drive Loop
-     */
-    public Loop getLoop() {
-        return DriveLoop;
+    private void updateTrajectoryFollower() {
+        if (!doneWithTrajectory_) {
+
+            // Check that we know our start time and have a trajectory to follow
+            if (trajectoryStartTime_ > 0.0 && currentTrajectory_ != null) {
+                
+                // Check to see if we are done with the trajectory
+                if (trajectoryStartTime_ + currentTrajectory_.getTotalTimeSeconds() > Timer.getFPGATimestamp()) {
+
+                    // Lookup where we are supposed to be on the trajetory
+                    double lookup_time = Timer.getFPGATimestamp() - trajectoryStartTime_;
+                    Trajectory.State trajectory_state = currentTrajectory_.sample(lookup_time);
+
+                    // Get our adjusted wheel speeds from the ramset controller and send them to the drive train
+                    ChassisSpeeds speeds = controller_.calculate(getOdometryPose(), trajectory_state);
+                    DifferentialDriveWheelSpeeds drive_speeds = kinematics_.toWheelSpeeds(speeds);
+
+                    driveVelocity(new DriveSignal(drive_speeds, false));
+                } else {
+                    // TODO: We could write an pose2pose controller that runs if the
+                    // robot is too far off from the desired end state of the trajectory
+                    
+                    // Set the wheels to the desired end velocity of the trajectory
+                    double end_speed = currentTrajectory_.sample(
+                        currentTrajectory_.getTotalTimeSeconds()).velocityMetersPerSecond;
+
+                    // Calculate feedforward
+                    double feedforward = feedforward_.calculate(end_speed);
+                    driveVelocity(new DriveSignal(end_speed, end_speed),
+                                    new DriveSignal(feedforward, feedforward));
+                    state_ = DriveState.Velocity;
+                    doneWithTrajectory_ = true;
+                }
+            } else {
+                Logger.logError(
+                    "Unable to follow trajectory due to invaded start time or trajectory");
+                openLoop(new DriveSignal(0, 0, true));
+            }
+        } else {
+            Logger.logWarning(
+                "Update path follower called when tarjectory has already been completed"
+            );
+        }
     }
 
     /**
@@ -213,26 +369,25 @@ public class Drive implements Subsystem {
     }
 
     /**
-     * Set all the CANTalons to Brake Mode
+     * Set all the Spark Maxes to Brake Mode
      *
-     * @param mode the mode to set the brake on the CANTalons to
+     * @param mode the mode to set the brake on the Spark Maxes to
      */
     public synchronized void setBrakeMode(boolean mode) {
-        if (mode) {
-            rightMaster_.setNeutralMode(NeutralMode.Brake);
-            leftMaster_.setNeutralMode(NeutralMode.Brake);
-            rightSlave_.setNeutralMode(NeutralMode.Brake);
-            leftSlave_.setNeutralMode(NeutralMode.Brake);
-        } else {
-            rightMaster_.setNeutralMode(NeutralMode.Coast);
-            leftMaster_.setNeutralMode(NeutralMode.Coast);
-            rightSlave_.setNeutralMode(NeutralMode.Coast);
-            leftSlave_.setNeutralMode(NeutralMode.Coast);
+        if (Robot.isReal() && IS_ROBOT) {
+            // ADD Brake mode cofiction for SPARK MAX
+            if (mode) {
+                leftMaster_.setIdleMode(CANSparkMax.IdleMode.kBrake);
+                rightMaster_.setIdleMode(CANSparkMax.IdleMode.kBrake);
+            } else {
+                leftMaster_.setIdleMode(CANSparkMax.IdleMode.kCoast);
+                rightMaster_.setIdleMode(CANSparkMax.IdleMode.kCoast);
+            }
         }
     }
 
     /**
-    * Sets all the CANTalons' power to 0
+    * Sets all the Spark Maxes' power to 0
     */
     @Override
     public void stop(){
@@ -243,15 +398,10 @@ public class Drive implements Subsystem {
      * Drive the robot off of voltage.
      * going off position and use power
      *
-     * @param signal
+     * @param signal - the desired DriveSignal
      */
     public synchronized void openLoop(DriveSignal signal) {
         if (state_ != DriveState.OpenLoop) {
-            leftMaster_.configNominalOutputForward(0, Constants.CAN_TIMEOUT);
-            rightMaster_.configNominalOutputForward(0, Constants.CAN_TIMEOUT);
-
-            leftMaster_.configNominalOutputReverse(0, Constants.CAN_TIMEOUT);
-            rightMaster_.configNominalOutputReverse(0, Constants.CAN_TIMEOUT);
             state_ = DriveState.OpenLoop;
         }
         setBrakeMode(signal.getBrakeMode());
@@ -264,19 +414,16 @@ public class Drive implements Subsystem {
     /**
      * Drive the robot at a specified velocity this also sets it to path following mode.
      *
-     * @param signal      The velocities to drive at
+     * @param signal      The velocities to drive at in meters per sec
      * @param feedforward The calculated feedforward values to use
      */
     public synchronized void driveVelocity(DriveSignal signal, DriveSignal feedforward) {
-        if (state_ != DriveState.Velocity) {
-            leftMaster_.selectProfileSlot(VELOCITY_SLOT, 0);
-            rightMaster_.selectProfileSlot(VELOCITY_SLOT, 0);
-
+        if (state_ != DriveState.Velocity && state_ != DriveState.Trajectory_Following) {
             state_ = DriveState.Velocity;
         }
         setBrakeMode(signal.getBrakeMode());
-        io_.left_demand = signal.getLeft();
-        io_.right_demand = signal.getRight();
+        io_.left_demand = metersPerSecondToRpm(signal.getLeft()) * HIGH_GEAR_RATIO;
+        io_.right_demand = metersPerSecondToRpm(signal.getRight()) * HIGH_GEAR_RATIO;
         io_.left_feedforward = feedforward.getLeft();
         io_.right_feedforward = feedforward.getRight();
     }
@@ -287,51 +434,73 @@ public class Drive implements Subsystem {
      * @param signal The velocities to drive at
      */
     public synchronized void driveVelocity(DriveSignal signal) {
-        if (state_ != DriveState.Velocity) {
-            leftMaster_.selectProfileSlot(VELOCITY_SLOT, 0);
-            rightMaster_.selectProfileSlot(VELOCITY_SLOT, 0);
-
+        if (state_ != DriveState.Velocity && state_ != DriveState.Trajectory_Following) {
             state_ = DriveState.Velocity;
         }
         setBrakeMode(signal.getBrakeMode());
-        io_.left_demand = signal.getLeft();
-        io_.right_demand = signal.getRight();
-        io_.left_feedforward = Constants.DRIVE_KV;
-        io_.right_feedforward = Constants.DRIVE_KV;
+        io_.left_demand = metersPerSecondToRpm(signal.getLeft()) * HIGH_GEAR_RATIO;
+        io_.right_demand = metersPerSecondToRpm(signal.getRight()) * HIGH_GEAR_RATIO;
+        io_.left_feedforward = feedforward_.calculate(signal.getLeft());
+        io_.right_feedforward = feedforward_.calculate(signal.getRight());
+    }
+    /**
+     * Drive the robot atomosly on a pre-defined trajectory
+     * @param trajectory The trajectory to follow
+     */
+    public synchronized void driveTrajectory(Trajectory trajectory) {
+        state_ = DriveState.Trajectory_Following;
+        doneWithTrajectory_ = false;
+        currentTrajectory_ = trajectory;
+        trajectoryStartTime_ = Timer.getFPGATimestamp();
+        updateTrajectoryFollower();
     }
 
     /**
-    * Resets encoder ticks
+     * @return the doneWithTrajectory_
+     */
+    public boolean isDoneWithTrajectory() {
+        return doneWithTrajectory_;
+    }
+
+    /**
+    * Resets encoder ticks for CAN Coders and NEO Encoders
     */
     @Override
 	public synchronized void zeroSensors(){
-		leftMaster_.setSelectedSensorPosition(0, 0, Constants.CAN_TIMEOUT);
-		rightMaster_.setSelectedSensorPosition(0, 0, Constants.CAN_TIMEOUT);
-	}
-
-
+        // TODO Reset Neo Encoders
+        
+        // Sends identity Pose and Rotation2d to resetOdometry function so we're using the same function
+        resetOdometry(new Pose2d(), new Rotation2d());
+    }
+    
     /**
-     * Loads the PID gains onto the CANTalons
+     * Resets the odometry and gyroscope to the desired pose and rotation
      */
-    private synchronized void loadGains() {
-        leftMaster_.config_kP(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KP, Constants.CAN_TIMEOUT);
-        leftMaster_.config_kD(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KD, Constants.CAN_TIMEOUT);
-        leftMaster_.config_kI(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KI, Constants.CAN_TIMEOUT);
-        leftMaster_.config_kF(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KF, Constants.CAN_TIMEOUT);
-        leftMaster_.config_IntegralZone(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_I_ZONE, Constants.CAN_TIMEOUT);
+    public synchronized void resetOdometry(Pose2d pose, Rotation2d rotation) {
+        // Sets odometry to desired pose and rotation
+        odometry_.resetPosition(pose, rotation);
 
+        if (Robot.isReal() && IS_ROBOT) {
+            // Prints the stack if there are any errors in setting the position of the CAN Coders
+            ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
+            if (rv != ErrorCode.OK) {
+                Logger.logError("Left CAN coder reset failed with error: " + rv.toString());
+            }
 
-        rightMaster_.config_kP(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KP, Constants.CAN_TIMEOUT);
-        rightMaster_.config_kD(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KD, Constants.CAN_TIMEOUT);
-        rightMaster_.config_kI(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KI, Constants.CAN_TIMEOUT);
-        rightMaster_.config_kF(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_KF, Constants.CAN_TIMEOUT);
-        rightMaster_.config_IntegralZone(VELOCITY_SLOT, Constants.VELOCITY_HIGH_GEAR_I_ZONE, Constants.CAN_TIMEOUT);
+            rv = rightCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
+            if (rv != ErrorCode.OK) {
+                Logger.logError("Right CAN coder reset failed with error: " + rv.toString());
+            }
+
+            // Sets the gyroscope to the desired rotation
+            setHeading(rotation);
+        }
     }
 
     /**
-     * Returns the state_ of the drive train
+     * Returns the state of the drive train
      *
-     * @return The current drive state_.
+     * @return The current drive state.
      */
     public DriveState getState() {
         return state_;
@@ -341,10 +510,12 @@ public class Drive implements Subsystem {
      * Toggles the robot between low gear or high gear
      */
     public synchronized void shift() {
-        if (shifter_.get() == highGear_) {
-            shifter_.set(lowGear_);
-        } else {
-            shifter_.set(highGear_);
+        if (Robot.isReal()) {
+            if (shifter_.get() == highGear_) {
+                shifter_.set(lowGear_);
+            } else {
+                shifter_.set(highGear_);
+            }
         }
     }
 
@@ -352,89 +523,66 @@ public class Drive implements Subsystem {
      * Sets drive to high gear
      */
     public synchronized void setHighGear() {
-        shifter_.set(highGear_);
+        if (Robot.isReal()) {
+            shifter_.set(highGear_);
+        }
     }
 
     /**
      * Sets drive to low gear
      */
     public synchronized void setLowGear() {
-        shifter_.set(lowGear_);
+        if (Robot.isReal()) {
+            shifter_.set(lowGear_);
+        }
     }
 
     /**
-     * Sets Ramp Mode
-     *
-     * @param ramp the RampMode to go to
+     * Gets the gyroscope's current heading
+     * 
+     * @return Gyro heading as a Rotation2d
      */
-    public synchronized void setRampMode(RampMode ramp) {
-        switch (ramp) {
-            case None:
-                leftMaster_.configOpenloopRamp(0, Constants.CAN_TIMEOUT);
-                rightMaster_.configOpenloopRamp(0, Constants.CAN_TIMEOUT);
-                break;
-            case LowLift:
-                leftMaster_.configOpenloopRamp(0.25, Constants.CAN_TIMEOUT);
-                rightMaster_.configOpenloopRamp(0.25, Constants.CAN_TIMEOUT);
-                break;
-            case HighLift:
-                leftMaster_.configOpenloopRamp(1, Constants.CAN_TIMEOUT);
-                rightMaster_.configOpenloopRamp(1, Constants.CAN_TIMEOUT);
-                break;
-            default:
-                System.out.println("ERROR Invalad ramp mode receved.");
-                return;
-        }
-        System.out.println("[INFO] Ramp mode set to " + ramp.toString());
-    }
-
     public synchronized Rotation2d getHeading() {
         return io_.gyro_heading;
     }
 
-    public synchronized void setHeading(Rotation2d heading) {
-        Rotation2d adjustment = heading.rotateBy(gyro_.getRawRotation().inverse());
-        gyro_.setAngleAdjustment(adjustment);
-    }
-
     /**
-    * Gets the current mode the shifter is in low gear or high gear
-    *
-    * @return The current shifter state.
-    */
-    public synchronized boolean getGear() {
-        if (shifter_.get() == lowGear_) {
-            return true;
-        } else {
-            return false;
+     * Sets the gyroscope's heading to a desired Rotation2d
+     * 
+     * @param heading - the desired gyro heading as a Rotation2d
+     */
+    public synchronized void setHeading(Rotation2d heading) {
+        Rotation2d adjustment = heading.rotateBy(gyro_.getRawRotation().unaryMinus());
+        if (Robot.isReal()) {
+            gyro_.setAngleAdjustment(adjustment);
         }
     }
 
     /**
-    * Converts wheel rotations to linear inches
+    * Converts wheel rotations to linear meters
     *
-    * @return Linear inches traveled for x wheel rotations.
+    * @return Linear meters traveled for x wheel rotations.
     */
-    private static double rotationsToInches(double rotations) {
+    private static double rotationsToMeters(double rotations) {
         return rotations * (Constants.WHEEL_DIAMETER * Math.PI);
     }
 
     /**
-    * Converts RPM to IPS
+    * Converts RPM to MPS
     *
-    * @return The linear inches traveled per second for a wheel moving at x rpm.
+    * @return The linear meters traveled per second for a wheel moving at x rpm.
     */
-    private static double rpmToInchesPerSecond(double rpm) {
-        return rotationsToInches(rpm) / 60;
+    private static double rpmMetersPerSecond(double rpm) {
+        return rotationsToMeters(rpm) / 60;
     }
 
     /**
-    * Converts linear inches to wheel rotations
+    * Converts linear meters to wheel rotations
     *
-    * @return Wheel rotations for x linear inches traveled.
+    * @return Wheel rotations for x linear meters traveled.
     */
-    private static double inchesToRotations(double inches) {
-        return inches / (Constants.WHEEL_DIAMETER * Math.PI);
+    private static double metersToRotations(double meters) {
+        return meters / (Constants.WHEEL_DIAMETER * Math.PI);
     }
 
     /**
@@ -447,21 +595,21 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Converts linear inches traveled to encoder ticks
+    * Converts linear meters traveled to encoder ticks
     *
-    * @return Encoder ticks for x linear inches traveled.
+    * @return Encoder ticks for x linear meters traveled.
     */
-    public static double inchesToEncoderTicks(double inches) {
-        return rotationsToEncoderTicks(inchesToRotations(inches));
+    public static double metersToEncoderTicks(double meters) {
+        return rotationsToEncoderTicks(metersToRotations(meters));
     }
 
     /**
-    * Converts IPS to RPM
+    * Converts MPS to RPM
     *
-    * @return The RPM of a wheel that is traveling x IPS.
+    * @return The RPM of a wheel that is traveling x MPS.
     */
-    private static double inchesPerSecondToRpm(double inches_per_second) {
-        return inchesToRotations(inches_per_second) * 60;
+    private static double metersPerSecondToRpm(double meters_per_second) {
+        return metersToRotations(meters_per_second) * 60;
     }
 
     /**
@@ -470,43 +618,25 @@ public class Drive implements Subsystem {
     * @return Encoder ticks per 100 miliseconds for a wheel that is rotating at x radians per second.
     */
     private static double radiansPerSecondToTicksPer100ms(double rad_s) {
-        return rad_s / (Math.PI * 2.0) * 4096.0 / 10.0;
+        return rad_s / (Math.PI * 2.0) * NEO_ENCODER_PPR / 10.0;
     }
 
     /**
-    * Gets the left encoder rotations
+    * Gets the left distance traveled in meters
     *
-    * @return Left encoder rotations.
-    */
-    public double getLeftEncoderRotations() {
-        return io_.left_position_ticks / DRIVE_ENCODER_PPR;
-    }
-
-    /**
-    * Gets the right encoder rotations
-    *
-    * @return Right encoder rotations.
-    */
-    public double getRightEncoderRotations() {
-        return io_.right_position_ticks / DRIVE_ENCODER_PPR;
-    }
-
-    /**
-    * Gets the left distance traveled in inches
-    *
-    * @return Left distance in inches.
+    * @return Left distance in meters.
     */
     public double getLeftEncoderDistance() {
-        return rotationsToInches(getLeftEncoderRotations());
+        return io_.left_distance;
     }
 
     /**
-    * Gets the right distance traveled in inches
+    * Gets the right distance traveled in meters
     *
-    * @return Right distance in inches.
+    * @return Right distance in meters.
     */
     public double getRightEncoderDistance() {
-        return rotationsToInches(getRightEncoderRotations());
+        return io_.right_distance;
     }
 
     /**
@@ -514,17 +644,17 @@ public class Drive implements Subsystem {
     *
     * @return Right velocity in native units.
     */
-    public double getRightVelocityNativeUnits() {
-        return io_.right_velocity_ticks_per_100ms;
+    public double getRightVelocityRPM() {
+        return io_.right_velocity_rpm;
     }
 
     /**
-    * Gets the right velocity in IPS
+    * Gets the right velocity in MPS
     *
-    * @return Right velocity in IPS.
+    * @return Right velocity in MPS.
     */
     public double getRightLinearVelocity() {
-        return rotationsToInches(getRightVelocityNativeUnits() * 10.0 / DRIVE_ENCODER_PPR);
+        return rotationsToMeters(getRightVelocityRPM() / 60.0);
     }
 
     /**
@@ -532,17 +662,17 @@ public class Drive implements Subsystem {
     *
     * @return Left velocity in native units.
     */
-    public double getLeftVelocityNativeUnits() {
-        return io_.left_velocity_ticks_per_100ms;
+    public double getLeftVelocityRPM() {
+        return io_.left_velocity_rpm;
     }
 
     /**
-    * Gets the left velocity in IPS
+    * Gets the left velocity in MPS
     *
-    * @return Left velocity in IPS.
+    * @return Left velocity in MPS.
     */
     public double getLeftLinearVelocity() {
-        return rotationsToInches(getLeftVelocityNativeUnits() * 10.0 / DRIVE_ENCODER_PPR);
+        return rotationsToMeters(getLeftVelocityRPM() / 60.0);
     }
 
     /**
@@ -563,43 +693,40 @@ public class Drive implements Subsystem {
         return (getRightLinearVelocity() - getLeftLinearVelocity()) / Constants.DRIVE_TRACK_WIDTH;
     }
 
-    /**
-    * Gets the total average voltage of the robot
-    *
-    * @return Average voltage of robot.
-    */
-    public double getAvgVoltage() {
-        return (io_.left_voltage+io_.right_volatge)/2;
+    public Pose2d getOdometryPose(double timestamp) {
+        return odometryHistory.getInterpolated(new InterpolatingDouble(timestamp));
+    }
+
+    public Pose2d getOdometryPose() {
+        return odometry_.getPoseMeters();
     }
 
     /**
     * Handles reading all of the data from encoders/CANTalons periodically
     */
     public synchronized void readPeriodicInputs() {
-        double prevLeftTicks = io_.left_position_ticks;
-        double prevRightTicks = io_.right_position_ticks;
-        io_.left_position_ticks = leftMaster_.getSelectedSensorPosition(0);
-        io_.right_position_ticks = rightMaster_.getSelectedSensorPosition(0);
-        io_.left_velocity_ticks_per_100ms = leftMaster_.getSelectedSensorVelocity(0);
-        io_.right_velocity_ticks_per_100ms = rightMaster_.getSelectedSensorVelocity(0);
-        io_.gyro_heading = gyro_.getYaw();
+        if (Robot.isReal() && IS_ROBOT) {
+            // Get this from the CAN coders
+            io_.left_distance = leftCanCoder.getPosition();
+            io_.right_distance = rightCanCoder.getPosition();
+            io_.left_neo_distance = rotationsToMeters(leftMaster_.getEncoder().getPosition());
+            io_.right_neo_distance = rotationsToMeters(rightMaster_.getEncoder().getPosition());
 
-        double deltaLeftTicks = ((io_.left_position_ticks - prevLeftTicks) / 4096.0) * Math.PI;
-        if (deltaLeftTicks > 0.0) {
-            io_.left_distance += deltaLeftTicks * Constants.WHEEL_DIAMETER;
-        } else {
-            io_.left_distance += deltaLeftTicks * Constants.WHEEL_DIAMETER;
+            // Get this from the Spark Maxes
+            io_.left_velocity_rpm = leftMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
+            io_.right_velocity_rpm = rightMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
+            io_.left_velocity_mps = leftCanCoder.getVelocity();
+            io_.right_velocity_mps = rightCanCoder.getVelocity();
+            io_.gyro_heading = gyro_.getYaw();
+
+            io_.left_temperature = leftMaster_.getMotorTemperature();
+            io_.right_temperature = rightMaster_.getMotorTemperature();
+
+            odometry_.update(io_.gyro_heading, getLeftEncoderDistance(), getRightEncoderDistance());
+            double timestamp = Timer.getFPGATimestamp();
+            odometryHistory.put(new InterpolatingDouble(timestamp),
+                    new InterpolatingPose2d(odometry_.getPoseMeters()));
         }
-
-        double deltaRightTicks = ((io_.right_position_ticks - prevRightTicks) / 4096.0) * Math.PI;
-        if (deltaRightTicks > 0.0) {
-            io_.right_distance += deltaRightTicks * Constants.WHEEL_DIAMETER;
-        } else {
-            io_.right_distance += deltaRightTicks * Constants.WHEEL_DIAMETER;
-        }
-
-        io_.right_volatge = rightMaster_.getMotorOutputVoltage();
-        io_.left_voltage = leftMaster_.getMotorOutputVoltage();
 
         if (CSVWriter_ != null) {
             CSVWriter_.add(io_);
@@ -607,31 +734,33 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Handles writing outputs to CANTalons periodically
+    * Handles writing outputs to Spark Maxes periodically
     */
     public synchronized void writePeriodicOutputs() {
-        if (state_ == DriveState.OpenLoop) {
-            leftMaster_.set(ControlMode.PercentOutput, io_.left_demand, DemandType.ArbitraryFeedForward, 0.0);
-            rightMaster_.set(ControlMode.PercentOutput, io_.right_demand, DemandType.ArbitraryFeedForward, 0.0);
-        } else {
-            leftMaster_.set(ControlMode.Velocity, io_.left_demand, DemandType.ArbitraryFeedForward,
-                    io_.left_feedforward + Constants.VELOCITY_HIGH_GEAR_KD * io_.left_accel / 1023.0);
-            rightMaster_.set(ControlMode.Velocity, io_.right_demand, DemandType.ArbitraryFeedForward,
-                    io_.right_feedforward + Constants.VELOCITY_HIGH_GEAR_KD * io_.right_accel / 1023.0);
+        if (Robot.isReal() && IS_ROBOT) {
+            if (state_ == DriveState.OpenLoop) {
+                leftVelocityPID_.setReference(io_.left_demand, ControlType.kDutyCycle, EMPTY_PID, io_.left_feedforward);
+                rightVelocityPID_.setReference(io_.right_demand, ControlType.kDutyCycle, EMPTY_PID, io_.right_feedforward);
+            } else {
+                leftVelocityPID_.setReference(io_.left_demand, ControlType.kVelocity, VELOCITY_PID, io_.left_feedforward);
+                rightVelocityPID_.setReference(io_.right_demand, ControlType.kVelocity, VELOCITY_PID, io_.right_feedforward);
+            }
         }
     }
 
     public static class PeriodicIO {
         // INPUTS
-        int left_position_ticks;
-        int right_position_ticks;
         double left_distance;
+        double left_neo_distance;
         double right_distance;
-        int left_velocity_ticks_per_100ms;
-        int right_velocity_ticks_per_100ms;
-        Rotation2d gyro_heading = Rotation2d.identity();
-        double left_voltage;
-        double right_volatge;
+        double right_neo_distance;
+        double left_velocity_rpm;
+        double right_velocity_rpm;
+        double left_velocity_mps;
+        double right_velocity_mps;
+        double left_temperature;
+        double right_temperature;
+        Rotation2d gyro_heading = new Rotation2d();
 
 
         // OUTPUTS
@@ -669,20 +798,33 @@ public class Drive implements Subsystem {
     @Override
     public void outputTelemetry() {
         SmartDashboard.putNumber("Right Drive Distance", io_.right_distance);
-        SmartDashboard.putNumber("Right Drive Ticks", io_.right_position_ticks);
-        SmartDashboard.putNumber("Left Drive Ticks", io_.left_position_ticks);
         SmartDashboard.putNumber("Left Drive Distance", io_.left_distance);
         SmartDashboard.putNumber("Right Linear Velocity", getRightLinearVelocity());
         SmartDashboard.putNumber("Left Linear Velocity", getLeftLinearVelocity());
+        SmartDashboard.putNumber("Left CANCoder MPS", io_.left_velocity_mps);
+        SmartDashboard.putNumber("Right CANCoder MPS", io_.right_velocity_mps);
+        SmartDashboard.putNumber("Left NEO Distance", io_.left_neo_distance);
+        SmartDashboard.putNumber("Right NEO Distance", io_.right_neo_distance);
+
+        SmartDashboard.putNumber("Left Master Temperature: ", io_.left_temperature);
+        SmartDashboard.putNumber("Right Master Temperature: ", io_.right_temperature);
+
+        Pose2d odometry_pose = getOdometryPose();
+        SmartDashboard.putNumber("Odometery X", odometry_pose.getTranslation().getX());
+        SmartDashboard.putNumber("Odometery Y", odometry_pose.getTranslation().getY());
+        SmartDashboard.putNumber("Odometery Rotation", odometry_pose.getRotation().getDegrees());
+        SmartDashboard.putNumber("Left FeedForward", io_.left_feedforward);
+        SmartDashboard.putNumber("Right FeedForward", io_.right_feedforward);
+
 
         if (CSVWriter_ != null) {
             CSVWriter_.write();
         }
     }
 
+    // TODO: Implement system check
     @Override
     public boolean checkSystem(){
-        System.out.println("[ERROR] System Check Not implemented");
-        return false;
+        return true;
     }
 }

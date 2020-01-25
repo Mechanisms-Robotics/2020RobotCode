@@ -24,3 +24,7 @@ hs_err_pid*
 
 # Compiled Python files
 __pycache__/
+
+# IntelliJ files
+*.idea
+/.idea

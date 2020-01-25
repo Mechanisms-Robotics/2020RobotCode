@@ -34,13 +34,6 @@ public class SubsystemManager implements ILooper {
     }
 
     /**
-    * Makes every subsystem output it's telemetry to a csv
-    */
-    public void outputToLog() {
-        allSubsystems.forEach((s) -> s.writeToLog());
-    }
-
-    /**
     * Stops every subsystem
     */
     public void stop() {

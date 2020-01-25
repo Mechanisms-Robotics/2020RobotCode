@@ -1,5 +1,7 @@
 package frc2020.util;
 
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
+
 /**
  * A drivetrain command consisting of the left, right motor settings and whether the brake mode is enabled.
  */
@@ -15,6 +17,12 @@ public class DriveSignal {
     public DriveSignal(double left, double right, boolean brakeMode) {
         mLeftMotor = left;
         mRightMotor = right;
+        mBrakeMode = brakeMode;
+    }
+
+    public DriveSignal(DifferentialDriveWheelSpeeds speeds, boolean brakeMode) {
+        mLeftMotor = speeds.leftMetersPerSecond;
+        mRightMotor = speeds.rightMetersPerSecond;
         mBrakeMode = brakeMode;
     }
 

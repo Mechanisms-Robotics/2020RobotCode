@@ -1,5 +1,7 @@
 package frc2020.loops;
 
+import frc2020.robot.Robot;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -12,6 +14,14 @@ import java.util.UUID;
 public class CrashTracker {
 
     private static final UUID RUN_INSTANCE_UUID = UUID.randomUUID();
+    private static String outFile;
+    static {
+        if (Robot.isReal()) {
+            outFile = "/home/lvuser/crash_tracking.txt";
+        } else {
+            outFile = "C:\\Users\\Public\\test.txt";
+        }
+    }
 
     /**
     * Logs robot startup
@@ -74,7 +84,7 @@ public class CrashTracker {
     */
     protected static void logMarker(String mark, Throwable nullableException) {
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter("/home/lvuser/crash_tracking.txt", true))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outFile, true))) {
             writer.print(RUN_INSTANCE_UUID.toString());
             writer.print(", ");
             writer.print(mark);
