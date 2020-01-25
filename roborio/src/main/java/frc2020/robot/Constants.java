@@ -64,6 +64,7 @@ public class Constants {
     public final static int RIGHT_CAN_CODER_ID = 2;
 
     //Limelight
+    //TODO clean this up and move to limelight class
     public static final double LIMELIGHT_RES_X = 320.0;
     public static final double LIMELIGHT_RES_Y = 240.0;
     public static final double LIMELIGHT_HORIZONTAL_FOV = 59.6;
