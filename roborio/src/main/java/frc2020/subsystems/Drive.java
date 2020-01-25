@@ -331,7 +331,6 @@ public class Drive implements Subsystem {
                     // Get our adjusted wheel speeds from the ramset controller and send them to the drive train
                     ChassisSpeeds speeds = controller_.calculate(getOdometryPose(), trajectory_state);
                     DifferentialDriveWheelSpeeds drive_speeds = kinematics_.toWheelSpeeds(speeds);
-                    System.out.println("L: " + drive_speeds.leftMetersPerSecond + " R: " + drive_speeds.rightMetersPerSecond);
 
                     driveVelocity(new DriveSignal(drive_speeds, false));
                 } else {
