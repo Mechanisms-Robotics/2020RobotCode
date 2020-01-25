@@ -84,6 +84,9 @@ public class Robot extends TimedRobot {
 
         // Pre-Generate Trajectories
         TestMode.generateTrajectories();
+        Basic13Ball.generateTrajectories();
+        CenterToTrench8.generateTrajectories();
+        RightToTrench8.generateTrajectories();
     }
 
     /**
@@ -167,7 +170,7 @@ public class Robot extends TimedRobot {
             drive_.setHighGear();
             enabledIterator.start();
             autoRunner_ = new AutoModeRunner();
-            autoRunner_.setAutoMode(new Basic13Ball());
+            autoRunner_.setAutoMode(new RightToTrench8());
             autoRunner_.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);

@@ -4,6 +4,8 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 
+import frc2020.util.Logger;
+
 /**
  * This class is masking the electrical diagram but in code.
  * It tells us where each component is plugged in so that we can
