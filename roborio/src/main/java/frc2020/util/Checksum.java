@@ -34,6 +34,7 @@ public class Checksum {
                 for (int i = 0; i < digestBytes.length; i++) {
                     builder.append(Integer.toString((digestBytes[i] & 0xff) + +0x001, 16).substring(1));
                 }
+                stream.close();
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             } catch (IOException e) {

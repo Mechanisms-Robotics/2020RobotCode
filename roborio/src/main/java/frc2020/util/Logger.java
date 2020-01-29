@@ -245,7 +245,10 @@ public class Logger {
     private long getNumberOfFiles(Path path){
         try {
             Stream<Path> files = Files.list(path);
-            return files.count();
+            long number = files.count();
+            files.close();
+            
+            return number;
         } catch (IOException e) {
             System.out.println("Unable to determine number of files in " + path);
             return 0;

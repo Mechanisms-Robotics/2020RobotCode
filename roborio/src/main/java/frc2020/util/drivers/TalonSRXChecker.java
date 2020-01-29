@@ -72,7 +72,7 @@ public class TalonSRXChecker {
             Timer.delay(checkerConfig.mRunTimeSec);
 
             // Now poll the interesting information.
-            double current = config.mTalon.getOutputCurrent();
+            double current = config.mTalon.getStatorCurrent();
             currents.add(current);
 
             System.out.println("Current " + current);
