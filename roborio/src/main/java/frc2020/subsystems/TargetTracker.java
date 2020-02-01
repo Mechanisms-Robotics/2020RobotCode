@@ -290,10 +290,18 @@ public class TargetTracker {
         angle = angle.rotateBy(limelight_.getHorizontalPlaneToLens());
         
         double differental_height = Constants.TARGET_HEIGHT - limelight_.getLensHeight();
+        double angleTan = angle.getTan();
+
+        if(angleTan == 0) {
+            RangeAndError rangeAndError = new RangeAndError();
+            rangeAndError.error = 10.0; // 10 meters
+            rangeAndError.range = 10.0; // 10 meters
+            return rangeAndError;
+        }
 
         RangeAndError rangeAndError = new RangeAndError();
         rangeAndError.error = 0.5; //TODO: replace with more accurate statistics
-        rangeAndError.range = differental_height / angle.getTan();
+        rangeAndError.range = differental_height / angleTan;
         
         return rangeAndError;
     }
