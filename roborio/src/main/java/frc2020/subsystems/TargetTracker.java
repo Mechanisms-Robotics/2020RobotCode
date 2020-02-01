@@ -2,12 +2,17 @@ package frc2020.subsystems;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
+import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.subsystems.Limelight.LimelightRawData;
 import frc2020.robot.Constants;
 import frc2020.util.Logger;
+import frc2020.util.Util;
 
 
 /**
@@ -47,15 +52,6 @@ public class TargetTracker {
         }
     }
 
-    private static class LimelightRawData {
-		public boolean validTarget;
-		public double[] corners; // This should be in order of top1, top2, bottom1, bottom2
-        public double targetX;
-        public double targetY;
-        public double cornerX;
-        public double cornerY;
-    }
-
     // the list of readings
     public List<Reading> readings_ = new ArrayList<Reading>();
     private Limelight limelight_;
@@ -77,14 +73,7 @@ public class TargetTracker {
 
         // Pull all necessary raw data from the Limelight
 
-        LimelightRawData rawData = new LimelightRawData();
-
-        rawData.validTarget = limelight_.getTargetValid();
-        rawData.corners = new double[] {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
-        rawData.targetX = limelight_.getTargetX();
-        rawData.targetY = limelight_.getTargetY();
-        rawData.cornerX = limelight_.getConerTargetX();
-        rawData.cornerY = limelight_.getConerTargetY();
+        LimelightRawData rawData = limelight_.getRawData();
 
         // Perform an initial confidence pass on the raw data
 
@@ -178,7 +167,7 @@ public class TargetTracker {
      * @return A confidence in the interval of 0.0 to 1.0, inclusive
      */
     private double determineConfidenceInRawData(LimelightRawData rawData) {
-        if (!rawData.validTarget) {
+        if (!rawData.hasTarget) {
             return 0.0;
         }
 
@@ -232,30 +221,88 @@ public class TargetTracker {
         // getTopConers()
         // getConerBasdeTarget()
 
-        return new Reading(rawData.targetX, Math.toDegrees(rawData.cornerY), getRangeUseingConners(rawData), 0.0); // TODO
+        List<Translation2d> corners = getTopCorners(rawData);
+        if (corners == null) {
+            return new Reading(0.0, 0.0, 0.0, 0.0);
+        }
+        Rotation2d[] cornerBasedTarget = getCornerBasedTarget(corners);
+        double confidence = 0.0;                                                                                                             
+        
+        return new Reading(cornerBasedTarget[0].getDegrees(),
+                           cornerBasedTarget[1].getDegrees(),
+                           getRangeUsingCorners(cornerBasedTarget),
+                           confidence);
     }
 
-    private double getRangeUseingConners(Rotation2d[] target) {
-        Rotation2d angle = new Rotation2d(data.cornerY);
+    /**
+     * @param target The azimuth and elevation of the target
+     * 
+     * @return Range in meters to target
+     */
+    private double getRangeUsingCorners(Rotation2d[] target) {
+        Rotation2d angle = target[1];
         angle = angle.rotateBy(limelight_.getHorizontalPlaneToLens());
+        
         double differental_height = Constants.TARGET_HEIGHT - limelight_.getLensHeight();
+        
         return differental_height / angle.getTan();
     }
 
-    private static Translation2d[] getTopConers(Limelight.LimelightRawData data) {
-        // Grab coners
-        // Filter coners
-        // Sort from top to bottom
-    }
+    /**
+     * @param data Raw limelight data
+     * 
+     * @return The top two corners as Translation2d's
+     */
+    private static List<Translation2d> getTopCorners(Limelight.LimelightRawData data) {
+        // If we don't have a valid target or the corners list is empty
+        // something went wrong so we return null
+        double[] emptyArray = {};
+        if (!data.hasTarget  || Arrays.equals(data.corners, emptyArray)  || data.corners.length <= 8){
+            return null;
+        }
+        
+        List<Translation2d> corners = new ArrayList<Translation2d>();
 
-    private static Rotation2d[] pixelToAngle(Translation2d conner_in_pixels) {
+        for (int i = 0; i < data.corners.length-2; i+=2) {
+            corners.add(new Translation2d(data.corners[i], data.corners[i+1]));
+        }
+
+        Comparator<Translation2d> ySort = Comparator.comparingDouble(Translation2d::getY);
+        corners.sort(ySort);
+        
+        return corners;   
+    }
+    
+    /**
+     * @param pixelCoord taken in pixels
+     */
+    private static Rotation2d[] pixelToAngle(Translation2d pixelCoord) {
         // Convert to angle
-    }
+        double x_pixels = pixelCoord.getX();
+        double y_pixels = pixelCoord.getY();
 
-    private static Translation2d getConerBasedTarget(double[][] top_conners) {
-        // Return a tx, and ty using the centerpoint between the
-    }
+        double nx = -((x_pixels - (Constants.LIMELIGHT_RES_X / 2.0)) / 
+            (Constants.LIMELIGHT_RES_X / 2.0));
+        double ny = (y_pixels - (Constants.LIMELIGHT_RES_Y / 2.0)) / 
+            (Constants.LIMELIGHT_RES_Y / 2.0);
+        
 
+        double x = Constants.VERTICAL_PLANE_WIDTH / 2 * nx;
+        double y = Constants.VERTICAL_PLANE_HEIGHT / 2 * ny;
+
+        return new Rotation2d[] {new Rotation2d(Math.atan2(1.0, x) - (Math.PI/2.0)),
+            new Rotation2d(Math.atan2(1.0, y) - (Math.PI/2.0))};
+    }
+    
+    /**
+     * Raw target info of top two corners of target in unit plane of -1 to 1
+     * 
+     * @param topCorners the top corners (obviously)
+     */
+    private static Rotation2d[] getCornerBasedTarget(List<Translation2d> topCorners) {
+        Translation2d centerPoint = Util.interpolateTranslation2d(topCorners.get(0), topCorners.get(1), 0.5);
+        return pixelToAngle(centerPoint);
+    }
 
 }
 
