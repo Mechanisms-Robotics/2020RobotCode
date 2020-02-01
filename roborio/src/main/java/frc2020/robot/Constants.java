@@ -72,7 +72,7 @@ public class Constants {
     public static final double LIMELIGHT_HORIZONTAL_FOV = 59.6;
     public static final double LIMELIGHT_VERTICAL_FOV = 49.7;
 
-    public static final double TARGET_HEIGHT = 2.496; // meters
+    public static final double TARGET_HEIGHT = 2.5908; // meters
     public static final double TARGET_NORMAL = 180.0; // degrees
 
     public static final double MAX_TRACK_DISTANCE = 0.2286; // meters

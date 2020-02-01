@@ -3,8 +3,10 @@ package frc2020.subsystems;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Transform2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 import frc2020.robot.Constants;
-import frc2020.util.Util;
 import frc2020.util.Logger;
 
 
@@ -50,19 +52,24 @@ public class TargetTracker {
 		public double[] corners; // This should be in order of top1, top2, bottom1, bottom2
         public double targetX;
         public double targetY;
+        public double cornerX;
+        public double cornerY;
     }
 
     // the list of readings
     public List<Reading> readings_ = new ArrayList<Reading>();
+    private Limelight limelight_;
+
+    public TargetTracker(Limelight limelight) {
+        limelight_ = limelight;
+    }
 
     /**
      * Call this function when there is new data to be added into the list of
      * readings.  This function should be called periodically (equal time spacing
      * between calls).
-     *
-     * @param limelight Limelight from which this class will retrieve raw data
      */
-    public void addLatestTargetData(Limelight limelight) {
+    public void addLatestTargetData() {
 
         // Perform the initial confidence depreciation
 
@@ -72,10 +79,12 @@ public class TargetTracker {
 
         LimelightRawData rawData = new LimelightRawData();
 
-        rawData.validTarget = limelight.getTargetValid();
+        rawData.validTarget = limelight_.getTargetValid();
         rawData.corners = new double[] {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
-        rawData.targetX = limelight.getTargetX();
-        rawData.targetY = limelight.getTargetY();
+        rawData.targetX = limelight_.getTargetX();
+        rawData.targetY = limelight_.getTargetY();
+        rawData.cornerX = limelight_.getConerTargetX();
+        rawData.cornerY = limelight_.getConerTargetY();
 
         // Perform an initial confidence pass on the raw data
 
@@ -219,14 +228,36 @@ public class TargetTracker {
         // azimuth, elevation and range and calculate it.  Return a ZERO CONFIDENCE
         // reading.
 
-        return new Reading(rawData.targetX, rawData.targetY, 0.0, 0.0); // TODO
+        // Calcutae conner based target
+        // getTopConers()
+        // getConerBasdeTarget()
+
+        return new Reading(rawData.targetX, Math.toDegrees(rawData.cornerY), getRangeUseingConners(rawData), 0.0); // TODO
     }
+
+    private double getRangeUseingConners(Rotation2d[] target) {
+        Rotation2d angle = new Rotation2d(data.cornerY);
+        angle = angle.rotateBy(limelight_.getHorizontalPlaneToLens());
+        double differental_height = Constants.TARGET_HEIGHT - limelight_.getLensHeight();
+        return differental_height / angle.getTan();
+    }
+
+    private static Translation2d[] getTopConers(Limelight.LimelightRawData data) {
+        // Grab coners
+        // Filter coners
+        // Sort from top to bottom
+    }
+
+    private static Rotation2d[] pixelToAngle(Translation2d conner_in_pixels) {
+        // Convert to angle
+    }
+
+    private static Translation2d getConerBasedTarget(double[][] top_conners) {
+        // Return a tx, and ty using the centerpoint between the
+    }
+
+
 }
-
-
-
-
-
 
 //import edu.wpi.first.wpilibj.Timer;
 //        import edu.wpi.first.wpilibj.geometry.*;

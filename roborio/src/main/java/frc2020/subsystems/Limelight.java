@@ -16,7 +16,6 @@ import frc2020.robot.Constants;
 import frc2020.util.Logger;
 import frc2020.util.vision.TargetInfo;
 import frc2020.util.Util;
-import frc2020.subsystems.TargetTracker;
 
 /**
  * Subsystem for interacting with the Limelight 2
@@ -43,9 +42,10 @@ public class Limelight implements Subsystem {
     public Limelight(LimelightConfig config) {
         config_ = config;
         networkTable_ = NetworkTableInstance.getDefault().getTable(config.tableName);
+        targetTracker_ = new TargetTracker(this);
     }
 
-    public static class PeriodicIO {
+    public static class LimelightRawData {
         // INPUTS
         public double latency;
         public int givenLedMode;
@@ -54,6 +54,8 @@ public class Limelight implements Subsystem {
         public double yOffset;
         public double area;
         public boolean hasTarget;
+        public double conerX;
+        public double conerY;
 
         // OUTPUTS
         public int ledMode = 1; // 0 - use pipeline mode, 1 - off, 2 - blink, 3 - on
@@ -64,9 +66,9 @@ public class Limelight implements Subsystem {
     }
 
     private LimelightConfig config_ = null;
-    private PeriodicIO io_ = new PeriodicIO();
+    private LimelightRawData io_ = new LimelightRawData();
     private boolean outputsHaveChanged_ = true;
-    private TargetTracker targetTracker_ = new TargetTracker();
+    private TargetTracker targetTracker_;
 
     public Transform2d getTurretToLens() {
         return config_.turretToLens;
@@ -89,7 +91,15 @@ public class Limelight implements Subsystem {
         io_.yOffset = networkTable_.getEntry("ty").getDouble(0.0);
         io_.area = networkTable_.getEntry("ta").getDouble(0.0);
         io_.hasTarget = networkTable_.getEntry("tv").getDouble(0) == 1.0;
-        targetTracker_.addLatestTargetData(this);
+        double[] conner_target = getCornerBasedTarget();
+        if (conner_target != null) {
+            io_.conerX = conner_target[0];
+            io_.conerY = conner_target[1];
+        } else {
+            io_.conerX = 0.0;
+            io_.conerY = 0.0;
+        }
+        targetTracker_.addLatestTargetData();
     }
 
     @Override
@@ -169,6 +179,10 @@ public class Limelight implements Subsystem {
         return io_.yOffset;
     }
 
+    public synchronized double getConerTargetX() {return io_.conerX;}
+
+    public synchronized double getConerTargetY() {return io_.conerY;}
+
     public synchronized boolean getTargetValid() {
         return io_.hasTarget;
     }
@@ -181,26 +195,12 @@ public class Limelight implements Subsystem {
     }
 
     /**
-     * @return two targets that make up one hatch/port or null if less than two
-     *         targets are found
-     */
-    public synchronized List<TargetInfo> getTarget() {
-        List<TargetInfo> targets = getRawTargetInfo();
-        if (hasTarget() && targets != null) {
-            return targets;
-        }
-        return null;
-    }
-
-    /**
      * Gets the raw target info of the top two corners of the vision target.
      * This is a unit plane from -1 to 1.
      * 
-     * @return Returns a list of the x and y values of the top 2 corners of 
-     * the vision target with the first item being the left corner and the 
-     * second being the right corner.
+     * @return Returns a list of with the x and y
      */
-    private synchronized List<TargetInfo> getRawTargetInfo() {
+    private synchronized double[] getCornerBasedTarget() {
         List<double[]> corners = getTopCorners();
         if (corners == null) {
             return null;
@@ -212,30 +212,29 @@ public class Limelight implements Subsystem {
         }
 
         List<TargetInfo> targets = new ArrayList<>();
+        Translation2d[] conners = new Translation2d[2];
         for (int i = 0; i < 2; ++i) {
-            double y_pixels = corners.get(i)[0];
-            double z_pixels = corners.get(i)[1];
+            double x_pixels = corners.get(i)[0];
+            double y_pixels = corners.get(i)[1];
 
             // Normalize the pixel coordinate to use the center of the frame
             // as (0, 0)
             // Note the negation is so that z is up and y is left to
             // correspond to the coordinate system we use on the bot
-            double nY = -((y_pixels - (Constants.LIMELIGHT_RES_X / 2)) /
+            double nX = -((x_pixels - (Constants.LIMELIGHT_RES_X / 2)) /
                 (Constants.LIMELIGHT_RES_X / 2));
-            double nZ = -(((Constants.LIMELIGHT_RES_Y / 2) - z_pixels) /
+            double nY = -(((Constants.LIMELIGHT_RES_Y / 2) - y_pixels) /
                 (Constants.LIMELIGHT_RES_Y / 2));
 
             // Project the normalized coordinates onto a plane 1.0
             // unit away from the camera
-            double y = Constants.VERTICAL_PLANE_WIDTH / 2 * nY;
-            double z = Constants.VERTICAL_PLANE_HEIGHT / 2 * nZ;
+            double x = Constants.VERTICAL_PLANE_WIDTH / 2 * nX;
+            double y = Constants.VERTICAL_PLANE_HEIGHT / 2 * nY;
 
-            TargetInfo target = new TargetInfo(y, z);
-            target.setSkew(slope);
-            targets.add(target);
+            conners[i] = new Translation2d(x, y);
         }
-
-        return targets;
+        Translation2d ret = Util.interpolateTranslation2d(conners[0], conners[1], 0.5);
+        return (new double[]{Math.atan2(1.0, ret.getX()) - (Math.PI/2), Math.atan2(1.0, ret.getY())  - (Math.PI/2)});
     }
 
     /**
@@ -287,9 +286,7 @@ public class Limelight implements Subsystem {
 
         // Sort the corners by the by the x-vaules to
         // sort them from left to right
-        Logger.logDebug("Before sort: " + corners);
         corners.sort(xSort);
-        Logger.logDebug("After sort: " + corners);
 
         Translation2d leftCorner = corners.get(0);
         Translation2d rightCorner = corners.get(corners.size() - 1);
