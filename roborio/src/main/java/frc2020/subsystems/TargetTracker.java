@@ -30,6 +30,7 @@ public class TargetTracker {
     private final static double MIN_CONFIDENCE = 0.3;
     private final static double DEPRECIATION_FACTOR = 0.9;
     private final static int MAX_READINGS_SIZE = 200;
+    private final static String logName = "Limelight";
 
     public static class Reading {
         public double azimuth; // degrees (0 is ahead, positive to right)
@@ -105,7 +106,7 @@ public class TargetTracker {
         if (readings_.size() <= MAX_READINGS_SIZE){
             readings_.add(reading);
         } else {
-            Logger.getInstance().logError("Readings array reached maximum size!");
+            Logger.getInstance().logError("Readings array reached maximum size!", logName);
         }
     }
 

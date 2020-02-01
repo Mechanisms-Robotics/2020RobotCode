@@ -30,6 +30,8 @@ public class Limelight implements Subsystem {
     public final static double CAMERA_DH = 1.87; // Difference in meters between camera and center of goal
     public final static double CAMERA_ANGLE = 0.0; // Degrees
 
+    private final static String logName = "Limelight";
+
     public static class LimelightConfig {
         public String name = "";
         public String tableName = "";
@@ -95,7 +97,7 @@ public class Limelight implements Subsystem {
     @Override
     public synchronized void writePeriodicOutputs() {
         if (io_.givenLedMode != io_.ledMode || io_.givenPipeline != io_.pipeline) {
-            Logger.getInstance().logDebug("Table has changed from expected, retrigger!!");
+            Logger.getInstance().logDebug("Table has changed from expected, retrigger!!", logName);
             outputsHaveChanged_ = true;
         }
         if (outputsHaveChanged_) {
@@ -287,9 +289,9 @@ public class Limelight implements Subsystem {
 
         // Sort the corners by the by the x-vaules to
         // sort them from left to right
-        Logger.getInstance().logDebug("Before sort: " + corners);
+        Logger.getInstance().logDebug("Before sort: " + corners, logName);
         corners.sort(xSort);
-        Logger.getInstance().logDebug("After sort: " + corners);
+        Logger.getInstance().logDebug("After sort: " + corners, logName);
 
         Translation2d leftCorner = corners.get(0);
         Translation2d rightCorner = corners.get(corners.size() - 1);

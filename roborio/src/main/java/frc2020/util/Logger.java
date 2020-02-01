@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -20,6 +22,7 @@ public class Logger {
     private final int MAX_NUMBER_OF_FILES = 100;
     private final DriverStation DS = DriverStation.getInstance();
     private UUID RUN_INSTANCE_UUID;
+    private final String SYSTEM_TAG = "System";
 
     private PrintWriter writer_;
     private boolean isStarted_ = false;
@@ -87,8 +90,10 @@ public class Logger {
             }
 
             // Instantiate the writer and write the initial logging information
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-Hms");
+            String time = LocalDateTime.now().format(formatter);
 
-            writer_ = new PrintWriter(LOG_PATH + logName + "_" + RUN_INSTANCE_UUID.toString());
+            writer_ = new PrintWriter(LOG_PATH + time + "_" + logName + "_" + RUN_INSTANCE_UUID.toString());
             writer_.println("==============Logger Start==============");
             writer_.println("Log Type: " + logName);
             writer_.println("Program Checksum: " + Checksum.getChecksum());
@@ -147,7 +152,7 @@ public class Logger {
         isStarted_ = false;
     }
 
-    private synchronized void logMessage(String msg, Level level) {
+    private synchronized void logMessage(String msg, Level level, String system) {
         if(level.getValue() == Level.Warning.getValue()) {
             DriverStation.reportWarning(msg, false);
         } 
@@ -155,37 +160,56 @@ public class Logger {
             DriverStation.reportError(msg, false);
         } 
         else {
-            System.out.println(level.toString() + " " + msg);
+            System.out.println(system + " " + level.toString() + " " + msg);
         }
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd H:m:s.n");
+        String time = LocalDateTime.now().format(formatter);
+        time = time.substring(0, time.length()-3);
         if (DS.isDSAttached()) {
-            writeToLog("[" + level.toString() + "][" + LocalDateTime.now() + "] " + msg);
+            writeToLog("[" + level.toString() + "][" + system + "][" + time + "] " + msg);
         } else {
-            writeToLog("[" + level.toString() + "][" + Timer.getMatchTime() + "] " + msg);
+            writeToLog("[" + level.toString() + "][" + system + "][" + Timer.getMatchTime() + "] " + msg);
         }
     }
 
     public void logDebug(String msg) {
+        logDebug(msg, SYSTEM_TAG);
+    }
+
+    public void logDebug(String msg, String logName) {
         if (LOGGER_LEVEL.getValue() >= Level.Debug.getValue()) {
-            logMessage(msg, Level.Debug);
+            logMessage(msg, Level.Debug, logName);
         }
     }
 
     public void logInfo(String msg) {
+        logInfo(msg, SYSTEM_TAG);
+    }
+
+    public void logInfo(String msg, String logName) {
         if (LOGGER_LEVEL.getValue() >= Level.Info.getValue()) {
-            logMessage(msg, Level.Info);
+            logMessage(msg, Level.Info, logName);
         }
     }
 
     public void logWarning(String msg) {
+        logWarning(msg, SYSTEM_TAG);
+    }
+
+    public void logWarning(String msg, String logName) {
         if (LOGGER_LEVEL.getValue() >= Level.Warning.getValue()) {
-            logMessage(msg, Level.Warning);
+            logMessage(msg, Level.Warning, logName);
         }
     }
 
     public void logError(String msg) {
+        logError(msg, SYSTEM_TAG);
+    }
+
+    public void logError(String msg, String logName) {
         if (LOGGER_LEVEL.getValue() >= Level.Error.getValue()) {
-            logMessage(msg, Level.Error);
+            logMessage(msg, Level.Error, logName);
         }
     }
 
