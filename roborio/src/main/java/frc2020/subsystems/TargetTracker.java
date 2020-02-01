@@ -56,6 +56,11 @@ public class TargetTracker {
         }
     }
 
+    public static class RangeAndError {
+        public double error;//error is standard deviation
+        public double range; 
+    }
+
     // the list of readings
     public List<Reading> readings_ = new ArrayList<Reading>();
     private Limelight limelight_;
@@ -235,20 +240,44 @@ public class TargetTracker {
         }
         Rotation2d[] cornerBasedTarget = getCornerBasedTarget(corners);
         double confidence = 0.0;
-        double rangeArea = getRangeFromArea(rawData);
-        double rangeCorner = getRangeUsingCorners(cornerBasedTarget);
-
+        RangeAndError rangeArea = getRangeFromArea(rawData);
+        RangeAndError rangeCorner = getRangeUsingCorners(cornerBasedTarget);
         
         return new Reading(cornerBasedTarget[0].getDegrees(),
                            cornerBasedTarget[1].getDegrees(),
-                           getRange(rangeArea, rangeCorner),
-                           rangeArea,
-                           rangeCorner,
+                           getRange(rangeArea, rangeCorner).range,
+                           rangeArea.range,
+                           rangeCorner.range,
                            confidence);
+
+        // TODO: we should use the error from getRange above in our eventual confidence
     }
 
-    private double getRange(double rangeArea, double rangeCorner) {
-        return (rangeArea + rangeCorner)/2;
+    /**
+     * This function takes two different types of measurements for range and uses statistical
+     * magic to combine them. See the 4910 programmer GroupMe from 1 Feb. 2020 with Carson's
+     * formulas for combining the measurements statistically.
+     * 
+     * @param rangeArea
+     * @param rangeCorner
+     * @return
+     */
+    private RangeAndError getRange(RangeAndError rangeArea, RangeAndError rangeCorner) {
+        RangeAndError rangeAndError = new RangeAndError();
+
+        if (rangeArea.error == 0 && rangeCorner.error == 0) {
+            rangeAndError.error = Math.abs(rangeArea.range - rangeCorner.range);
+            rangeAndError.range = (rangeArea.range + rangeCorner.range)/2;
+            return rangeAndError;
+        }
+
+        rangeAndError.range = (rangeArea.range * Math.pow(rangeCorner.error,2)) + (rangeCorner.range * Math.pow(rangeArea.error,2));
+        rangeAndError.range /= (Math.pow(rangeArea.error,2) + Math.pow(rangeCorner.error,2));
+
+        rangeAndError.error = rangeArea.error*rangeCorner.error*Math.sqrt(2);
+        rangeAndError.error /= rangeArea.error*rangeArea.error + rangeCorner.error*rangeCorner.error;
+
+        return rangeAndError;
     }
 
     /**
@@ -256,13 +285,17 @@ public class TargetTracker {
      * 
      * @return Range in meters to target
      */
-    private double getRangeUsingCorners(Rotation2d[] target) {
+    private RangeAndError getRangeUsingCorners(Rotation2d[] target) {
         Rotation2d angle = target[1];
         angle = angle.rotateBy(limelight_.getHorizontalPlaneToLens());
         
         double differental_height = Constants.TARGET_HEIGHT - limelight_.getLensHeight();
+
+        RangeAndError rangeAndError = new RangeAndError();
+        rangeAndError.error = 0.5; //TODO: replace with more accurate statistics
+        rangeAndError.range = differental_height / angle.getTan();
         
-        return differental_height / angle.getTan();
+        return rangeAndError;
     }
 
     /** Uses two interpolated functions to calculate range based on the width and height of the target.
@@ -272,20 +305,30 @@ public class TargetTracker {
      * @param rawData Limelight raw readings
      * @return range in meters
      */
-    public synchronized double getRangeFromArea(LimelightRawData rawData) {
+    private RangeAndError getRangeFromArea(LimelightRawData rawData) {
         double range = 0;
         double am = 3.20505; //slope of "a" function
         double ab = 168.682; //constant of "a" function
         double bm = -0.395496; //slope for "b" function
         double bb = 0.317853; //constant for "b" function
         double area = rawData.tWidth * rawData.tHeight;
-        double whRatio = rawData.tWidth == 0 ? 0 : rawData.tWidth/rawData.tHeight;
+        if(rawData.tHeight == 0 || rawData.tWidth == 0){
+            RangeAndError rangeAndError = new RangeAndError();
+            rangeAndError.error = 10.0; // 10 meters
+            rangeAndError.range = 10.0; // 10 meters
+            return rangeAndError;
+        }
+        double whRatio = rawData.tWidth/rawData.tHeight;
 
         double a = am*whRatio + ab;
         double b = bm*whRatio + bb;
         range = a / Math.sqrt(area) + b;
 
-        return range;
+        RangeAndError rangeAndError = new RangeAndError();
+        rangeAndError.error = 0.5; //TODO: replace later with better statistics
+        rangeAndError.range = range;
+
+        return rangeAndError;
     }
 
     /**
@@ -337,7 +380,7 @@ public class TargetTracker {
     /**
      * Raw target info of top two corners of target in unit plane of -1 to 1
      * 
-     * @param topCorners the top corners (obviously)
+     * @param topCorners two top corners recieved from limelight
      */
     private static Rotation2d[] getCornerBasedTarget(List<Translation2d> topCorners) {
         Translation2d centerPoint = Util.interpolateTranslation2d(topCorners.get(0), topCorners.get(1), 0.5);
