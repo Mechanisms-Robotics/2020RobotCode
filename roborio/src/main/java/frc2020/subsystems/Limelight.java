@@ -44,6 +44,8 @@ public class Limelight implements Subsystem {
         public int givenPipeline;
         public double xOffset;
         public double yOffset;
+        public int tWidth;
+        public int tHeight;
         public double area;
         public boolean hasTarget;
         public double[] corners;
@@ -80,6 +82,8 @@ public class Limelight implements Subsystem {
         rawData_.givenPipeline = (int) networkTable_.getEntry("pipeline").getDouble(0);
         rawData_.xOffset = networkTable_.getEntry("tx").getDouble(0.0);
         rawData_.yOffset = networkTable_.getEntry("ty").getDouble(0.0);
+        rawData_.tWidth = (int)networkTable_.getEntry("thor").getDouble(0.0);
+        rawData_.tHeight = (int)networkTable_.getEntry("tvert").getDouble(0.0);
         rawData_.area = networkTable_.getEntry("ta").getDouble(0.0);
         rawData_.hasTarget = networkTable_.getEntry("tv").getDouble(0) == 1.0;
         double[] emptyArray = {};
@@ -119,6 +123,8 @@ public class Limelight implements Subsystem {
         SmartDashboard.putNumber("Azimuth: ", currentReading.azimuth);
         SmartDashboard.putNumber("Elevation: ", currentReading.elevation);
         SmartDashboard.putNumber("Range: ", currentReading.range);
+        SmartDashboard.putNumber("Range Area: ", currentReading.rangeArea);
+        SmartDashboard.putNumber("Range Corner: ", currentReading.rangeCorner);
         SmartDashboard.putNumber("Confidence: ", currentReading.confidence);
         SmartDashboard.putBoolean(config_.name + ": Has Target", rawData_.hasTarget);
         SmartDashboard.putNumber(config_.name + ": Pipeline Latency (ms)", rawData_.latency);

@@ -42,12 +42,16 @@ public class TargetTracker {
         public double azimuth; // degrees (0 is ahead, positive to right)
         public double elevation; // degrees (0 is ahead, positive is up)
         public double range; // meters
+        public double rangeArea;
+        public double rangeCorner;
         public double confidence; // 0.0 to 1.0
 
-        public Reading(double azimuth, double elevation, double range, double confidence) {
+        public Reading(double azimuth, double elevation, double range, double rangeArea, double rangeCorner, double confidence) {
             this.azimuth = azimuth;
             this.elevation = elevation;
             this.range = range;
+            this.rangeArea = rangeArea;
+            this.rangeCorner = rangeCorner;
             this.confidence = confidence;
         }
     }
@@ -116,10 +120,10 @@ public class TargetTracker {
 
         if (readings_.size() == 0) {
             // return a zero-confidence reading since we have no data
-            return new Reading(0.0, 0.0, 0.0, 0.0);
+            return new Reading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
 
-        Reading averageReading = new Reading(0.0, 0.0, 0.0, 0.0);
+        Reading averageReading = new Reading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
         double confidenceSum = 0.0;
 
@@ -128,6 +132,8 @@ public class TargetTracker {
             averageReading.azimuth += readings_.get(i).confidence*readings_.get(i).azimuth;
             averageReading.elevation += readings_.get(i).confidence*readings_.get(i).elevation;
             averageReading.range += readings_.get(i).confidence*readings_.get(i).range;
+            averageReading.rangeArea += readings_.get(i).confidence*readings_.get(i).rangeArea;
+            averageReading.rangeCorner += readings_.get(i).confidence*readings_.get(i).rangeCorner;
             averageReading.confidence += readings_.get(i).confidence*readings_.get(i).confidence;
             confidenceSum += readings_.get(i).confidence;
         }
@@ -135,6 +141,8 @@ public class TargetTracker {
         averageReading.azimuth /= confidenceSum;
         averageReading.elevation /= confidenceSum;
         averageReading.range /= confidenceSum;
+        averageReading.rangeArea /= confidenceSum;
+        averageReading.rangeCorner /= confidenceSum;
         averageReading.confidence /= confidenceSum;
 
         return averageReading;
@@ -223,15 +231,24 @@ public class TargetTracker {
 
         List<Translation2d> corners = getTopCorners(rawData);
         if (corners == null) {
-            return new Reading(0.0, 0.0, 0.0, 0.0);
+            return new Reading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
         Rotation2d[] cornerBasedTarget = getCornerBasedTarget(corners);
-        double confidence = 0.0;                                                                                                             
+        double confidence = 0.0;
+        double rangeArea = getRangeFromArea(rawData);
+        double rangeCorner = getRangeUsingCorners(cornerBasedTarget);
+
         
         return new Reading(cornerBasedTarget[0].getDegrees(),
                            cornerBasedTarget[1].getDegrees(),
-                           getRangeUsingCorners(cornerBasedTarget),
+                           getRange(rangeArea, rangeCorner),
+                           rangeArea,
+                           rangeCorner,
                            confidence);
+    }
+
+    private double getRange(double rangeArea, double rangeCorner) {
+        return (rangeArea + rangeCorner)/2;
     }
 
     /**
@@ -246,6 +263,29 @@ public class TargetTracker {
         double differental_height = Constants.TARGET_HEIGHT - limelight_.getLensHeight();
         
         return differental_height / angle.getTan();
+    }
+
+    /** Uses two interpolated functions to calculate range based on the width and height of the target.
+     *  Width and height ratio used to calculate constants of proportionality for area function.
+     *  Area function calculated with constants using the pixel area of the target.
+     * 
+     * @param rawData Limelight raw readings
+     * @return range in meters
+     */
+    public synchronized double getRangeFromArea(LimelightRawData rawData) {
+        double range = 0;
+        double am = 3.20505; //slope of "a" function
+        double ab = 168.682; //constant of "a" function
+        double bm = -0.395496; //slope for "b" function
+        double bb = 0.317853; //constant for "b" function
+        double area = rawData.tWidth * rawData.tHeight;
+        double whRatio = rawData.tWidth == 0 ? 0 : rawData.tWidth/rawData.tHeight;
+
+        double a = am*whRatio + ab;
+        double b = bm*whRatio + bb;
+        range = a / Math.sqrt(area) + b;
+
+        return range;
     }
 
     /**
