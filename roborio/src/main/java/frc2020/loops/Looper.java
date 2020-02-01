@@ -3,6 +3,7 @@ package frc2020.loops;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.util.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,8 @@ public class Looper implements ILooper {
     private final Object syncLock = new Object();
     private double timestamp = 0;
     private double dt = 0;
+
+    private static Logger logger_ = Logger.getInstance();
 
     /**
     * This is the runnable object that the notifier_ will take in and call
@@ -68,7 +71,7 @@ public class Looper implements ILooper {
     */
     public synchronized void start() {
         if (!isRunning) {
-            System.out.println("Starting loops");
+            logger_.logDebug("Starting loops");
             synchronized (syncLock) {
                 timestamp = Timer.getFPGATimestamp();
                 for (Loop loop : loops_) {
@@ -85,12 +88,12 @@ public class Looper implements ILooper {
     */
     public synchronized void stop() {
         if (isRunning) {
-            System.out.println("Stopping loops");
+            logger_.logDebug("Stopping loops");
             notifier_.stop();
             synchronized (syncLock) {
                 isRunning = false;
                 for (Loop loop : loops_) {
-                    System.out.println("Stopping " + loop);
+                    logger_.logDebug("Stopping " + loop);
                     loop.end();
                 }
             }

@@ -52,6 +52,8 @@ public class Robot extends TimedRobot {
 
     private Limelight limelight_;
 
+    private static Logger logger_ = Logger.getInstance();
+
     /**
     * Default constructor, initializes the enabledIterator, disabledIterator,
     * SubsystemManager, Drive instance, compressor, PDP, TeleopCSGenerator, and
@@ -60,7 +62,7 @@ public class Robot extends TimedRobot {
     public Robot() {
 
         runUUID = UUID.randomUUID();
-        Logger.getInstance().start(runUUID,
+        logger_.start(runUUID,
          "RobotLog", Logger.Level.Debug);
 
         enabledIterator = new Looper();
@@ -106,7 +108,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         try {
-            Logger.getInstance().logRobotInit();
+            logger_.logRobotInit();
             CrashTracker.logRobotInit();
 
             manager.registerEnabledLoops(enabledIterator);
@@ -114,7 +116,7 @@ public class Robot extends TimedRobot {
             
             //SmartDashboard.putData("PDP", PDP);
         } catch(LoggerNotStartedException e) {
-            Logger.getInstance().setFileLogging(false);
+            logger_.setFileLogging(false);
             DriverStation.reportError(
                     "Unable to start logging: Disabling File Logging(will still print out messages to console)",
                     false);
@@ -133,7 +135,7 @@ public class Robot extends TimedRobot {
         try {
             double now = Timer.getFPGATimestamp();
             if (now - lastFlushTime_ > Constants.LOGGER_FLUSH_TIME) {
-                Logger.getInstance().flush();
+                logger_.flush();
                 lastFlushTime_ = now;
             }
             manager.outputToSmartDashboard();
@@ -156,7 +158,7 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         try {
-            Logger.getInstance().logRobotDisabled();
+            logger_.logRobotDisabled();
             CrashTracker.logDisabledInit();
             enabledIterator.stop();
             if (autoRunner_ != null) {
@@ -167,7 +169,7 @@ public class Robot extends TimedRobot {
             disabledIterator.start();
             drive_.openLoop(new DriveSignal(0,0, false));
         } catch(LoggerNotStartedException e) {
-            Logger.getInstance().setFileLogging(false);
+            logger_.setFileLogging(false);
             DriverStation.reportError(
                     "Unable to start logging: Disabling File Logging(will still print out messages to console)",
                     false);
@@ -188,7 +190,7 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
         try {
-            Logger.getInstance().logRobotAutoInit();
+            logger_.logRobotAutoInit();
             disabledIterator.stop();
             if (autoRunner_ != null) {
                 autoRunner_.stop();
@@ -201,7 +203,7 @@ public class Robot extends TimedRobot {
             autoRunner_.setAutoMode(new RightToTrench8());
             autoRunner_.start();
         } catch(LoggerNotStartedException e) {
-            Logger.getInstance().setFileLogging(false);
+            logger_.setFileLogging(false);
             DriverStation.reportError(
                     "Unable to start logging: Disabling File Logging(will still print out messages to console)",
                     false);
@@ -224,8 +226,7 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         try {
-            System.out.println("Entering teleopInit");
-            Logger.getInstance().logRobotTeleopInit();
+            logger_.logRobotTeleopInit();
             CrashTracker.logTeleopInit();
             disabledIterator.stop();
             //compressor_.setClosedLoopControl(true);
@@ -238,7 +239,7 @@ public class Robot extends TimedRobot {
                 autoRunner_ = null;
             }
         } catch(LoggerNotStartedException e) {
-            Logger.getInstance().setFileLogging(false);
+            logger_.setFileLogging(false);
             DriverStation.reportError(
                     "Unable to start logging: Disabling File Logging(will still print out messages to console)",
                     false);
@@ -269,7 +270,7 @@ public class Robot extends TimedRobot {
     @Override
     public void testInit() {
         try {
-            System.out.println("Entering testInit");
+            logger_.logRobotTestInit();
             disabledIterator.stop();
             enabledIterator.start();
         } catch (Throwable t){

@@ -15,6 +15,7 @@ public abstract class AutoMode {
     protected double update_rate = 1.0 / 50.0; // How fast the auto mode runs
     protected boolean running = false;
     protected boolean hasRun = false;
+    protected Logger logger_ = Logger.getInstance();
 
     protected abstract void routine() throws AutoModeEndedException;
 
@@ -26,11 +27,11 @@ public abstract class AutoMode {
         try {
             routine();
         } catch (AutoModeEndedException e) {
-            Logger.getInstance().logWarning("Auto ended and we weren't done!");
+            logger_.logWarning("Auto ended and we weren't done!");
         }
 
         done();
-        Logger.getInstance().logInfo("Auto mode done");
+        logger_.logInfo("Auto mode done");
     }
 
     public void done() {

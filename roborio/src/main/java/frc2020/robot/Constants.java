@@ -14,6 +14,7 @@ import frc2020.util.Logger;
 public class Constants {
     // Logger
     public final static double LOGGER_FLUSH_TIME = 2.0;
+    private static Logger logger_ = Logger.getInstance();
 
     //CanBUS
     public final static int CAN_TIMEOUT = 50;
