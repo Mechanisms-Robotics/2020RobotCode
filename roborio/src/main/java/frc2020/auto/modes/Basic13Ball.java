@@ -21,6 +21,12 @@ import frc2020.auto.commands.WaitCommand;
 import frc2020.robot.Constants;
 import frc2020.subsystems.Drive;
 
+/**
+ * Starting from intersection between initiation line and midfield line. Shoots 3 balls,
+ * goes over rendevou zone picking up 5 balls and goes to trench, shoots 5 balls, backs
+ * up trench collecting 5 more balls, goes back forward and shoots and 5 more balls, totaling
+ * to 13 balls.
+ */
 public class Basic13Ball extends AutoMode {
     private static DifferentialDriveKinematics DRIVE_KINEMATICS = Drive.getInstance().getKinematics();
     private static SimpleMotorFeedforward FEEDFORWARD = Drive.getInstance().getFeedforward();

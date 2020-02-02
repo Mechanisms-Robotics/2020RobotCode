@@ -3,6 +3,10 @@ package frc2020.states;
 import frc2020.subsystems.Drive;
 import frc2020.util.DriveSignal;
 
+/**
+ * Handles the general command state of the robot. If there are any subsystem commands
+ * that send demands they come through here
+ */
 public class CommandState {
     //Demand variables, these are modified in the CSGenerators
     public DriveDemand driveDemand;
@@ -32,7 +36,7 @@ public class CommandState {
         }
 
         /**
-        * Default constructor, initializes demand, type, and lowGear
+        * Default constructor, initializes demand, OpenLoop, and lowGear
         */
         public DriveDemand(DriveSignal demand) {
             this.demand = demand;
@@ -40,11 +44,19 @@ public class CommandState {
             this.inLowGear = false;
         }
 
+        /**
+         * All possible demand types are inserted here
+         */
         public static enum DemandType {
             OpenLoop,
             Velocity
         }
 
+        /**
+         * Previously used for Demand Type conversions
+         * @param dsType numeric value
+         * @return demand type
+         */
         public static DemandType fromDSType(int dsType) {
             if (dsType == 0) {
                 return DemandType.OpenLoop;
@@ -54,19 +66,26 @@ public class CommandState {
         }
     }
 
-    //Setters and getters for each subsystem demand
+    /**
+     * Setter for each subsystem demand
+     * @param demand
+     */
     public void setDriveDemand(DriveDemand demand) {
         driveDemand = demand;
     }
 
+    /**
+     * Getter for each subsystem demand
+     * @return
+     */
     public DriveDemand getDriveDemand() {
         return driveDemand;
     }
 
     /**
-     * Tries to update all the subystems for the robot
+     * Tries to update all the subsystems for the robot
      * from this command state
-     * @param drive An istance of the drive train subystem
+     * @param drive An instance of the drive train subsystem
      */
     public void updateSubsystems(Drive drive) {
         maybeUpdateDrive(drive);
@@ -75,7 +94,7 @@ public class CommandState {
     /**
      * Tries to update the drive train with a
      * commanded demand and demand type.
-     * @param drive An instance of the drive train subsytem
+     * @param drive An instance of the drive train subsystem
      */
     private void maybeUpdateDrive(Drive drive) {
         if (driveDemand != null) {

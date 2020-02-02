@@ -5,6 +5,10 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 
+/**
+ * All of the constants of the field such as field element locations, dimensions, heights, etc.
+ * Often used for creating auto paths
+ */
 public class FieldConstants {
     // All units in SI unless specified otherwise
     // 0,0 is defined as the center of the opposing Alliance Wall, where our Power Port is

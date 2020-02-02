@@ -19,6 +19,10 @@ import frc2020.auto.commands.*;
 import frc2020.robot.Constants;
 import frc2020.subsystems.Drive;
 
+/**
+ * Starts in front of power port, shoots 3 balls, goes to trench and takes two balls,
+ * turn 90 degrees to the right, and shoots those balls.
+ */
 public class RightToTrench8 extends AutoMode {
     private static DifferentialDriveKinematics DRIVE_KINEMATICS = Drive.getInstance().getKinematics();
     private static SimpleMotorFeedforward FEEDFORWARD = Drive.getInstance().getFeedforward();

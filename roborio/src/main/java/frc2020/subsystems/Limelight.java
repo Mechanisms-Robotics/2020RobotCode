@@ -31,12 +31,19 @@ public class Limelight implements Subsystem {
 
     private NetworkTable networkTable_;
 
+    /**
+     * Consturcts new limelight
+     */
     public Limelight(LimelightConfig config) {
         config_ = config;
         networkTable_ = NetworkTableInstance.getDefault().getTable(config.tableName);
         targetTracker_ = new TargetTracker(this);
     }
 
+    /**
+     * All of the raw data that we get from the limelight and that we use
+     * regarding the limelight is stored here.
+     */
     public static class LimelightRawData {
         // INPUTS
         public double latency;
@@ -75,6 +82,11 @@ public class Limelight implements Subsystem {
         return config_.horizontalPlaneToLens;
     }
 
+    /**
+     * Gets all the inputs we will need directly from the limelight over here 
+     * and sets all our limelight raw data values to them. Also gets our 
+     * latest targeting data.
+     */
     @Override
     public synchronized void readPeriodicInputs() {
         rawData_.latency = networkTable_.getEntry("tl").getDouble(0) / 1000.0 + Constants.IMAGE_CAPTURE_LATENCY;
@@ -91,6 +103,9 @@ public class Limelight implements Subsystem {
         targetTracker_.addLatestTargetData();
     }
 
+    /**
+     * Sets our ledMode, camMode, pipeline, stream layout, and snapshots
+     */
     @Override
     public synchronized void writePeriodicOutputs() {
         if (rawData_.givenLedMode != rawData_.ledMode || rawData_.givenPipeline != rawData_.pipeline) {
@@ -107,16 +122,26 @@ public class Limelight implements Subsystem {
             outputsHaveChanged_ = false;
         }
     }
-
+    
+    /**
+     * We don't use stop method for our limelight because it never stops running
+     */
     @Override
     public void stop() {
     }
 
+    /**
+     * Checks system
+     */
     @Override
     public boolean checkSystem() {
         return true;
     }
 
+    /**
+     * Gets the current reading regarding tracking targets and 
+     * outputs useful telemetry data to our Smart Dashboard
+     */
     @Override
     public synchronized void outputTelemetry() {
         TargetTracker.Reading currentReading = targetTracker_.getCurrentReading();
@@ -130,10 +155,16 @@ public class Limelight implements Subsystem {
         SmartDashboard.putNumber(config_.name + ": Pipeline Latency (ms)", rawData_.latency);
     }
 
+    /**
+     * All possible LED modes for the limelight to be in
+     */
     public enum LedMode {
         PIPELINE, OFF, BLINK, ON
     }
 
+    /**
+     * setter
+     */
     public synchronized void setLed(LedMode mode) {
         if (mode.ordinal() != rawData_.ledMode) {
             rawData_.ledMode = mode.ordinal();
@@ -141,47 +172,77 @@ public class Limelight implements Subsystem {
         }
     }
 
+    /**
+     * setter + logs the pipeline we set it to
+     */
     public synchronized void setPipeline(int mode) {
         if (mode != rawData_.pipeline) {
             rawData_.pipeline = mode;
 
-            System.out.println(rawData_.pipeline + ", " + mode);
+            Logger.logInfo(rawData_.pipeline + ", " + mode);
             outputsHaveChanged_ = true;
         }
     }
 
+    /**
+     * Changes outputs later in writePeriodicOutputs
+     */
     public synchronized void triggerOutputs() {
         outputsHaveChanged_ = true;
     }
 
+    /**
+     * getter
+     */
     public synchronized int getPipeline() {
         return rawData_.pipeline;
     }
 
+    /**
+     * @return does limelight see a target or no
+     */
     public synchronized boolean hasTarget() {
         return rawData_.hasTarget;
     }
 
+    /**
+     * getter
+     */
     public synchronized double getTargetX() {
         return rawData_.xOffset;
     }
 
+    /**
+     * getter
+     */
     public synchronized double getTargetY() {
         return rawData_.yOffset;
     }
 
+    /**
+     * getter
+     */
     public synchronized boolean getTargetValid() {
         return rawData_.hasTarget;
     }
 
+    /**
+     * getter
+     */
     public synchronized LimelightRawData getRawData() {
         return rawData_;
     }
 
+    /**
+     * getter
+     */
     public double getLatency() {
         return rawData_.latency;
     }
 
+     /**
+      * Limelight has no sensors for us to zero
+      */
     @Override
     public void zeroSensors() {
         // TODO Auto-generated method stub

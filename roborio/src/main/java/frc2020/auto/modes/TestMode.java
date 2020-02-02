@@ -17,6 +17,9 @@ import frc2020.auto.commands.*;
 
 import java.util.List;
 
+/**
+ * Test auto mode for just trying out different paths, velocities, accelerations, etc
+ */
 public class TestMode extends AutoMode {
     private static DifferentialDriveKinematics DRIVE_KINEMATICS = 
         Drive.getInstance().getKinematics();

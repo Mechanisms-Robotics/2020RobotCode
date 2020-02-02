@@ -38,6 +38,9 @@ public class TargetTracker {
     private final static double DEPRECIATION_FACTOR = 0.9;
     private final static int MAX_READINGS_SIZE = 200;
 
+    /**
+     * This internal class contains all of the most current readings from the limelight
+     */
     public static class Reading {
         public double azimuth; // degrees (0 is ahead, positive to right)
         public double elevation; // degrees (0 is ahead, positive is up)
@@ -56,6 +59,9 @@ public class TargetTracker {
         }
     }
 
+    /**
+     * Useful class for getting range with error calculated into it
+     */
     public static class RangeAndError {
         public double error;//error is standard deviation
         public double range; 
@@ -365,7 +371,7 @@ public class TargetTracker {
     }
     
     /**
-     * @param pixelCoord taken in pixels
+     * Converts pixels to angles using math on limelight page
      */
     private static Rotation2d[] pixelToAngle(Translation2d pixelCoord) {
         // Convert to angle

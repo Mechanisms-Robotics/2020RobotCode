@@ -45,6 +45,11 @@ public abstract class AutoMode {
         return running;
     }
 
+    /**
+     * If auto mode ended unexpectedly then throw exception
+     * @return
+     * @throws AutoModeEndedException
+     */
     public boolean isRunningWithThrow() throws AutoModeEndedException {
         if (!isRunning()) {
             throw new AutoModeEndedException();
