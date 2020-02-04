@@ -1,6 +1,7 @@
 package frc2020.auto;
 
 import frc2020.auto.commands.Command;
+import frc2020.util.Logger;
 
 /**
  * An abstract class that is the basis of the robot's autonomous routines. This is implemented in auto modes (which are
@@ -25,11 +26,11 @@ public abstract class AutoMode {
         try {
             routine();
         } catch (AutoModeEndedException e) {
-            System.out.print("WARNING Auto ended and we weren't done!");
+            Logger.logWarning("Auto ended and we weren't done!");
         }
 
         done();
-        System.out.println("Auto mode done");
+        Logger.logInfo("Auto mode done");
     }
 
     public void done() {

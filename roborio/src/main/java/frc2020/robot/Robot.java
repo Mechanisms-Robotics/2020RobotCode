@@ -1,16 +1,23 @@
 package frc2020.robot;
 
+import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc2020.util.DriveSignal;
-import frc2020.util.geometry.Pose2d;
+import frc2020.subsystems.Limelight;
+import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
+import frc2020.auto.modes.Basic13Ball;
+import frc2020.auto.modes.CenterToTrench8;
+import frc2020.auto.modes.RightToTrench8;
+import frc2020.auto.modes.TestMode;
 import frc2020.loops.*;
-import frc2020.states.AutoCSGenerator;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
+import frc2020.robot.Constants;
 
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -26,17 +33,18 @@ import java.util.Arrays;
 public class Robot extends TimedRobot {
     private Looper enabledIterator;
     private Looper disabledIterator;
-    private PowerDistributionPanel PDP;
+    //private PowerDistributionPanel PDP;
     private SendableChooser<AutoChooser.AutoModeChoices> autoChooser_;
     private AutoModeRunner autoRunner_;
     private SubsystemManager manager;
     private Drive drive_;
-    private Jetson jetson_;
-    private Compressor compressor_;
+
+   // private Compressor compressor_;
     private AutoMode currentAutoMode_;
 
     private TeleopCSGenerator teleopCSGenerator_;
-    private AutoCSGenerator autoCSGenerator_;
+
+    private Limelight limelight_;
 
     /**
     * Default constructor, initializes the enabledIterator, disabledIterator,
@@ -49,23 +57,36 @@ public class Robot extends TimedRobot {
         disabledIterator = new Looper();
         autoRunner_ = null;
 
+        var limelight_config = new Limelight.LimelightConfig();
+        limelight_config.height = 1.12;
+        limelight_config.horizontalPlaneToLens = Rotation2d.fromDegrees(15.0);
+        limelight_config.tableName = "limelight";
+        limelight_config.name = "Test";
+        limelight_ = new Limelight(limelight_config);
+        limelight_.setLed(LedMode.PIPELINE);
+
         manager = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
-                  Jetson.getInstance(),
-                  RobotStateEstimator.getInstance()
+                  limelight_
                 )
         );
 
 
         drive_ = Drive.getInstance();
-        jetson_ = Jetson.getInstance();
-        compressor_ = new Compressor();
-        PDP = new PowerDistributionPanel();
+       // compressor_ = new Compressor();
+        //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
-        autoCSGenerator_ = new AutoCSGenerator(jetson_);
         autoChooser_ = AutoChooser.getAutoChooser();
+
+        
+
+        // Pre-Generate Trajectories
+        TestMode.generateTrajectories();
+        Basic13Ball.generateTrajectories();
+        CenterToTrench8.generateTrajectories();
+        RightToTrench8.generateTrajectories();
     }
 
     /**
@@ -79,8 +100,8 @@ public class Robot extends TimedRobot {
 
             manager.registerEnabledLoops(enabledIterator);
             manager.registerDisabledLoops(disabledIterator);
-
-            SmartDashboard.putData("PDP", PDP);
+            
+            //SmartDashboard.putData("PDP", PDP);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -95,11 +116,16 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         try {
             manager.outputToSmartDashboard();
+//            Pose2d target = targetTracker_.getRobotToVisionTarget();
+//            if (target != null) {
+//                SmartDashboard.putNumber("Distance", target.getTranslation().getX());
+//            } else {
+//                SmartDashboard.putNumber("Distance", 0.0);
+//            }
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;
         }
-
     }
 
     /**
@@ -140,10 +166,12 @@ public class Robot extends TimedRobot {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
-            drive_.setRampMode(Drive.RampMode.None);
+            drive_.zeroSensors();
             drive_.setHighGear();
-            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
             enabledIterator.start();
+            autoRunner_ = new AutoModeRunner();
+            autoRunner_.setAutoMode(new RightToTrench8());
+            autoRunner_.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -152,7 +180,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousPeriodic() {
-        autoCSGenerator_.getCommandState().updateSubsystems(drive_);
+
     }
 
     /**
@@ -166,19 +194,15 @@ public class Robot extends TimedRobot {
             System.out.println("Entering teleopInit");
             CrashTracker.logTeleopInit();
             disabledIterator.stop();
-            compressor_.setClosedLoopControl(true);
-            RobotState.getInstance().resetXY(Timer.getFPGATimestamp(), Pose2d.identity());
+            //compressor_.setClosedLoopControl(true);
             enabledIterator.start();
+            drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
-            drive_.setRampMode(Drive.RampMode.LowLift);
             drive_.setHighGear();
             if (autoRunner_ != null) {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
-            autoRunner_ = new AutoModeRunner();
-            currentAutoMode_ = null;
-            autoRunner_.start();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

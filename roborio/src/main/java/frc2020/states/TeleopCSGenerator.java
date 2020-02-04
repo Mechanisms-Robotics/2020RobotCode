@@ -31,9 +31,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     //This is an example of a subsystem demand generator method
     //Anything specific to this subsystem, including operator controls, is handled here
     private DriveDemand generateDriveDemand() {
-        double leftDrive = -Math.abs(leftJoystick_.getY()) <= 0.1 ? -leftJoystick_.getY() : 0;
-        double rightDrive = -Math.abs(rightJoystick_.getY()) <= 0.1 ? -rightJoystick_.getY() : 0;
-        DriveSignal demand = new DriveSignal(leftDrive, rightDrive);
+        final double DEADBAND = 0.1;
+        double leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+        double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
+        DriveSignal demand = new DriveSignal(leftDrive, rightDrive, true);
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) ? !driveLowGear : driveLowGear;
         return new DriveDemand(demand, DriveDemand.DemandType.OpenLoop, driveLowGear);
     }
