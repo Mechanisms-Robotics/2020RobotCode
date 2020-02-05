@@ -26,10 +26,16 @@ public class SubsystemManager implements ILooper {
         allSubsystems = subsystems;
     }
 
+    /**
+     * Runs the passive tests for each subsystem
+     */
     public void runPassiveTests() {
         allSubsystems.forEach((s) -> s.runPassiveTests());
     }
 
+    /**
+     * Runs the active tests for each subsystem
+     */
     public void runActiveTests() {
         allSubsystems.forEach((s) -> s.runActiveTests());
     }
