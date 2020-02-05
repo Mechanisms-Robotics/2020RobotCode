@@ -115,12 +115,7 @@ public class Limelight implements Subsystem {
     @Override
     public void stop() {
     }
-
-    @Override
-    public boolean checkSystem() {
-        return true;
-    }
-
+    
     @Override
     public synchronized void outputTelemetry() {
         TargetTracker.Reading currentReading = targetTracker_.getCurrentReading();
@@ -195,5 +190,17 @@ public class Limelight implements Subsystem {
     public void registerLoops(ILooper enabledLooper) {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public boolean runPassiveTests() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean runActiveTests() {
+        // TODO Auto-generated method stub
+        return false;
     }
 }

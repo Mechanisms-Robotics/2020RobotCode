@@ -26,6 +26,14 @@ public class SubsystemManager implements ILooper {
         allSubsystems = subsystems;
     }
 
+    public void runPassiveTests() {
+        allSubsystems.forEach((s) -> s.runPassiveTests());
+    }
+
+    public void runActiveTests() {
+        allSubsystems.forEach((s) -> s.runActiveTests());
+    }
+
     /**
     * Makes every subsystem output it's telemetry to SmartDashboard
     */
