@@ -4,6 +4,8 @@ import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
+import frc2020.util.Logger;
+
 /**
  * Creates CTRE motor controller objects and configures all the parameters we care about to factory defaults. Closed-loop and sensor
  * parameters are not set, as these are expected to be set by the application.
@@ -11,6 +13,7 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 public class PhoenixFactory {
 
     private final static int kTimeoutMs = 100;
+    private static Logger logger_ = Logger.getInstance();
 
     /**
      * Create a Talon with an 'out-of-the-box' configuration
@@ -74,7 +77,7 @@ public class PhoenixFactory {
             StringBuilder builder = new StringBuilder();
             builder.append("Talon " + id + " has uncheck sticky faults");
             builder.append(faults);
-            System.out.println(builder.toString());
+            logger_.logInfo(builder.toString());
         }
         talon.clearStickyFaults(kTimeoutMs);
         talon.configFactoryDefault();
@@ -100,7 +103,7 @@ public class PhoenixFactory {
             StringBuilder builder = new StringBuilder();
             builder.append("Victor " + id + " has uncheck sticky faults");
             builder.append(faults);
-            System.out.println(builder.toString());
+            logger_.logInfo(builder.toString());
         }
         victor.clearStickyFaults(kTimeoutMs);
         victor.configFactoryDefault();

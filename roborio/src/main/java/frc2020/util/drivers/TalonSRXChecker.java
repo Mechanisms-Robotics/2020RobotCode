@@ -3,6 +3,7 @@ package frc2020.util.drivers;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import frc2020.subsystems.Subsystem;
+import frc2020.util.Logger;
 import frc2020.util.Util;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -10,6 +11,8 @@ import java.util.ArrayList;
 import java.util.function.DoubleSupplier;
 
 public class TalonSRXChecker {
+
+    private static Logger logger_ = Logger.getInstance();
 
     public static class CheckerConfig {
         public double mCurrentFloor = 5;
@@ -43,9 +46,11 @@ public class TalonSRXChecker {
                                       ArrayList<TalonSRXConfig> talonsToCheck,
                                       CheckerConfig checkerConfig) {
         boolean failure = false;
-        System.out.println("Starting Talon Checks...");
-        System.out.println("Checking subsystem " + subsystem.getClass()
+        logger_.logInfo("Starting Talon Checks...");
+        logger_.logInfo("Checking subsystem " + subsystem.getClass()
                 + " for " + talonsToCheck.size() + " talons.");
+        
+        String logName = subsystem.getClass().getName();
 
         ArrayList<Double> currents = new ArrayList<>();
         ArrayList<Double> rpms = new ArrayList<>();
@@ -66,42 +71,42 @@ public class TalonSRXChecker {
         }
 
         for (TalonSRXConfig config : talonsToCheck) {
-            System.out.println("Checking " + config.mName);
+            logger_.logInfo("Checking " + config.mName, logName);
 
             config.mTalon.set(ControlMode.PercentOutput, checkerConfig.mRunOutputPercentage);
             Timer.delay(checkerConfig.mRunTimeSec);
 
             // Now poll the interesting information.
-            double current = config.mTalon.getOutputCurrent();
+            double current = config.mTalon.getStatorCurrent();
             currents.add(current);
 
-            System.out.println("Current " + current);
+            logger_.logDebug("Current " + current, logName);
             double rpm = Double.NaN;
             if (checkerConfig.mRPMSupplier != null) {
                 rpm = checkerConfig.mRPMSupplier.getAsDouble();
                 rpms.add(rpm);
-                System.out.println("RPM " + rpm);
+                logger_.logDebug("RPM " + rpm, logName);
             }
 
             config.mTalon.set(ControlMode.PercentOutput, 0.0);
 
             // And perform checks.
             if (current < checkerConfig.mCurrentFloor) {
-                System.out.println(config.mName
+                logger_.logWarning(config.mName
                         + " has failed current floor check vs " +
-                        checkerConfig.mCurrentFloor + "!!");
+                        checkerConfig.mCurrentFloor + "!!", logName);
                 failure = true;
             } else {
-                System.out.println(config.mName + " has passed current test");
+                logger_.logDebug(config.mName + " has passed current test", logName);
             }
             if (checkerConfig.mRPMSupplier != null) {
                 if (rpm < checkerConfig.mRPMFloor) {
-                    System.out.println(config.mName
+                    logger_.logWarning(config.mName
                             + " has failed rpm floor check vs " +
-                            checkerConfig.mRPMFloor + "!!");
+                            checkerConfig.mRPMFloor + "!!", logName);
                     failure = true;
                 } else {
-                    System.out.println(config.mName + " has passed rpm test");
+                    logger_.logDebug(config.mName + " has passed rpm test", logName);
                 }
             }
 
@@ -114,7 +119,7 @@ public class TalonSRXChecker {
             Double average = currents.stream().mapToDouble(val -> val).average().getAsDouble();
 
             if (!Util.allCloseTo(currents, average, checkerConfig.mCurrentEpsilon)) {
-                System.out.println("Currents varied");
+                logger_.logWarning("Currents varied", logName);
                 failure = true;
             }
         }
@@ -123,7 +128,7 @@ public class TalonSRXChecker {
             Double average = rpms.stream().mapToDouble(val -> val).average().getAsDouble();
 
             if (!Util.allCloseTo(rpms, average, checkerConfig.mRPMEpsilon)) {
-                System.out.println("RPMs  varied");
+                logger_.logWarning("RPMs  varied", logName);
                 failure = true;
             }
         }

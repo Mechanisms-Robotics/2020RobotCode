@@ -14,6 +14,8 @@ public class InterpolatingTreeMap<K extends InverseInterpolable<K> & Comparable<
         extends TreeMap<K, V> {
     private static final long serialVersionUID = 8347275262778054124L;
 
+    private static Logger logger_ = Logger.getInstance();
+
     int max_;
 
     public InterpolatingTreeMap(int maximumSize) {
@@ -46,7 +48,7 @@ public class InterpolatingTreeMap<K extends InverseInterpolable<K> & Comparable<
 
     @Override
     public void putAll(Map<? extends K, ? extends V> map) {
-        System.out.println("Unimplemented Method");
+        logger_.logDebug("Unimplemented Method in Interpolating Tree Map");
     }
 
     /**
