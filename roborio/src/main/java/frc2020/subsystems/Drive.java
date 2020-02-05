@@ -825,9 +825,15 @@ public class Drive implements Subsystem {
         }
     }
 
-    // TODO: Implement system check
     @Override
-    public boolean checkSystem(){
-        return true;
+    public boolean runPassiveTests() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean runActiveTests() {
+        // TODO Auto-generated method stub
+        return false;
     }
 }
