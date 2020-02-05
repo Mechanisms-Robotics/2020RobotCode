@@ -24,9 +24,16 @@ public interface Subsystem {
     void readPeriodicInputs();
 
     /**
-     * Checks that each aspect of the subsystem is in a functional state
+     * Runs the non-movement-based tests for each subsystem
+     * @return true if all tests passed
      */
-    boolean checkSystem();
+    boolean runPassiveTests();
+
+    /**
+     * Runs the movement-based tests for each subsystem
+     * @return true if all tests passed
+     */
+    boolean runActiveTests();
 
     /**
      * Resets all the sensors of that subsystem to their native positions

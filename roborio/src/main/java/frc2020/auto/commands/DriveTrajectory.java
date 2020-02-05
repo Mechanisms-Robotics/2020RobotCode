@@ -15,6 +15,8 @@ public class DriveTrajectory implements Command {
     private final Trajectory mTrajectory;
     private final boolean mResetPose;
 
+    private static Logger logger_ = Logger.getInstance();
+
     /**
      * Constructs trajectory and doesn't reset pose (use anytime other than 
      * first trajectory)
@@ -41,7 +43,7 @@ public class DriveTrajectory implements Command {
     @Override
     public boolean isFinished() {
         if (mDrive.isDoneWithTrajectory()){
-            Logger.logInfo("Trajectory finished");
+            logger_.logInfo("Trajectory finished");
             return true;
         }
         return false;
@@ -65,7 +67,7 @@ public class DriveTrajectory implements Command {
      */
     @Override
     public void start() {
-        Logger.logInfo("Starting Trajectory!");
+        logger_.logInfo("Starting Trajectory!");
         if (mResetPose){
             Pose2d startPose = mTrajectory.getInitialPose();
             mDrive.resetOdometry(startPose, startPose.getRotation());

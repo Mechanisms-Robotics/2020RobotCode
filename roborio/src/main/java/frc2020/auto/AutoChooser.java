@@ -7,6 +7,9 @@ import frc2020.util.Logger;
  * Gets the current auto mode selected
  */
 public class AutoChooser {
+
+    private static Logger logger_ = Logger.getInstance();
+
     /**
      * All the possible auto modes will go in here
      */
@@ -31,7 +34,7 @@ public class AutoChooser {
         if (choice != null) {
             return choice.autoMode;
         }
-        Logger.logWarning("No auto mode selected");
+        logger_.logWarning("No auto mode selected");
         return null;
     }
 

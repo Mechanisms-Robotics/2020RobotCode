@@ -38,6 +38,9 @@ public class TargetTracker {
     private final static double DEPRECIATION_FACTOR = 0.9;
     private final static int MAX_READINGS_SIZE = 200;
 
+    private static Logger logger_ = Logger.getInstance();
+    private final static String logName = "Limelight";
+
     /**
      * This internal class contains all of the most current readings from the limelight
      */
@@ -118,7 +121,7 @@ public class TargetTracker {
         if (readings_.size() <= MAX_READINGS_SIZE){
             readings_.add(reading);
         } else {
-            Logger.logError("Readings array reached maximum size!");
+            logger_.logError("Readings array reached maximum size!", logName);
         }
     }
 

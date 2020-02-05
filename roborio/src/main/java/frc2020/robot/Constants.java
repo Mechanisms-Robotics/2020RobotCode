@@ -12,6 +12,9 @@ import frc2020.util.Logger;
  * quickly update the entire robot for electrical wiring changes
  */
 public class Constants {
+    // Logger
+    public final static double LOGGER_FLUSH_TIME = 2.0;
+    private static Logger logger_ = Logger.getInstance();
 
     //CanBUS
     public final static int CAN_TIMEOUT = 50;
@@ -116,10 +119,10 @@ public class Constants {
                         }
                         return ret.toString();
                     } else {
-                        Logger.logError("Address doesn't exist or is not accessible");
+                        logger_.logError("Address doesn't exist or is not accessible");
                     }
                 } else {
-                    Logger.logError("Network Interface for the specified address is not found.");
+                    logger_.logError("Network Interface for the specified address is not found.");
                 }
             }
         } catch (final SocketException e) {

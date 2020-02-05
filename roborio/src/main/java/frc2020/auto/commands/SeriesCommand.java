@@ -3,6 +3,8 @@ package frc2020.auto.commands;
 import java.util.ArrayList;
 import java.util.List;
 
+import frc2020.util.Logger;
+
 /**
  * Executes one command at a time. Useful as a member of {@link ParallelCommand}
  */
@@ -11,6 +13,8 @@ public class SeriesCommand implements Command {
     private Command curCommand;
     private final ArrayList<Command> remainingCommands;
     private boolean done;
+
+    private static Logger logger_ = Logger.getInstance();
 
     /**
     * Default constructor, initializes remainingCommands
@@ -56,7 +60,7 @@ public class SeriesCommand implements Command {
         curCommand.update();
 
         if (curCommand.isFinished()) {
-            System.out.println("Finished" + curCommand);
+            logger_.logDebug("Finished" + curCommand);
             curCommand.done();
             curCommand = null;
         }
