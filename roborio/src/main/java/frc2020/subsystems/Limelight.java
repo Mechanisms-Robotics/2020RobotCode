@@ -21,6 +21,10 @@ public class Limelight implements Subsystem {
     public final static double CAMERA_DH = 1.87; // Difference in meters between camera and center of goal
     public final static double CAMERA_ANGLE = 0.0; // Degrees
 
+    private static Logger logger_ = Logger.getInstance();
+
+    private final static String logName = "Limelight";
+
     public static class LimelightConfig {
         public String name = "";
         public String tableName = "";
@@ -94,7 +98,7 @@ public class Limelight implements Subsystem {
     @Override
     public synchronized void writePeriodicOutputs() {
         if (rawData_.givenLedMode != rawData_.ledMode || rawData_.givenPipeline != rawData_.pipeline) {
-            Logger.logDebug("Table has changed from expected, retrigger!!");
+            logger_.logDebug("Table has changed from expected, retrigger!!", logName);
             outputsHaveChanged_ = true;
         }
         if (outputsHaveChanged_) {
@@ -144,8 +148,7 @@ public class Limelight implements Subsystem {
     public synchronized void setPipeline(int mode) {
         if (mode != rawData_.pipeline) {
             rawData_.pipeline = mode;
-
-            System.out.println(rawData_.pipeline + ", " + mode);
+            logger_.logDebug(rawData_.pipeline + ", " + mode, logName);
             outputsHaveChanged_ = true;
         }
     }

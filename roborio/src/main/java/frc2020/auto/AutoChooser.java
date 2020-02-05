@@ -1,8 +1,11 @@
 package frc2020.auto;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import frc2020.util.Logger;
 
 public class AutoChooser {
+    private static Logger logger_ = Logger.getInstance();
+
     public enum AutoModeChoices {
         NONE(null);
 
@@ -17,7 +20,7 @@ public class AutoChooser {
         if (choice != null) {
             return choice.autoMode;
         }
-        System.out.println("No auto mode selected");
+        logger_.logWarning("No auto mode selected");
         return null;
     }
 
