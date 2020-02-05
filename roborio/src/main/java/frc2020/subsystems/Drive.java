@@ -121,7 +121,7 @@ public class Drive implements Subsystem {
     private SimpleMotorFeedforward feedforward_;
     private boolean doneWithTrajectory_;
 
-    private boolean IS_ROBOT = true;
+    private boolean IS_ROBOT = false;
 
     /**
      * The default constructor starts the drive train and sets it up to be in
@@ -526,7 +526,7 @@ public class Drive implements Subsystem {
      * Sets drive to high gear
      */
     public synchronized void setHighGear() {
-        if (Robot.isReal()) {
+        if (Robot.isReal() && IS_ROBOT) {
             shifter_.set(highGear_);
         }
     }
@@ -535,7 +535,7 @@ public class Drive implements Subsystem {
      * Sets drive to low gear
      */
     public synchronized void setLowGear() {
-        if (Robot.isReal()) {
+        if (Robot.isReal() && IS_ROBOT) {
             shifter_.set(lowGear_);
         }
     }
