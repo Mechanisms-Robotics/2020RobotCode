@@ -1,22 +1,13 @@
 package frc2020.subsystems;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
-import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
 import frc2020.util.Logger;
-import frc2020.util.vision.TargetInfo;
-import frc2020.util.Util;
-import frc2020.subsystems.TargetTracker;
 
 /**
  * Subsystem for interacting with the Limelight 2
@@ -47,17 +38,21 @@ public class Limelight implements Subsystem {
     public Limelight(LimelightConfig config) {
         config_ = config;
         networkTable_ = NetworkTableInstance.getDefault().getTable(config.tableName);
+        targetTracker_ = new TargetTracker(this);
     }
 
-    public static class PeriodicIO {
+    public static class LimelightRawData {
         // INPUTS
         public double latency;
         public int givenLedMode;
         public int givenPipeline;
         public double xOffset;
         public double yOffset;
+        public int tWidth;
+        public int tHeight;
         public double area;
         public boolean hasTarget;
+        public double[] corners;
 
         // OUTPUTS
         public int ledMode = 1; // 0 - use pipeline mode, 1 - off, 2 - blink, 3 - on
@@ -68,9 +63,9 @@ public class Limelight implements Subsystem {
     }
 
     private LimelightConfig config_ = null;
-    private PeriodicIO io_ = new PeriodicIO();
+    private LimelightRawData rawData_ = new LimelightRawData();
     private boolean outputsHaveChanged_ = true;
-    private TargetTracker targetTracker_ = new TargetTracker();
+    private TargetTracker targetTracker_;
 
     public Transform2d getTurretToLens() {
         return config_.turretToLens;
@@ -86,28 +81,32 @@ public class Limelight implements Subsystem {
 
     @Override
     public synchronized void readPeriodicInputs() {
-        io_.latency = networkTable_.getEntry("tl").getDouble(0) / 1000.0 + Constants.IMAGE_CAPTURE_LATENCY;
-        io_.givenLedMode = (int) networkTable_.getEntry("ledMode").getDouble(1.0);
-        io_.givenPipeline = (int) networkTable_.getEntry("pipeline").getDouble(0);
-        io_.xOffset = networkTable_.getEntry("tx").getDouble(0.0);
-        io_.yOffset = networkTable_.getEntry("ty").getDouble(0.0);
-        io_.area = networkTable_.getEntry("ta").getDouble(0.0);
-        io_.hasTarget = networkTable_.getEntry("tv").getDouble(0) == 1.0;
-        targetTracker_.addLatestTargetData(this);
+        rawData_.latency = networkTable_.getEntry("tl").getDouble(0) / 1000.0 + Constants.IMAGE_CAPTURE_LATENCY;
+        rawData_.givenLedMode = (int) networkTable_.getEntry("ledMode").getDouble(1.0);
+        rawData_.givenPipeline = (int) networkTable_.getEntry("pipeline").getDouble(0);
+        rawData_.xOffset = networkTable_.getEntry("tx").getDouble(0.0);
+        rawData_.yOffset = networkTable_.getEntry("ty").getDouble(0.0);
+        rawData_.tWidth = (int)networkTable_.getEntry("thor").getDouble(0.0);
+        rawData_.tHeight = (int)networkTable_.getEntry("tvert").getDouble(0.0);
+        rawData_.area = networkTable_.getEntry("ta").getDouble(0.0);
+        rawData_.hasTarget = networkTable_.getEntry("tv").getDouble(0) == 1.0;
+        double[] emptyArray = {};
+        rawData_.corners = networkTable_.getEntry("tcornxy").getDoubleArray(emptyArray);
+        targetTracker_.addLatestTargetData();
     }
 
     @Override
     public synchronized void writePeriodicOutputs() {
-        if (io_.givenLedMode != io_.ledMode || io_.givenPipeline != io_.pipeline) {
+        if (rawData_.givenLedMode != rawData_.ledMode || rawData_.givenPipeline != rawData_.pipeline) {
             logger_.logDebug("Table has changed from expected, retrigger!!", logName);
             outputsHaveChanged_ = true;
         }
         if (outputsHaveChanged_) {
-            networkTable_.getEntry("ledMode").setNumber(io_.ledMode);
-            networkTable_.getEntry("camMode").setNumber(io_.camMode);
-            networkTable_.getEntry("pipeline").setNumber(io_.pipeline);
-            networkTable_.getEntry("stream").setNumber(io_.stream);
-            networkTable_.getEntry("snapshot").setNumber(io_.snapshot);
+            networkTable_.getEntry("ledMode").setNumber(rawData_.ledMode);
+            networkTable_.getEntry("camMode").setNumber(rawData_.camMode);
+            networkTable_.getEntry("pipeline").setNumber(rawData_.pipeline);
+            networkTable_.getEntry("stream").setNumber(rawData_.stream);
+            networkTable_.getEntry("snapshot").setNumber(rawData_.snapshot);
 
             outputsHaveChanged_ = false;
         }
@@ -128,9 +127,11 @@ public class Limelight implements Subsystem {
         SmartDashboard.putNumber("Azimuth: ", currentReading.azimuth);
         SmartDashboard.putNumber("Elevation: ", currentReading.elevation);
         SmartDashboard.putNumber("Range: ", currentReading.range);
+        SmartDashboard.putNumber("Range Area: ", currentReading.rangeArea);
+        SmartDashboard.putNumber("Range Corner: ", currentReading.rangeCorner);
         SmartDashboard.putNumber("Confidence: ", currentReading.confidence);
-        SmartDashboard.putBoolean(config_.name + ": Has Target", io_.hasTarget);
-        SmartDashboard.putNumber(config_.name + ": Pipeline Latency (ms)", io_.latency);
+        SmartDashboard.putBoolean(config_.name + ": Has Target", rawData_.hasTarget);
+        SmartDashboard.putNumber(config_.name + ": Pipeline Latency (ms)", rawData_.latency);
     }
 
     public enum LedMode {
@@ -138,17 +139,16 @@ public class Limelight implements Subsystem {
     }
 
     public synchronized void setLed(LedMode mode) {
-        if (mode.ordinal() != io_.ledMode) {
-            io_.ledMode = mode.ordinal();
+        if (mode.ordinal() != rawData_.ledMode) {
+            rawData_.ledMode = mode.ordinal();
             outputsHaveChanged_= true;
         }
     }
 
     public synchronized void setPipeline(int mode) {
-        if (mode != io_.pipeline) {
-            io_.pipeline = mode;
-
-            logger_.logDebug(io_.pipeline + ", " + mode, logName);
+        if (mode != rawData_.pipeline) {
+            rawData_.pipeline = mode;
+            logger_.logDebug(rawData_.pipeline + ", " + mode, logName);
             outputsHaveChanged_ = true;
         }
     }
@@ -158,152 +158,31 @@ public class Limelight implements Subsystem {
     }
 
     public synchronized int getPipeline() {
-        return io_.pipeline;
+        return rawData_.pipeline;
     }
 
     public synchronized boolean hasTarget() {
-        return io_.hasTarget;
+        return rawData_.hasTarget;
     }
 
     public synchronized double getTargetX() {
-        return io_.xOffset;
+        return rawData_.xOffset;
     }
 
     public synchronized double getTargetY() {
-        return io_.yOffset;
+        return rawData_.yOffset;
     }
 
     public synchronized boolean getTargetValid() {
-        return io_.hasTarget;
+        return rawData_.hasTarget;
     }
 
-    public synchronized double getTargetRange() {
-        TargetTracker.Reading currentReading = targetTracker_.getCurrentReading();
-        Rotation2d elevationR2D = Rotation2d.fromDegrees(currentReading.elevation);
-        elevationR2D.rotateBy(Rotation2d.fromDegrees(CAMERA_ANGLE));
-        return CAMERA_DH / Math.tan(Math.toRadians(elevationR2D.getDegrees()));
-    }
-
-    /**
-     * @return two targets that make up one hatch/port or null if less than two
-     *         targets are found
-     */
-    public synchronized List<TargetInfo> getTarget() {
-        List<TargetInfo> targets = getRawTargetInfo();
-        if (hasTarget() && targets != null) {
-            return targets;
-        }
-        return null;
-    }
-
-    /**
-     * Gets the raw target info of the top two corners of the vision target.
-     * This is a unit plane from -1 to 1.
-     * 
-     * @return Returns a list of the x and y values of the top 2 corners of 
-     * the vision target with the first item being the left corner and the 
-     * second being the right corner.
-     */
-    private synchronized List<TargetInfo> getRawTargetInfo() {
-        List<double[]> corners = getTopCorners();
-        if (corners == null) {
-            return null;
-        }
-
-        double slope = 1.0;
-        if (Math.abs(corners.get(1)[0] - corners.get(0)[0]) > Util.kEpsilon) {
-            slope = (corners.get(1)[1] - corners.get(0)[1]) / (corners.get(1)[0] - corners.get(0)[0]);
-        }
-
-        List<TargetInfo> targets = new ArrayList<>();
-        for (int i = 0; i < 2; ++i) {
-            double y_pixels = corners.get(i)[0];
-            double z_pixels = corners.get(i)[1];
-
-            // Normalize the pixel coordinate to use the center of the frame
-            // as (0, 0)
-            // Note the negation is so that z is up and y is left to
-            // correspond to the coordinate system we use on the bot
-            double nY = -((y_pixels - (Constants.LIMELIGHT_RES_X / 2)) /
-                (Constants.LIMELIGHT_RES_X / 2));
-            double nZ = -(((Constants.LIMELIGHT_RES_Y / 2) - z_pixels) /
-                (Constants.LIMELIGHT_RES_Y / 2));
-
-            // Project the normalized coordinates onto a plane 1.0
-            // unit away from the camera
-            double y = Constants.VERTICAL_PLANE_WIDTH / 2 * nY;
-            double z = Constants.VERTICAL_PLANE_HEIGHT / 2 * nZ;
-
-            TargetInfo target = new TargetInfo(y, z);
-            target.setSkew(slope);
-            targets.add(target);
-        }
-
-        return targets;
-    }
-
-    /**
-     * Returns raw top-left and top-right corners
-     *
-     * @return list of corners: index 0 - top left, index  - top right
-     */
-    private List<double[]> getTopCorners() {
-
-        // Get the list of x and y position in pixels(?) if we have a valid target
-        double[] emptyArray = {};
-        double[] corners = networkTable_.getEntry("tcornxy").getDoubleArray(emptyArray);
-        io_.hasTarget = networkTable_.getEntry("tv").getDouble(0) == 1.0;
-
-        // If we don't have a valid target or the corners list is empty
-        // something went wrong so we return null
-        if (!io_.hasTarget || Arrays.equals(corners, emptyArray) || corners.length <= 8 || corners.length % 2 != 0) {
-            return null;
-        }
-
-        double[] xCorners = new double[corners.length/2];
-        double[] yCorners = new double[corners.length/2];
-        int idx = 0;
-        for (int i = 1; i < corners.length; i += 2) {
-            xCorners[idx] = corners[i-1];
-            yCorners[idx] = corners[i];
-            idx++;
-        }
-
-        return extractTopCornersFromBoundingBoxes(xCorners, yCorners);
-    }
-
-    // Defines how we can can compare tranlation 2ds
-    private static final Comparator<Translation2d> xSort = Comparator.comparingDouble(Translation2d::getX);
-
-    /**
-     * Returns raw top-left and top-right corners
-     *
-     * @return list of corners: index 0 - top left, index 1 - top right
-     */
-    public static List<double[]> extractTopCornersFromBoundingBoxes(double[] xCorners, double[] yCorners) {
-
-        // Put the x and y positions of the coners into 
-        // Translation2d Objcets
-        List<Translation2d> corners = new ArrayList<>();
-        for (int i = 0; i < xCorners.length; i++) {
-            corners.add(new Translation2d(xCorners[i], yCorners[i]));
-        }
-
-        // Sort the corners by the by the x-vaules to
-        // sort them from left to right
-        logger_.logDebug("Before sort: " + corners, logName);
-        corners.sort(xSort);
-        logger_.logDebug("After sort: " + corners, logName);
-
-        Translation2d leftCorner = corners.get(0);
-        Translation2d rightCorner = corners.get(corners.size() - 1);
-
-        return List.of(new double[] { leftCorner.getX(), leftCorner.getY() },
-                new double[] { rightCorner.getX(), rightCorner.getY() });
+    public synchronized LimelightRawData getRawData() {
+        return rawData_;
     }
 
     public double getLatency() {
-        return io_.latency;
+        return rawData_.latency;
     }
 
     @Override
