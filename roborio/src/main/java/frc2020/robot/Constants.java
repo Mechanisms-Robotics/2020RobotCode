@@ -119,10 +119,10 @@ public class Constants {
                         }
                         return ret.toString();
                     } else {
-                        Logger.getInstance().logError("Address doesn't exist or is not accessible");
+                        logger_.logError("Address doesn't exist or is not accessible");
                     }
                 } else {
-                    Logger.getInstance().logError("Network Interface for the specified address is not found.");
+                    logger_.logError("Network Interface for the specified address is not found.");
                 }
             }
         } catch (final SocketException e) {
