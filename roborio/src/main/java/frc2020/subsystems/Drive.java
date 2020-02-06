@@ -13,6 +13,8 @@ import com.ctre.phoenix.sensors.*;
 import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
+import com.revrobotics.SparkMax;
+import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
@@ -121,7 +123,7 @@ public class Drive implements Subsystem {
     private SimpleMotorFeedforward feedforward_;
     private boolean doneWithTrajectory_;
 
-    private boolean IS_ROBOT = false;
+    private boolean IS_ROBOT = true;
 
     /**
      * The default constructor starts the drive train and sets it up to be in
@@ -175,7 +177,7 @@ public class Drive implements Subsystem {
         } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
             logger_.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", logName);
         } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            logger_.logDebug("Left CAN Coder magnet is green (healthy)", logName);
+            logger_.logInfo("Left CAN Coder magnet is green (healthy)", logName);
         } else {
             logger_.logError("Left CAN Coder magnet not detected", logName);
         }
@@ -186,7 +188,7 @@ public class Drive implements Subsystem {
         } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
             logger_.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", logName);
         } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            logger_.logDebug("Right CAN Coder magnet is green (healthy)", logName);
+            logger_.logInfo("Right CAN Coder magnet is green (healthy)", logName);
         } else {
             logger_.logError("Right CAN Coder magnet not detected", logName);
         }
@@ -827,13 +829,114 @@ public class Drive implements Subsystem {
 
     @Override
     public boolean runPassiveTests() {
-        // TODO Auto-generated method stub
-        return false;
+
+        boolean passedChecks = true;
+
+        logger_.logInfo("Starting passive tests", logName);
+
+        logger_.logInfo("Checking encoder magnet strengths", logName);
+
+        // Checks for alignment of magnet with encoder (the encoder light color)
+        MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
+        if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+            logger_.logError("Left CAN Coder magnet in the red (out of range)", logName);
+            passedChecks = false;
+        } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+            logger_.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", logName);
+            passedChecks = false;
+        } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
+            logger_.logInfo("Left CAN Coder magnet is green (healthy)", logName);
+        } else {
+            logger_.logError("Left CAN Coder magnet not detected", logName);
+            passedChecks = false;
+        }
+
+        MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
+        if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+            logger_.logError("Right CAN Coder magnet in the red (out of range)", logName);
+            passedChecks = false;
+        } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+            logger_.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", logName);
+            passedChecks = false;
+        } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
+            logger_.logInfo("Right CAN Coder magnet is green (healthy)", logName);
+        } else {
+            logger_.logError("Right CAN Coder magnet not detected", logName);
+            passedChecks = false;
+        }
+
+        logger_.logInfo("Checking NavX communications", logName);
+
+        // Checks if NavX is connected
+        if (gyro_.isConnected()) {
+            logger_.logInfo("NavX connected", logName);
+        } else {
+            logger_.logError("NavX not responding", logName);
+            passedChecks = false;
+        }
+
+        // Checks for sticky faults in spark maxes
+        boolean faultInSparkMaxes = false;
+
+        if (checkSparkMaxFaults(leftMaster_, "left master")) {
+            faultInSparkMaxes = true;
+        }
+        if (checkSparkMaxFaults(leftSlave_, "left slave")) {
+            faultInSparkMaxes = true;
+        }
+        if (checkSparkMaxFaults(rightMaster_, "right master")) {
+            faultInSparkMaxes = true;
+        }
+        if (checkSparkMaxFaults(rightSlave_, "right slave")) {
+            faultInSparkMaxes = true;
+        }
+
+        if (faultInSparkMaxes) {
+            passedChecks = false;
+        }
+
+        return passedChecks;
     }
 
     @Override
     public boolean runActiveTests() {
         // TODO Auto-generated method stub
         return false;
+    }
+
+    private boolean checkSparkMaxFaults(CANSparkMax motor, String motorName) {
+
+        boolean failedChecks = false;
+
+        if (motor.getStickyFaults() == 0) {
+            logger_.logInfo("No "+motorName+" sticky faults", logName);
+        } else {
+            if (motor.getStickyFault(FaultID.kCANRX) || motor.getStickyFault(FaultID.kCANTX)) {
+                logger_.logError("Communication error with "+motorName, logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kDRVFault)||motor.getStickyFault(FaultID.kEEPROMCRC)) {
+                logger_.logError("OOF replace "+motorName+"motor controller", logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kMotorFault)) {
+                logger_.logError("OOF motor fault replace "+motorName+" motor", logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kOtherFault)) {
+                logger_.logError("Something bad happened with "+motorName, logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kSensorFault)) {
+                logger_.logError("OOF sensor fault replace "+motorName+" motor", logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kOvercurrent)) {
+                logger_.logWarning("Overcurrent on "+motorName, logName);
+                failedChecks = true;
+            }
+        }
+
+        return failedChecks;
     }
 }
