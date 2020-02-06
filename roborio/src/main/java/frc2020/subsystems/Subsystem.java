@@ -15,7 +15,9 @@ public interface Subsystem {
 
     void writePeriodicOutputs();
     void readPeriodicInputs();
-    boolean checkSystem();
+
+    boolean runPassiveTests();
+    boolean runActiveTests();
     void zeroSensors();
 
     void stop();
