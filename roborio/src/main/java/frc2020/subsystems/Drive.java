@@ -911,8 +911,10 @@ public class Drive implements Subsystem {
 
         Timer.delay(0.5);
 
-        leftVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
-        rightVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        this.openLoop(new DriveSignal(1.0, 1.0, false));
+
+        // leftVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        // rightVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
 
         Timer.delay(2.0);
 
@@ -925,8 +927,10 @@ public class Drive implements Subsystem {
         double leftMotorHighGearCurrent = leftMaster_.getOutputCurrent();
         double rightMotorHighGearCurrent = rightMaster_.getOutputCurrent();
 
-        leftVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
-        rightVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        this.openLoop(new DriveSignal(0.0, 0.0, false));
+
+        // leftVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        // rightVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
 
         Timer.delay(0.5);
 
@@ -936,8 +940,10 @@ public class Drive implements Subsystem {
 
         logger_.logInfo("Running low gear motor tests", logName);
 
-        leftVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
-        rightVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        this.openLoop(new DriveSignal(1.0, 1.0, false));
+
+        // leftVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        // rightVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
 
         Timer.delay(2.0);
 
@@ -950,8 +956,10 @@ public class Drive implements Subsystem {
         double leftMotorLowGearCurrent = leftMaster_.getOutputCurrent();
         double rightMotorLowGearCurrent = rightMaster_.getOutputCurrent();
 
-        leftVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
-        rightVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        this.openLoop(new DriveSignal(0.0, 0.0, false));
+
+        // leftVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        // rightVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
 
         // TODO: Verify RPM Expected Values
 
