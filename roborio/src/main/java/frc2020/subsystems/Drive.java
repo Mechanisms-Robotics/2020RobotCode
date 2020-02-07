@@ -902,6 +902,9 @@ public class Drive implements Subsystem {
     public boolean runActiveTests() {
 
         boolean passedChecks = true;
+
+        double testRunTime = 5.0; //seconds
+        int sampleCount = 5;
         
         logger_.logInfo("Starting active tests", logName);
 
@@ -913,24 +916,39 @@ public class Drive implements Subsystem {
 
         this.openLoop(new DriveSignal(1.0, 1.0, false));
 
-        // leftVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
-        // rightVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        double leftMotorHighGearRPM = 0.0;
+        double rightMotorHighGearRPM = 0.0;
 
-        Timer.delay(2.0);
+        double leftOutputShaftHighGearRPM = 0.0;
+        double rightOutputShaftHighGearRPM = 0.0;
+        
+        double leftMotorHighGearCurrent = 0.0;
+        double rightMotorHighGearCurrent = 0.0;
 
-        double leftMotorHighGearRPM = leftMaster_.getEncoder().getVelocity();
-        double rightMotorHighGearRPM = rightMaster_.getEncoder().getVelocity();
+        for(int i = 0; i < sampleCount; i++) {
+            Timer.delay(testRunTime/sampleCount);
 
-        double leftOutputShaftHighGearRPM = metersPerSecondToRpm(leftCanCoder.getVelocity());
-        double rightOutputShaftHighGearRPM = metersPerSecondToRpm(rightCanCoder.getVelocity());
+            leftMotorHighGearRPM += leftMaster_.getEncoder().getVelocity();
+            rightMotorHighGearRPM += rightMaster_.getEncoder().getVelocity();
 
-        double leftMotorHighGearCurrent = leftMaster_.getOutputCurrent();
-        double rightMotorHighGearCurrent = rightMaster_.getOutputCurrent();
+            leftOutputShaftHighGearRPM += metersPerSecondToRpm(leftCanCoder.getVelocity());
+            rightOutputShaftHighGearRPM += metersPerSecondToRpm(rightCanCoder.getVelocity());
+
+            leftMotorHighGearCurrent += leftMaster_.getOutputCurrent();
+            rightMotorHighGearCurrent += rightMaster_.getOutputCurrent();
+        }
+
+        leftMotorHighGearRPM /= sampleCount;
+        rightMotorHighGearRPM /= sampleCount;
+
+        leftOutputShaftHighGearRPM /= sampleCount;
+        rightOutputShaftHighGearRPM /= sampleCount;
+
+        leftMotorHighGearCurrent /= sampleCount;
+        rightMotorHighGearCurrent /= sampleCount;
+
 
         this.openLoop(new DriveSignal(0.0, 0.0, false));
-
-        // leftVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
-        // rightVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
 
         Timer.delay(0.5);
 
@@ -942,38 +960,52 @@ public class Drive implements Subsystem {
 
         this.openLoop(new DriveSignal(1.0, 1.0, false));
 
-        // leftVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
-        // rightVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        double leftMotorLowGearRPM = 0.0;
+        double rightMotorLowGearRPM = 0.0;
 
-        Timer.delay(2.0);
+        double leftOutputShaftLowGearRPM = 0.0;
+        double rightOutputShaftLowGearRPM = 0.0;
 
-        double leftMotorLowGearRPM = leftMaster_.getEncoder().getVelocity();
-        double rightMotorLowGearRPM = rightMaster_.getEncoder().getVelocity();
+        double leftMotorLowGearCurrent = 0.0;
+        double rightMotorLowGearCurrent = 0.0;
 
-        double leftOutputShaftLowGearRPM = metersPerSecondToRpm(leftCanCoder.getVelocity());
-        double rightOutputShaftLowGearRPM = metersPerSecondToRpm(rightCanCoder.getVelocity());
+        for(int i = 0; i < sampleCount; i++) {
+            Timer.delay(testRunTime/sampleCount);
 
-        double leftMotorLowGearCurrent = leftMaster_.getOutputCurrent();
-        double rightMotorLowGearCurrent = rightMaster_.getOutputCurrent();
+            leftMotorLowGearRPM += leftMaster_.getEncoder().getVelocity();
+            rightMotorLowGearRPM += rightMaster_.getEncoder().getVelocity();
+
+            leftOutputShaftLowGearRPM += metersPerSecondToRpm(leftCanCoder.getVelocity());
+            rightOutputShaftLowGearRPM += metersPerSecondToRpm(rightCanCoder.getVelocity());
+
+            leftMotorLowGearCurrent += leftMaster_.getOutputCurrent();
+            rightMotorLowGearCurrent += rightMaster_.getOutputCurrent();
+        }
 
         this.openLoop(new DriveSignal(0.0, 0.0, false));
 
-        // leftVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
-        // rightVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        leftMotorLowGearRPM /= sampleCount;
+        rightMotorLowGearRPM /= sampleCount;
+
+        leftOutputShaftLowGearRPM /= sampleCount;
+        rightOutputShaftLowGearRPM /= sampleCount;
+
+        leftMotorLowGearCurrent /= sampleCount;
+        rightMotorLowGearCurrent /= sampleCount;
 
         // TODO: Verify RPM Expected Values
 
-        double expectedHighGearMotorRPM = 4020;
-        double expectedHighGearOutputShaftRPM = 4020;
+        double expectedHighGearMotorRPM = 5800;
+        double expectedHighGearOutputShaftRPM = expectedHighGearMotorRPM / HIGH_GEAR_RATIO;
 
-        double expectedLowGearMotorRPM = 4020;
-        double expectedLowGearOutputShaftRPM = 4020;
+        double expectedLowGearMotorRPM = 5800;
+        double expectedLowGearOutputShaftRPM = 230;
 
         double highGearMotorEpsilon = 100;
-        double highGearOutputShaftEpsilon = 100;
+        double highGearOutputShaftEpsilon = highGearMotorEpsilon / HIGH_GEAR_RATIO;
 
         double lowGearMotorEpsilon = 100;
-        double lowGearOutputShaftEpsilon = 100;
+        double lowGearOutputShaftEpsilon = 20;
 
         // Sanity checks high gear RPMs
         if (!checkRPM(leftMotorHighGearRPM, expectedHighGearMotorRPM, highGearMotorEpsilon, "Left motor high gear")) {
@@ -1000,7 +1032,7 @@ public class Drive implements Subsystem {
         }
 
         if (!checkRPM(leftOutputShaftLowGearRPM, expectedLowGearOutputShaftRPM,
-                      lowGearOutputShaftEpsilon, "Left output low high gear")) {
+                      lowGearOutputShaftEpsilon, "Left output shaft low gear")) {
             passedChecks = false;
         }
 
@@ -1038,11 +1070,11 @@ public class Drive implements Subsystem {
 
         // TODO: Verify Expected Current Values
 
-        double expectedHighGearMotorCurrent = 1.5;
-        double expectedLowGearMotorCurrent = 1.5;
+        double expectedHighGearMotorCurrent = 1.0;
+        double expectedLowGearMotorCurrent = 1.0;
 
-        double highGearMotorCurrentEpsilon = 0.25;
-        double lowGearMotorCurrentEpsilon = 0.25;
+        double highGearMotorCurrentEpsilon = 1.0;
+        double lowGearMotorCurrentEpsilon = 1.0;
 
         if (!checkCurrent(leftMotorHighGearCurrent, expectedHighGearMotorCurrent, 
                           highGearMotorCurrentEpsilon, "Left motor high gear current")) {
@@ -1068,6 +1100,7 @@ public class Drive implements Subsystem {
             passedChecks = false;
         }
 
+        shifter_.set(highGear_);
 
         return passedChecks;
     }
@@ -1077,30 +1110,30 @@ public class Drive implements Subsystem {
         boolean failedChecks = false;
 
         if (motor.getStickyFaults() == 0) {
-            logger_.logInfo("No "+motorName+" sticky faults", logName);
+            logger_.logInfo("No " + motorName + " sticky faults", logName);
         } else {
             if (motor.getStickyFault(FaultID.kCANRX) || motor.getStickyFault(FaultID.kCANTX)) {
-                logger_.logError("Communication error with "+motorName, logName);
+                logger_.logError("Communication error with " + motorName, logName);
                 failedChecks = true;
             }
             if (motor.getStickyFault(FaultID.kDRVFault)||motor.getStickyFault(FaultID.kEEPROMCRC)) {
-                logger_.logError("OOF replace "+motorName+"motor controller", logName);
+                logger_.logError("OOF replace " + motorName + "motor controller", logName);
                 failedChecks = true;
             }
             if (motor.getStickyFault(FaultID.kMotorFault)) {
-                logger_.logError("OOF motor fault replace "+motorName+" motor", logName);
+                logger_.logError("OOF motor fault replace " + motorName + " motor", logName);
                 failedChecks = true;
             }
             if (motor.getStickyFault(FaultID.kOtherFault)) {
-                logger_.logError("Something bad happened with "+motorName, logName);
+                logger_.logError("Something bad happened with " + motorName, logName);
                 failedChecks = true;
             }
             if (motor.getStickyFault(FaultID.kSensorFault)) {
-                logger_.logError("OOF sensor fault replace "+motorName+" motor", logName);
+                logger_.logError("OOF sensor fault replace " + motorName + " motor", logName);
                 failedChecks = true;
             }
             if (motor.getStickyFault(FaultID.kOvercurrent)) {
-                logger_.logWarning("Overcurrent on "+motorName, logName);
+                logger_.logWarning("Overcurrent on " + motorName, logName);
                 failedChecks = true;
             }
         }
@@ -1109,11 +1142,12 @@ public class Drive implements Subsystem {
     }
 
     private boolean checkRPM(double motorRPM, double expectedMotorRPM, double motorEpsilon, String motorName) {
+        logger_.logDebug(motorName + " RPM: " + motorRPM, logName);
         if (!Util.epsilonEquals(motorRPM, expectedMotorRPM, motorEpsilon)) {
             if (motorRPM < expectedMotorRPM) {
-                logger_.logWarning(motorName+" RPM lower than expected", logName);
+                logger_.logWarning(motorName + " RPM lower than expected", logName);
             } else {
-                logger_.logWarning(motorName+" RPM higher than expected", logName);
+                logger_.logWarning(motorName + " RPM higher than expected", logName);
             }
             return false;
         }
@@ -1122,11 +1156,12 @@ public class Drive implements Subsystem {
     }
 
     private boolean checkCurrent(double motorCurrent, double expectedMotorCurrent, double motorEpsilon, String motorName) {
+        logger_.logDebug(motorName + " Current: " + motorCurrent, logName);
         if (!Util.epsilonEquals(motorCurrent, expectedMotorCurrent, motorEpsilon)) {
             if (motorCurrent < expectedMotorCurrent) {
-                logger_.logWarning(motorName+" current lower than expected", logName);
+                logger_.logWarning(motorName + " current lower than expected", logName);
             } else {
-                logger_.logWarning(motorName+" current higher than expected", logName);
+                logger_.logWarning(motorName + " current higher than expected", logName);
             }
             return false;
         }
