@@ -35,7 +35,11 @@ import java.util.UUID;
  */
 public class Robot extends TimedRobot {
     private UUID runUUID_;
-    private double lastFlushTime_;
+    private double lastFlushTime_ = 0.0;
+    private double lastPassiveTime_ = 0.0;
+    private double passiveInterval_ = 10.0;
+
+    private double now_ = 0.0;
 
     private Looper enabledIterator_;
     private Looper disabledIterator_;
@@ -53,7 +57,6 @@ public class Robot extends TimedRobot {
     private Limelight limelight_;
 
     private static Logger logger_ = Logger.getInstance();
-
     /**
     * Default constructor, initializes the enabledIterator_, disabledIterator_,
     * SubsystemManager, Drive instance, compressor, PDP, TeleopCSGenerator, and
@@ -84,15 +87,12 @@ public class Robot extends TimedRobot {
                 )
         );
 
-
         drive_ = Drive.getInstance();
        // compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
         autoChooser_ = AutoChooser.getAutoChooser();
-
-        
 
         // Pre-Generate Trajectories
         TestMode.generateTrajectories();
@@ -133,10 +133,10 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         try {
-            double now = Timer.getFPGATimestamp();
-            if (now - lastFlushTime_ > Constants.LOGGER_FLUSH_TIME) {
+            now_ = Timer.getFPGATimestamp();
+            if (now_ - lastFlushTime_ > Constants.LOGGER_FLUSH_TIME) {
                 logger_.flush();
-                lastFlushTime_ = now;
+                lastFlushTime_ = now_;
             }
             manager_.outputToSmartDashboard();
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
@@ -167,7 +167,7 @@ public class Robot extends TimedRobot {
             autoRunner_ = null;
             currentAutoMode_ = null;
             disabledIterator_.start();
-            drive_.openLoop(new DriveSignal(0,0, false));
+            drive_.openLoop(new DriveSignal(0, 0, false));
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -181,6 +181,11 @@ public class Robot extends TimedRobot {
 
     @Override
     public void disabledPeriodic() {
+        now_ = Timer.getFPGATimestamp();
+        if (now_ - lastPassiveTime_ > passiveInterval_) {
+            manager_.runPassiveTests();
+            lastPassiveTime_ = now_;
+        }
     }
 
     /**
@@ -273,7 +278,7 @@ public class Robot extends TimedRobot {
             logger_.logRobotTestInit();
             disabledIterator_.stop();
             enabledIterator_.start();
-            manager_.runPassiveTests();
+            manager_.runActiveTests();
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;

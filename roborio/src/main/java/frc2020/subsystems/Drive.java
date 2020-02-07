@@ -900,8 +900,168 @@ public class Drive implements Subsystem {
 
     @Override
     public boolean runActiveTests() {
-        // TODO Auto-generated method stub
-        return false;
+
+        boolean passedChecks = true;
+        
+        logger_.logInfo("Starting active tests", logName);
+
+        logger_.logInfo("Running high gear motor tests", logName);
+
+        shifter_.set(highGear_);
+
+        Timer.delay(0.5);
+
+        leftVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        rightVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+
+        Timer.delay(2.0);
+
+        double leftMotorHighGearRPM = leftMaster_.getEncoder().getVelocity();
+        double rightMotorHighGearRPM = rightMaster_.getEncoder().getVelocity();
+
+        double leftOutputShaftHighGearRPM = metersPerSecondToRpm(leftCanCoder.getVelocity());
+        double rightOutputShaftHighGearRPM = metersPerSecondToRpm(rightCanCoder.getVelocity());
+
+        double leftMotorHighGearCurrent = leftMaster_.getOutputCurrent();
+        double rightMotorHighGearCurrent = rightMaster_.getOutputCurrent();
+
+        leftVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        rightVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+
+        Timer.delay(0.5);
+
+        shifter_.set(lowGear_);
+
+        Timer.delay(0.5);
+
+        logger_.logInfo("Running low gear motor tests", logName);
+
+        leftVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        rightVelocityPID_.setReference(1.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+
+        Timer.delay(2.0);
+
+        double leftMotorLowGearRPM = leftMaster_.getEncoder().getVelocity();
+        double rightMotorLowGearRPM = rightMaster_.getEncoder().getVelocity();
+
+        double leftOutputShaftLowGearRPM = metersPerSecondToRpm(leftCanCoder.getVelocity());
+        double rightOutputShaftLowGearRPM = metersPerSecondToRpm(rightCanCoder.getVelocity());
+
+        double leftMotorLowGearCurrent = leftMaster_.getOutputCurrent();
+        double rightMotorLowGearCurrent = rightMaster_.getOutputCurrent();
+
+        leftVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+        rightVelocityPID_.setReference(0.0, ControlType.kDutyCycle, EMPTY_PID, 0.0);
+
+        // TODO: Verify RPM Expected Values
+
+        double expectedHighGearMotorRPM = 4020;
+        double expectedHighGearOutputShaftRPM = 4020;
+
+        double expectedLowGearMotorRPM = 4020;
+        double expectedLowGearOutputShaftRPM = 4020;
+
+        double highGearMotorEpsilon = 100;
+        double highGearOutputShaftEpsilon = 100;
+
+        double lowGearMotorEpsilon = 100;
+        double lowGearOutputShaftEpsilon = 100;
+
+        // Sanity checks high gear RPMs
+        if (!checkRPM(leftMotorHighGearRPM, expectedHighGearMotorRPM, highGearMotorEpsilon, "Left motor high gear")) {
+            passedChecks = false;
+        }
+
+        if (!checkRPM(leftOutputShaftHighGearRPM, expectedHighGearOutputShaftRPM,
+                      highGearOutputShaftEpsilon, "Left output shaft high gear")) {
+            passedChecks = false;
+        }
+
+        if (!checkRPM(rightMotorHighGearRPM, expectedHighGearMotorRPM, highGearMotorEpsilon, "Right motor high gear")) {
+            passedChecks = false;
+        }
+        
+        if (!checkRPM(rightOutputShaftHighGearRPM, expectedHighGearOutputShaftRPM, 
+                      highGearOutputShaftEpsilon, "Right output shaft high gear")) {
+            passedChecks = false;
+        }
+
+        // Sanity checks low gear RPMs
+        if (!checkRPM(leftMotorLowGearRPM, expectedLowGearMotorRPM, lowGearMotorEpsilon, "Left motor low gear")) {
+            passedChecks = false;
+        }
+
+        if (!checkRPM(leftOutputShaftLowGearRPM, expectedLowGearOutputShaftRPM,
+                      lowGearOutputShaftEpsilon, "Left output low high gear")) {
+            passedChecks = false;
+        }
+
+        if (!checkRPM(rightMotorLowGearRPM, expectedLowGearMotorRPM, lowGearMotorEpsilon, "Right motor low gear")) {
+            passedChecks = false;
+        }
+        
+        if (!checkRPM(rightOutputShaftLowGearRPM, expectedLowGearOutputShaftRPM, 
+                      lowGearOutputShaftEpsilon, "Right output shaft low gear")) {
+            passedChecks = false;
+        }
+
+        if (leftOutputShaftHighGearRPM < leftOutputShaftLowGearRPM) {
+            logger_.logWarning("Left output shaft RPM inconsistent for gearing", logName);
+            passedChecks = false;
+        }
+
+        if (rightOutputShaftHighGearRPM < rightOutputShaftLowGearRPM) {
+            logger_.logWarning("Right output shaft RPM inconsistent for gearing", logName);
+            passedChecks = false;
+        }
+
+        double gearRatioRPMEpsilon = 20;
+
+        // Check that input vs output RPMs make sense
+        if (!Util.epsilonEquals(leftMotorHighGearRPM / HIGH_GEAR_RATIO, leftOutputShaftHighGearRPM, gearRatioRPMEpsilon)) {
+            logger_.logWarning("Left input/output RPMs inconsistent", logName);
+            passedChecks = false;
+        }
+
+        if (!Util.epsilonEquals(rightMotorHighGearRPM / HIGH_GEAR_RATIO, rightOutputShaftHighGearRPM, gearRatioRPMEpsilon)) {
+            logger_.logWarning("Right input/output RPMs inconsistent", logName);
+            passedChecks = false;
+        }
+
+        // TODO: Verify Expected Current Values
+
+        double expectedHighGearMotorCurrent = 1.5;
+        double expectedLowGearMotorCurrent = 1.5;
+
+        double highGearMotorCurrentEpsilon = 0.25;
+        double lowGearMotorCurrentEpsilon = 0.25;
+
+        if (!checkCurrent(leftMotorHighGearCurrent, expectedHighGearMotorCurrent, 
+                          highGearMotorCurrentEpsilon, "Left motor high gear current")) {
+            logger_.logWarning("Left motor high gear current inconsistent", logName);
+            passedChecks = false;
+        }
+
+        if (!checkCurrent(rightMotorHighGearCurrent, expectedHighGearMotorCurrent, 
+                          highGearMotorCurrentEpsilon, "Right motor high gear current")) {
+            logger_.logWarning("Right motor high gear current inconsistent", logName);
+            passedChecks = false;
+        }
+        
+        if (!checkCurrent(leftMotorLowGearCurrent, expectedLowGearMotorCurrent, 
+                          lowGearMotorCurrentEpsilon, "Left motor low gear current")) {
+            logger_.logWarning("Left motor low gear current inconsistent", logName);
+            passedChecks = false;
+        }
+
+        if (!checkCurrent(rightMotorLowGearCurrent, expectedLowGearMotorCurrent, 
+                          lowGearMotorCurrentEpsilon, "Right motor low gear current")) {
+            logger_.logWarning("Right motor low gear current inconsistent", logName);
+            passedChecks = false;
+        }
+
+
+        return passedChecks;
     }
 
     private boolean checkSparkMaxFaults(CANSparkMax motor, String motorName) {
@@ -938,5 +1098,31 @@ public class Drive implements Subsystem {
         }
 
         return failedChecks;
+    }
+
+    private boolean checkRPM(double motorRPM, double expectedMotorRPM, double motorEpsilon, String motorName) {
+        if (!Util.epsilonEquals(motorRPM, expectedMotorRPM, motorEpsilon)) {
+            if (motorRPM < expectedMotorRPM) {
+                logger_.logWarning(motorName+" RPM lower than expected", logName);
+            } else {
+                logger_.logWarning(motorName+" RPM higher than expected", logName);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkCurrent(double motorCurrent, double expectedMotorCurrent, double motorEpsilon, String motorName) {
+        if (!Util.epsilonEquals(motorCurrent, expectedMotorCurrent, motorEpsilon)) {
+            if (motorCurrent < expectedMotorCurrent) {
+                logger_.logWarning(motorName+" current lower than expected", logName);
+            } else {
+                logger_.logWarning(motorName+" current higher than expected", logName);
+            }
+            return false;
+        }
+
+        return true;
     }
 }
