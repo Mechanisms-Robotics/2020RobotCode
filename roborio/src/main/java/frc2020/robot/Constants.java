@@ -16,6 +16,9 @@ public class Constants {
     public final static double LOGGER_FLUSH_TIME = 2.0;
     private static Logger logger_ = Logger.getInstance();
 
+    // Passive tests
+    public final static double PASSIVE_TEST_TIME = 10.0;
+
     //CanBUS
     public final static int CAN_TIMEOUT = 50;
     public final static int CAN_TIMEOUT_LONG = 100;

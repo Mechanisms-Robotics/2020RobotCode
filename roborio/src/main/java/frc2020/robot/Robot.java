@@ -4,6 +4,8 @@ import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc2020.util.DriveSignal;
 import frc2020.util.Logger;
 import frc2020.util.LoggerNotStartedException;
+import frc2020.util.PeriodicEvent;
+import frc2020.util.PeriodicEventManager;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
@@ -35,11 +37,6 @@ import java.util.UUID;
  */
 public class Robot extends TimedRobot {
     private UUID runUUID_;
-    private double lastFlushTime_ = 0.0;
-    private double lastPassiveTime_ = 0.0;
-    private double passiveInterval_ = 10.0;
-
-    private double now_ = 0.0;
 
     private Looper enabledIterator_;
     private Looper disabledIterator_;
@@ -57,6 +54,9 @@ public class Robot extends TimedRobot {
     private Limelight limelight_;
 
     private static Logger logger_ = Logger.getInstance();
+
+    private PeriodicEventManager periodicEventManager_ = new PeriodicEventManager();
+
     /**
     * Default constructor, initializes the enabledIterator_, disabledIterator_,
     * SubsystemManager, Drive instance, compressor, PDP, TeleopCSGenerator, and
@@ -99,6 +99,34 @@ public class Robot extends TimedRobot {
         Basic13Ball.generateTrajectories();
         CenterToTrench8.generateTrajectories();
         RightToTrench8.generateTrajectories();
+
+        PeriodicEvent flushLog_ = new PeriodicEvent(){
+            @Override
+            public void run() {
+                logger_.flush();
+            }
+        
+            @Override
+            public boolean condition() {
+                return true;
+            }
+        };
+
+        PeriodicEvent runPassiveTests_ = new PeriodicEvent() {
+            @Override
+            public void run() {
+                manager_.runPassiveTests();
+            }
+        
+            @Override
+            public boolean condition() {
+                return m_ds.isDisabled();
+            }
+        };
+
+        periodicEventManager_.addEvent(flushLog_, Constants.LOGGER_FLUSH_TIME);
+        periodicEventManager_.addEvent(runPassiveTests_, Constants.PASSIVE_TEST_TIME);
+
     }
 
     /**
@@ -133,11 +161,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         try {
-            now_ = Timer.getFPGATimestamp();
-            if (now_ - lastFlushTime_ > Constants.LOGGER_FLUSH_TIME) {
-                logger_.flush();
-                lastFlushTime_ = now_;
-            }
+            periodicEventManager_.run();
             manager_.outputToSmartDashboard();
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
 //            if (target != null) {
@@ -181,11 +205,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void disabledPeriodic() {
-        now_ = Timer.getFPGATimestamp();
-        if (now_ - lastPassiveTime_ > passiveInterval_) {
-            manager_.runPassiveTests();
-            lastPassiveTime_ = now_;
-        }
     }
 
     /**
