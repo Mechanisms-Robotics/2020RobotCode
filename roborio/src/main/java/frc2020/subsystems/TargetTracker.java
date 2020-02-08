@@ -158,12 +158,12 @@ public class TargetTracker {
         // Perform weighted average readings
         for (int i = 0; i < readings_.size(); i++) {
             Reading reading = readings_.get(i);
-            averageReading.azimuth += reading.confidence*readings_.get(i).azimuth;
-            averageReading.elevation += reading.confidence*readings_.get(i).elevation;
-            averageReading.range += reading.confidence*readings_.get(i).range;
-            averageReading.rangeArea += reading.confidence*readings_.get(i).rangeArea;
-            averageReading.rangeCorner += reading.confidence*readings_.get(i).rangeCorner;
-            averageReading.confidence += reading.confidence*readings_.get(i).confidence;
+            averageReading.azimuth += reading.confidence*reading.azimuth;
+            averageReading.elevation += reading.confidence*reading.elevation;
+            averageReading.range += reading.confidence*reading.range;
+            averageReading.rangeArea += reading.confidence*reading.rangeArea;
+            averageReading.rangeCorner += reading.confidence*reading.rangeCorner;
+            averageReading.confidence += reading.confidence*reading.confidence;
             confidenceSum += reading.confidence;
         }
 

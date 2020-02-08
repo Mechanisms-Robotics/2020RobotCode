@@ -50,11 +50,9 @@ public class Limelight implements Subsystem {
      */
     public static class LimelightRawData {
         // INPUTS
-        /* TODO: givenLedMode and givenPipeline appear to be the same as ledMode and pipeline
-           Should they be getpipe and ????? */
         public double latency; // tl converted to seconds plus capture latency
-        public int givenLedMode; // TODO see above
-        public int givenPipeline; // TODO see above
+        public int givenLedMode;
+        public int givenPipeline;
         public double xOffset; // tx
         public double yOffset; // ty
         public int tWidth; // thor
