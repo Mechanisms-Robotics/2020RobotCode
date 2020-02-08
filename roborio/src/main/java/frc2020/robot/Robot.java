@@ -74,6 +74,7 @@ public class Robot extends TimedRobot {
         limelight_config.horizontalPlaneToLens = Rotation2d.fromDegrees(15.0);
         limelight_config.tableName = "limelight";
         limelight_config.name = "Test";
+        limelight_config.azimuthOnly = true;
         limelight_ = new Limelight(limelight_config);
         limelight_.setLed(LedMode.PIPELINE);
 
@@ -113,6 +114,7 @@ public class Robot extends TimedRobot {
 
             manager.registerEnabledLoops(enabledIterator);
             manager.registerDisabledLoops(disabledIterator);
+            limelight_.setPipeline(3); // TODO: Remove harcoded pipline change (and spelling errors)
             
             //SmartDashboard.putData("PDP", PDP);
         } catch(LoggerNotStartedException e) {
@@ -257,7 +259,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

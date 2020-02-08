@@ -54,6 +54,8 @@ public class TargetTracker {
     private static Logger logger_ = Logger.getInstance();
     private final static String logName = "Limelight";
 
+    private final boolean azimuthOnly_;
+
     /**
      * This internal class contains all of the most current readings from the limelight
      */
@@ -87,8 +89,9 @@ public class TargetTracker {
     public List<Reading> readings_ = new ArrayList<Reading>();
     private Limelight limelight_;
 
-    public TargetTracker(Limelight limelight) {
+    public TargetTracker(Limelight limelight, boolean azimuthOnly) {
         limelight_ = limelight;
+        this.azimuthOnly_ = azimuthOnly;
     }
 
     /**
@@ -106,25 +109,30 @@ public class TargetTracker {
 
         LimelightRawData rawData = limelight_.getRawData();
 
-        // Perform an initial confidence pass on the raw data
+        Reading reading;
+        if (azimuthOnly_) {
+            reading = new Reading(rawData.xOffset, 0.0, 0.0, 0.0, 0.0, rawData.hasTarget ? 1.0 : 0.0);
+        } else {
+            // Perform an initial confidence pass on the raw data
 
-        double initialConfidence = determineConfidenceInRawData(rawData);
+            double initialConfidence = determineConfidenceInRawData(rawData);
 
-        if (initialConfidence < MIN_INITIAL_CONFIDENCE) {
-            return; // no reason to add this reading or to continue
+            if (initialConfidence < MIN_INITIAL_CONFIDENCE) {
+                return; // no reason to add this reading or to continue
+            }
+
+            // If the raw data looks okay, calculate the range and bearing
+
+            reading = determineAzimuthElevationAndRange(rawData);
+
+            // Now determine the final confidence
+
+            /* TODO: determine final confidence based on initial confidence and anything
+             * else that makes sense.  Remember to make sure to constrain to 0 to 1.
+             */
+
+            reading.confidence = initialConfidence;  // TODO
         }
-
-        // If the raw data looks okay, calculate the range and bearing
-
-        Reading reading = determineAzimuthElevationAndRange(rawData);
-
-        // Now determine the final confidence
-
-        /* TODO: determine final confidence based on initial confidence and anything
-         * else that makes sense.  Remember to make sure to constrain to 0 to 1.
-         */
-
-        reading.confidence = initialConfidence;  // TODO
 
         // Add the reading to the array, if it's good
 

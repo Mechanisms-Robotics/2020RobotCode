@@ -1,6 +1,7 @@
 package frc2020.states;
 
 import frc2020.subsystems.Drive;
+import frc2020.subsystems.Limelight;
 import frc2020.util.DriveSignal;
 
 /**
@@ -13,56 +14,31 @@ public class CommandState {
 
     //Subsystem demands are defined as mini classes
     public static class DriveDemand {
-        public DriveSignal demand;
-        public DemandType type;
-        public boolean inLowGear;
-
-        /**
-        * Default constructor, initializes demand, type, and lowGear
-        */
-        public DriveDemand(DriveSignal demand, DemandType type, boolean lowGear) {
-            this.demand = demand;
-            this.type = type;
-            this.inLowGear = type.equals(DemandType.OpenLoop) ? lowGear : false;
-        }
-
-        /**
-        * Default constructor, initializes demand, type, and lowGear
-        */
-        public DriveDemand(DriveSignal demand, DemandType type) {
-            this.demand = demand;
-            this.type = type;
-            this.inLowGear = false;
-        }
-
-        /**
-        * Default constructor, initializes demand, OpenLoop, and lowGear
-        */
-        public DriveDemand(DriveSignal demand) {
-            this.demand = demand;
-            this.type = DemandType.OpenLoop;
-            this.inLowGear = false;
-        }
+        public DriveSignal signal = null;
+        public DemandType type = DemandType.OpenLoop;
+        public boolean inLowGear = false;
+        public boolean autoSteer = false;
 
         /**
          * All possible demand types are inserted here
          */
-        public static enum DemandType {
+        public enum DemandType {
             OpenLoop,
             Velocity
         }
 
-        /**
-         * Previously used for Demand Type conversions
-         * @param dsType numeric value
-         * @return demand type
-         */
-        public static DemandType fromDSType(int dsType) {
-            if (dsType == 0) {
-                return DemandType.OpenLoop;
-            } else {
-                return DemandType.Velocity;
-            }
+        public static DriveDemand autoSteer(DriveSignal signal) {
+            DriveDemand demand = new DriveDemand();
+            demand.signal = signal;
+            demand.autoSteer = true;
+            return demand;
+        }
+
+        public static DriveDemand fromSignal(DriveSignal signal, boolean lowGear) {
+            DriveDemand demand = new DriveDemand();
+            demand.signal = signal;
+            demand.inLowGear = lowGear;
+            return demand;
         }
     }
 
@@ -87,8 +63,8 @@ public class CommandState {
      * from this command state
      * @param drive An instance of the drive train subsystem
      */
-    public void updateSubsystems(Drive drive) {
-        maybeUpdateDrive(drive);
+    public void updateSubsystems(Drive drive, Limelight limelight) {
+        maybeUpdateDrive(drive, limelight);
     }
 
     /**
@@ -96,12 +72,15 @@ public class CommandState {
      * commanded demand and demand type.
      * @param drive An instance of the drive train subsystem
      */
-    private void maybeUpdateDrive(Drive drive) {
+    private void maybeUpdateDrive(Drive drive, Limelight limelight) {
         if (driveDemand != null) {
-            if (driveDemand.type == DriveDemand.DemandType.Velocity) {
-                drive.driveVelocity(driveDemand.demand);
+            if (driveDemand.autoSteer) {
+                double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight())/2.0;
+                drive.autoSteer(limelight.getTargetReading().azimuth, average);
+            } else if (driveDemand.type == DriveDemand.DemandType.Velocity) {
+                drive.driveVelocity(driveDemand.signal);
             } else {
-                drive.openLoop(driveDemand.demand);
+                drive.openLoop(driveDemand.signal);
             }
             if (driveDemand.inLowGear) {
                 drive.setLowGear();

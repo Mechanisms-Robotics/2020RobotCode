@@ -13,6 +13,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftJoystick_;
     private Joystick rightJoystick_;
     private LatchedBoolean driveShiftLatch;
+    private boolean autoSteer = false;
     private boolean driveLowGear = false;
     
     /**
@@ -41,12 +42,16 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
-        final double DEADBAND = 0.1;
+        final double DEADBAND = 0.01;
         double leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
         double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
-        DriveSignal demand = new DriveSignal(leftDrive, rightDrive, true);
+        DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) ? !driveLowGear : driveLowGear;
-        return new DriveDemand(demand, DriveDemand.DemandType.OpenLoop, driveLowGear);
+        autoSteer = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
+        if (autoSteer) {
+            return DriveDemand.autoSteer(signal);
+        }
+        return DriveDemand.fromSignal(signal, driveLowGear);
     }
 
 }

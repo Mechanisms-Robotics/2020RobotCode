@@ -121,7 +121,7 @@ public class Drive implements Subsystem {
     private SimpleMotorFeedforward feedforward_;
     private boolean doneWithTrajectory_;
 
-    private boolean IS_ROBOT = false;
+    private boolean IS_ROBOT = true;
 
     /**
      * The default constructor starts the drive train and sets it up to be in
@@ -481,13 +481,10 @@ public class Drive implements Subsystem {
         return doneWithTrajectory_;
     }
 
-    public synchronized void autoSteer(Rotation2d targetBearing, double baseDutyCycle) {
-        double error = targetBearing.getDegrees();
-        double kP = 0.02;
-
-        double adjustedDutyCycle = kP * error;
+    public synchronized void autoSteer(double targetBearing, double baseDutyCycle) {
+        double kP = 0.004;
+        double adjustedDutyCycle = kP * targetBearing;
         baseDutyCycle = Util.limit(baseDutyCycle, -0.75, 0.75);
-
         DriveSignal autoSteerSignal = new DriveSignal(baseDutyCycle + adjustedDutyCycle,
                                                       baseDutyCycle - adjustedDutyCycle, true);
         openLoop(autoSteerSignal);
