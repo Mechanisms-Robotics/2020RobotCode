@@ -481,6 +481,18 @@ public class Drive implements Subsystem {
         return doneWithTrajectory_;
     }
 
+    public synchronized void autoSteer(Rotation2d targetBearing, double baseDutyCycle) {
+        double error = targetBearing.getDegrees();
+        double kP = 0.02;
+
+        double adjustedDutyCycle = kP * error;
+        baseDutyCycle = Util.limit(baseDutyCycle, -0.75, 0.75);
+
+        DriveSignal autoSteerSignal = new DriveSignal(baseDutyCycle + adjustedDutyCycle,
+                                                      baseDutyCycle - adjustedDutyCycle, true);
+        openLoop(autoSteerSignal);
+    }
+
     /**
     * Resets encoder ticks for CAN Coders and NEO Encoders
     */
