@@ -6,11 +6,8 @@ import java.util.Comparator;
 import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.subsystems.Limelight.LimelightRawData;
-import frc2020.robot.Constants;
 import frc2020.util.Logger;
 import frc2020.util.Util;
 
@@ -36,9 +33,12 @@ public class TargetTracker {
     private final static double MIN_INITIAL_CONFIDENCE = 0.3;
     private final static double MIN_CONFIDENCE = 0.3;
     private final static double DEPRECIATION_FACTOR = 0.9;
-    private final static int MAX_READINGS_SIZE = 200;
 
-    private final static double TARGET_HEIGHT = 2.496; // meters
+    // Since readings will be called every 10 ms or so, we should never have more
+    // than a second or two of readings.
+    private final static int MAX_READINGS_SIZE = 150;
+
+    private final static double TARGET_HEIGHT = 2.496; // meters TODO: join this with CAMERA_DH to avoid duplication?
     private static final double LIMELIGHT_RES_X = 320.0;
     private static final double LIMELIGHT_RES_Y = 240.0;
 
@@ -79,7 +79,7 @@ public class TargetTracker {
      * Useful class for getting range with error calculated into it
      */
     public static class RangeAndError {
-        public double error;//error is standard deviation
+        public double error; //error is standard deviation
         public double range; 
     }
 
@@ -131,10 +131,10 @@ public class TargetTracker {
             return; // no reason to add this reading
         }
 
-        if (readings_.size() <= MAX_READINGS_SIZE){
+        if (readings_.size() <= MAX_READINGS_SIZE) {
             readings_.add(reading);
         } else {
-            logger_.logError("Readings array reached maximum size!", logName);
+            logger_.logWarning("Readings array reached maximum size!", logName);
         }
     }
 
@@ -155,14 +155,15 @@ public class TargetTracker {
         double confidenceSum = 0.0;
 
         // Perform weighted average readings
-        for (int i = 0; i < readings_.size(); i++){
-            averageReading.azimuth += readings_.get(i).confidence*readings_.get(i).azimuth;
-            averageReading.elevation += readings_.get(i).confidence*readings_.get(i).elevation;
-            averageReading.range += readings_.get(i).confidence*readings_.get(i).range;
-            averageReading.rangeArea += readings_.get(i).confidence*readings_.get(i).rangeArea;
-            averageReading.rangeCorner += readings_.get(i).confidence*readings_.get(i).rangeCorner;
-            averageReading.confidence += readings_.get(i).confidence*readings_.get(i).confidence;
-            confidenceSum += readings_.get(i).confidence;
+        for (int i = 0; i < readings_.size(); i++) {
+            Reading reading = readings_.get(i);
+            averageReading.azimuth += reading.confidence*readings_.get(i).azimuth;
+            averageReading.elevation += reading.confidence*readings_.get(i).elevation;
+            averageReading.range += reading.confidence*readings_.get(i).range;
+            averageReading.rangeArea += reading.confidence*readings_.get(i).rangeArea;
+            averageReading.rangeCorner += reading.confidence*readings_.get(i).rangeCorner;
+            averageReading.confidence += reading.confidence*readings_.get(i).confidence;
+            confidenceSum += reading.confidence;
         }
 
         averageReading.azimuth /= confidenceSum;
@@ -180,14 +181,13 @@ public class TargetTracker {
      * out anything that falls below the minimum confidence interval.
      */
     private void depreciateConfidences() {
-
         // Loop through every reading
         for (int i = 0; i < readings_.size(); i++) {
 
             // Depreciate the reading by the Depreciation Factor
             readings_.get(i).confidence *= DEPRECIATION_FACTOR;
 
-            //Remove the reading if the confidence is too low
+            // Remove the reading if the confidence is too low
             if (readings_.get(i).confidence < MIN_CONFIDENCE) {
                 readings_.remove(i);
                 i--;
@@ -261,7 +261,6 @@ public class TargetTracker {
             return new Reading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
         Rotation2d[] cornerBasedTarget = getCornerBasedTarget(corners);
-        double confidence = 0.0;
         RangeAndError rangeArea = getRangeFromArea(rawData);
         RangeAndError rangeCorner = getRangeUsingCorners(cornerBasedTarget);
         
@@ -270,7 +269,7 @@ public class TargetTracker {
                            getRange(rangeArea, rangeCorner).range,
                            rangeArea.range,
                            rangeCorner.range,
-                           confidence);
+                           0.0);
 
         // TODO: we should use the error from getRange above in our eventual confidence
     }
@@ -416,11 +415,4 @@ public class TargetTracker {
         Translation2d centerPoint = Util.interpolateTranslation2d(topCorners.get(0), topCorners.get(1), 0.5);
         return pixelToAngle(centerPoint);
     }
-
-//	 * @param target The target to calculate the distance too
-//	 * @param source The limelight that was used to find the target
-//	 * @return a translation 2d that represents the placement of the target relative to the limelight
-//	 * @see TargetInfo
-//	 * @see Limelight
-//	 * @see Translation2d
 }

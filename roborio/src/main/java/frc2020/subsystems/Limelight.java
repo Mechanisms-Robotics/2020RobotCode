@@ -37,7 +37,7 @@ public class Limelight implements Subsystem {
     private NetworkTable networkTable_; // initialized in constructor
 
     /**
-     * Constructs new limelight
+     * Constructs new Limelight
      */
     public Limelight(LimelightConfig config) {
         config_ = config;
@@ -46,16 +46,15 @@ public class Limelight implements Subsystem {
     }
 
     /**
-     * All of the raw data that we get from the limelight and that we use
-     * is stored here.
+     * The (mostly) raw data to flow to / from the LL via network tables is stored here
      */
     public static class LimelightRawData {
         // INPUTS
         /* TODO: givenLedMode and givenPipeline appear to be the same as ledMode and pipeline
            Should they be getpipe and ????? */
         public double latency; // tl converted to seconds plus capture latency
-        public int givenLedMode; // TODO
-        public int givenPipeline; // TODO
+        public int givenLedMode; // TODO see above
+        public int givenPipeline; // TODO see above
         public double xOffset; // tx
         public double yOffset; // ty
         public int tWidth; // thor
@@ -68,7 +67,6 @@ public class Limelight implements Subsystem {
         public int ledMode = 1; // 0 - use pipeline mode, 1 - off, 2 - blink, 3 - on
         public int camMode = 0; // 0 - vision processing, 1 - driver camera
         public int pipeline = 0; // 0 - 9
-        public int stream = 2; // sets stream layout if another webcam is attached
         public int snapshot = 0; // 0 - stop snapshots, 1 - 2 Hz
     }
 
@@ -90,8 +88,8 @@ public class Limelight implements Subsystem {
     }
 
     /**
-     * Gets all the inputs we will need directly from the limelight over here 
-     * and sets all our limelight raw data values to them. Also gets our 
+     * Gets all the inputs we will need directly from the LL
+     * and sets all our raw data values. Also gets our
      * latest targeting data.
      */
     @Override
@@ -111,7 +109,7 @@ public class Limelight implements Subsystem {
     }
 
     /**
-     * Sets our ledMode, camMode, pipeline, stream layout, and snapshots
+     * Sets our ledMode, camMode, pipeline, and snapshots
      */
     @Override
     public synchronized void writePeriodicOutputs() {
@@ -123,7 +121,6 @@ public class Limelight implements Subsystem {
             networkTable_.getEntry("ledMode").setNumber(rawData_.ledMode);
             networkTable_.getEntry("camMode").setNumber(rawData_.camMode);
             networkTable_.getEntry("pipeline").setNumber(rawData_.pipeline);
-            networkTable_.getEntry("stream").setNumber(rawData_.stream);
             networkTable_.getEntry("snapshot").setNumber(rawData_.snapshot);
 
             outputsHaveChanged_ = false;
@@ -151,7 +148,7 @@ public class Limelight implements Subsystem {
         SmartDashboard.putNumber("Range Corner: ", currentReading.rangeCorner);
         SmartDashboard.putNumber("Confidence: ", currentReading.confidence);
         SmartDashboard.putBoolean(config_.name + ": Has Target", rawData_.hasTarget);
-        SmartDashboard.putNumber(config_.name + ": Pipeline Latency (ms)", rawData_.latency);
+        SmartDashboard.putNumber(config_.name + ": Pipeline Latency (s)", rawData_.latency);
     }
 
     /**
