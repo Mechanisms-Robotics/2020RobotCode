@@ -11,6 +11,7 @@ import frc2020.util.DriveSignal;
 public class CommandState {
     //Demand variables, these are modified in the CSGenerators
     public DriveDemand driveDemand;
+    public LimelightDemand limelightDemand;
 
     //Subsystem demands are defined as mini classes
     public static class DriveDemand {
@@ -42,12 +43,21 @@ public class CommandState {
         }
     }
 
+    public static class LimelightDemand {
+        public Limelight.LedMode ledMode = Limelight.LedMode.PIPELINE;
+        public int pipeline = 0;
+    }
+
     /**
      * Setter for each subsystem demand
      * @param demand
      */
     public void setDriveDemand(DriveDemand demand) {
         driveDemand = demand;
+    }
+
+    public void setLimelightDemand(LimelightDemand demand) {
+        limelightDemand = demand;
     }
 
     /**
@@ -64,7 +74,10 @@ public class CommandState {
      * @param drive An instance of the drive train subsystem
      */
     public void updateSubsystems(Drive drive, Limelight limelight) {
+        maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
+        driveDemand = null;
+        limelightDemand = null;
     }
 
     /**
@@ -87,6 +100,18 @@ public class CommandState {
             } else {
                 drive.setHighGear();
             }
+        }
+    }
+
+    /**
+     * Tries to update the limelight with a
+     * commanded demand type.
+     * @param limelight The limelight to update
+     */
+    private void maybeUpdateLimelight(Limelight limelight) {
+        if (limelightDemand != null) {
+            limelight.setPipeline(limelightDemand.pipeline);
+            limelight.setLed(limelightDemand.ledMode);
         }
     }
 }

@@ -69,6 +69,10 @@ public class Constants {
     public final static int LEFT_CAN_CODER_ID = 1;
     public final static int RIGHT_CAN_CODER_ID = 2;
 
+    // Limelight pipelines
+    public final static int POWER_CELL_PIPELINE = 3;
+    public final static int DRIVER_MODE_PIPELINE = 2;
+
     /**
      * @return the MAC address of the robot
      */

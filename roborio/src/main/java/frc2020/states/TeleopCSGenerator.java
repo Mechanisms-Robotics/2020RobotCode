@@ -3,6 +3,7 @@ package frc2020.states;
 import edu.wpi.first.wpilibj.Joystick;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
+import frc2020.subsystems.Limelight;
 import frc2020.util.*;
 
 /**
@@ -32,7 +33,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     @Override
     public CommandState getCommandState() {
+        autoSteer = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         CommandState state = new CommandState();
+        state.setLimelightDemand(generateLimelightDemand());
         state.setDriveDemand(generateDriveDemand());
         return state;
     }
@@ -46,12 +49,22 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
         double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
-        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) ? !driveLowGear : driveLowGear;
-        autoSteer = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
+        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
         if (autoSteer) {
             return DriveDemand.autoSteer(signal);
         }
         return DriveDemand.fromSignal(signal, driveLowGear);
     }
 
+    private LimelightDemand generateLimelightDemand() {
+        LimelightDemand demand = new LimelightDemand();
+        if (autoSteer) {
+            demand.ledMode = Limelight.LedMode.PIPELINE;
+            demand.pipeline = Constants.POWER_CELL_PIPELINE;
+        } else {
+            demand.ledMode = Limelight.LedMode.OFF;
+            demand.pipeline = Constants.DRIVER_MODE_PIPELINE;
+        }
+        return demand;
+    }
 }
