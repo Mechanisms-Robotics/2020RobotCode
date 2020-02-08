@@ -42,6 +42,12 @@ public class TalonSRXChecker {
         public double mSetValue;
     }
 
+    /**
+     * @param subsystem subsystem using talons to check
+     * @param talonsToCheck talons in the subsystem to be checked
+     * @param checkerConfig config values useful to be checked
+     * @return true if talons are functional
+     */
     public static boolean CheckTalons(Subsystem subsystem,
                                       ArrayList<TalonSRXConfig> talonsToCheck,
                                       CheckerConfig checkerConfig) {

@@ -10,6 +10,11 @@ import edu.wpi.first.wpilibj.AnalogInput;
 public class RevRoboticsAirPressureSensor {
     private final AnalogInput mAnalogInput;
 
+    /**
+     * Constructs new pressure sensor
+     * 
+     * @param analogInputNumber analog port sensor is plugged into
+     */
     public RevRoboticsAirPressureSensor(int analogInputNumber) {
         mAnalogInput = new AnalogInput(analogInputNumber);
     }
