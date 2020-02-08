@@ -120,8 +120,9 @@ public class TargetTracker {
 
         // Now determine the final confidence
 
-        // TODO: determine final confidence based on initial confidence and anything
-        // else that makes sense.  Remember to make sure to constrain to 0 to 1
+        /* TODO: determine final confidence based on initial confidence and anything
+         * else that makes sense.  Remember to make sure to constrain to 0 to 1.
+         */
 
         reading.confidence = initialConfidence;  // TODO
 
@@ -240,38 +241,31 @@ public class TargetTracker {
     }
 
     /**
-     * Given raw data from the Limelight, calculate the range and bearing.  The
-     * confidence on the returned reading is zero, and should be reset before use.
+     * Given raw data from the Limelight, calculate the range and bearing.
      *
      * @param rawData Limelight raw readings
-     * @return Returns a ZERO CONFIDENCE range and bearing
+     * @return The calculated reading
      */
     private Reading determineAzimuthElevationAndRange(LimelightRawData rawData)
     {
-        // TODO: Modify this function to take whatever data we need to determine the
-        // azimuth, elevation and range and calculate it.  Return a ZERO CONFIDENCE
-        // reading.
-
-        // Calcutae conner based target
-        // getTopConers()
-        // getConerBasdeTarget()
-
         List<Translation2d> corners = getTopCorners(rawData);
         if (corners == null) {
             return new Reading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
         Rotation2d[] cornerBasedTarget = getCornerBasedTarget(corners);
+
         RangeAndError rangeArea = getRangeFromArea(rawData);
         RangeAndError rangeCorner = getRangeUsingCorners(cornerBasedTarget);
+        RangeAndError range = getRange(rangeArea, rangeCorner);
+
+        // TODO: We should use error to return a confidence (in range 0.0 to 1.0)
         
         return new Reading(cornerBasedTarget[0].getDegrees(),
                            cornerBasedTarget[1].getDegrees(),
-                           getRange(rangeArea, rangeCorner).range,
+                           range.range,
                            rangeArea.range,
                            rangeCorner.range,
                            0.0);
-
-        // TODO: we should use the error from getRange above in our eventual confidence
     }
 
     /**
