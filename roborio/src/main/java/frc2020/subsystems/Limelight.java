@@ -6,20 +6,21 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
-import frc2020.robot.Constants;
 import frc2020.util.Logger;
 
 /**
  * Subsystem for interacting with the Limelight 2
  * 
- * This class does not explicitly track the targets but rather
- * determines whether or not target data recieved is reliable.
+ * This class does not explicitly track the targets, rather interfaces with the LimeLight
+ * and simply determines whether or not target data received is reliable.
  */
 public class Limelight implements Subsystem {
-    public final static int DEFAULT_PIPELINE = 0;
-    public final static int NONSENSE_VALUE = -4910;
-    public final static double CAMERA_DH = 1.87; // Difference in meters between camera and center of goal
-    public final static double CAMERA_ANGLE = 0.0; // Degrees
+    private final static int DEFAULT_PIPELINE = 0;
+    private final static int NONSENSE_VALUE = -4910;
+    private final static double CAMERA_DH = 1.87; // Height delta in meters between camera and center of goal
+    private final static double CAMERA_ANGLE = 15.0; // Degrees
+
+    private static final double IMAGE_CAPTURE_LATENCY = 11.0 / 1000.0; // seconds
 
     private static Logger logger_ = Logger.getInstance();
 
@@ -33,10 +34,10 @@ public class Limelight implements Subsystem {
         public Rotation2d horizontalPlaneToLens = new Rotation2d();
     }
 
-    private NetworkTable networkTable_;
+    private NetworkTable networkTable_; // initialized in constructor
 
     /**
-     * Consturcts new limelight
+     * Constructs new limelight
      */
     public Limelight(LimelightConfig config) {
         config_ = config;
@@ -46,20 +47,22 @@ public class Limelight implements Subsystem {
 
     /**
      * All of the raw data that we get from the limelight and that we use
-     * regarding the limelight is stored here.
+     * is stored here.
      */
     public static class LimelightRawData {
         // INPUTS
-        public double latency;
-        public int givenLedMode;
-        public int givenPipeline;
-        public double xOffset;
-        public double yOffset;
-        public int tWidth;
-        public int tHeight;
-        public double area;
-        public boolean hasTarget;
-        public double[] corners;
+        /* TODO: givenLedMode and givenPipeline appear to be the same as ledMode and pipeline
+           Should they be getpipe and ????? */
+        public double latency; // tl converted to seconds plus capture latency
+        public int givenLedMode; // TODO
+        public int givenPipeline; // TODO
+        public double xOffset; // tx
+        public double yOffset; // ty
+        public int tWidth; // thor
+        public int tHeight; // tvert
+        public double area; // ta
+        public boolean hasTarget; // tv
+        public double[] corners; // tcornxy
 
         // OUTPUTS
         public int ledMode = 1; // 0 - use pipeline mode, 1 - off, 2 - blink, 3 - on
@@ -72,7 +75,7 @@ public class Limelight implements Subsystem {
     private LimelightConfig config_ = null;
     private LimelightRawData rawData_ = new LimelightRawData();
     private boolean outputsHaveChanged_ = true;
-    private TargetTracker targetTracker_;
+    private TargetTracker targetTracker_; // initialized in constructor
 
     public Transform2d getTurretToLens() {
         return config_.turretToLens;
@@ -93,7 +96,7 @@ public class Limelight implements Subsystem {
      */
     @Override
     public synchronized void readPeriodicInputs() {
-        rawData_.latency = networkTable_.getEntry("tl").getDouble(0) / 1000.0 + Constants.IMAGE_CAPTURE_LATENCY;
+        rawData_.latency = networkTable_.getEntry("tl").getDouble(0) / 1000.0 + IMAGE_CAPTURE_LATENCY;
         rawData_.givenLedMode = (int) networkTable_.getEntry("ledMode").getDouble(1.0);
         rawData_.givenPipeline = (int) networkTable_.getEntry("pipeline").getDouble(0);
         rawData_.xOffset = networkTable_.getEntry("tx").getDouble(0.0);

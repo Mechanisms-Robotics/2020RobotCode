@@ -38,6 +38,19 @@ public class TargetTracker {
     private final static double DEPRECIATION_FACTOR = 0.9;
     private final static int MAX_READINGS_SIZE = 200;
 
+    private final static double TARGET_HEIGHT = 2.496; // meters
+    private static final double LIMELIGHT_RES_X = 320.0;
+    private static final double LIMELIGHT_RES_Y = 240.0;
+
+    private static final double LIMELIGHT_HORIZONTAL_FOV = 59.6;
+    public static final double LIMELIGHT_VERTICAL_FOV = 49.7;
+
+    // Defines the plane 1.0 unit away from the camera
+    private static final double VERTICAL_PLANE_HEIGHT = 2.0 *
+            Math.tan(Math.toRadians(LIMELIGHT_VERTICAL_FOV / 2.0));
+    private static final double VERTICAL_PLANE_WIDTH = 2.0 *
+            Math.tan(Math.toRadians(LIMELIGHT_HORIZONTAL_FOV / 2.0));
+
     private static Logger logger_ = Logger.getInstance();
     private final static String logName = "Limelight";
 
@@ -298,7 +311,7 @@ public class TargetTracker {
         Rotation2d angle = target[1];
         angle = angle.rotateBy(limelight_.getHorizontalPlaneToLens());
         
-        double differental_height = Constants.TARGET_HEIGHT - limelight_.getLensHeight();
+        double differental_height = TARGET_HEIGHT - limelight_.getLensHeight();
         double angleTan = angle.getTan();
 
         if(angleTan == 0) {
@@ -381,14 +394,14 @@ public class TargetTracker {
         double x_pixels = pixelCoord.getX();
         double y_pixels = pixelCoord.getY();
 
-        double nx = -((x_pixels - (Constants.LIMELIGHT_RES_X / 2.0)) / 
-            (Constants.LIMELIGHT_RES_X / 2.0));
-        double ny = (y_pixels - (Constants.LIMELIGHT_RES_Y / 2.0)) / 
-            (Constants.LIMELIGHT_RES_Y / 2.0);
+        double nx = -((x_pixels - (LIMELIGHT_RES_X / 2.0)) /
+            (LIMELIGHT_RES_X / 2.0));
+        double ny = (y_pixels - (LIMELIGHT_RES_Y / 2.0)) /
+            (LIMELIGHT_RES_Y / 2.0);
         
 
-        double x = Constants.VERTICAL_PLANE_WIDTH / 2 * nx;
-        double y = Constants.VERTICAL_PLANE_HEIGHT / 2 * ny;
+        double x = VERTICAL_PLANE_WIDTH / 2 * nx;
+        double y = VERTICAL_PLANE_HEIGHT / 2 * ny;
 
         return new Rotation2d[] {new Rotation2d(Math.atan2(1.0, x) - (Math.PI/2.0)),
             new Rotation2d(Math.atan2(1.0, y) - (Math.PI/2.0))};
@@ -404,182 +417,10 @@ public class TargetTracker {
         return pixelToAngle(centerPoint);
     }
 
-}
-
-//import edu.wpi.first.wpilibj.Timer;
-//        import edu.wpi.first.wpilibj.geometry.*;
-//
-//        import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-//        import frc2020.loops.ILooper;
-//        import frc2020.loops.Loop;
-//        import frc2020.robot.Constants;
-//        import frc2020.util.Util;
-//        import frc2020.util.vision.GoalTracker;
-//        import frc2020.util.vision.TargetInfo;
-
-
-//public class TargetTracker implements Subsystem {
-//
-//    private List<Translation2d> cameraToVisionTarget_ = new ArrayList<>();
-//    private GoalTracker goalTracker_ = new GoalTracker();
-//
-//   	// TODO: Replace suse of this with getting this from the turret when the turret is done
-//	private static final Pose2d TRANSFORM_TO_TURRET = new Pose2d(0, 0, Rotation2d.fromDegrees(180.0));
-//
-//	private Limelight limelight_;
-//	public TargetTracker(Limelight limelight) {
-//		limelight_ = limelight;
-//	}
-//
-//	/**
-//	 * Return the distance to a target seen by a limelight
 //	 * @param target The target to calculate the distance too
 //	 * @param source The limelight that was used to find the target
 //	 * @return a translation 2d that represents the placement of the target relative to the limelight
 //	 * @see TargetInfo
 //	 * @see Limelight
 //	 * @see Translation2d
-//	 */
-//    private static Translation2d getCameraToVisionTargetPose(TargetInfo target, Limelight source) {
-//
-//        // Compensate for camera pitch
-//        Translation2d xz_plane_translation = new Translation2d(target.getX(), target.getZ())
-//            .rotateBy(source.getHorizontalPlaneToLens());
-//        double x = xz_plane_translation.getX();
-//        double y = target.getY();
-//        double z = xz_plane_translation.getY();
-//        Rotation2d angle = new Rotation2d(target.getX(), target.getZ());
-//
-//        // Find the intersection with the goal
-//        double differential_height =  Constants.TARGET_HEIGHT - source.getLensHeight();
-//        double test_distance = differential_height/(Math.tan(angle.getRadians() + Math.toRadians(15.0)));
-//		SmartDashboard.putNumber("Target Distance", test_distance);
-//        if (z > 0.0) {
-//			double scaling = differential_height / z;
-//			double distance = Math.hypot(x, y) * scaling;
-//			//Rotation2d angle = new Rotation2d(x, y);
-//			return new Translation2d(distance * angle.getCos(), distance * angle.getSin());
-//		}
-//		return null;
-//    }
-//
-//    private static void updateGoalTracker(double timestamp, List<Translation2d> cameraToVisionTargetPoses,
-//										  GoalTracker tracker,
-//										  Limelight source) {
-//    	if (cameraToVisionTargetPoses.size() != 2 ||
-//				cameraToVisionTargetPoses.get(0) == null ||
-//						cameraToVisionTargetPoses.get(1) == null) return;
-//
-//    	// Get the center of the target from the two corners
-//		Translation2d target_center = Util.interpolateTranslation2d(cameraToVisionTargetPoses.get(0),
-//				cameraToVisionTargetPoses.get(1), 0.5);
-//		Transform2d transform = new Transform2d(
-//				target_center,
-//				new Rotation2d()
-//		);
-//		Pose2d fieldToVisionTarget = TRANSFORM_TO_TURRET.transformBy(source.getTurretToLens()).
-//				transformBy(transform);
-//		tracker.update(timestamp, List.of(new Pose2d(fieldToVisionTarget.getTranslation(), new Rotation2d())));
-//	}
-//
-//	private final Loop trackingLoop = new Loop() {
-//
-//    	public void init() {
-//    		synchronized (this) {
-//    			goalTracker_.reset();
-//    			cameraToVisionTarget_.clear();
-//			}
-//		}
-//
-//		public void run() {
-//    		synchronized (this) {
-//				double timestamp = Timer.getFPGATimestamp() - limelight_.getLatency();
-//				List<TargetInfo> targets = limelight_.getTarget();
-//
-//				cameraToVisionTarget_.clear();
-//				if (targets == null || targets.isEmpty()) {
-//					goalTracker_.update(timestamp, new ArrayList<>());
-//					return;
-//				}
-//
-//				for (TargetInfo target : targets) {
-//					cameraToVisionTarget_.add(getCameraToVisionTargetPose(target, limelight_));
-//				}
-//
-//				updateGoalTracker(timestamp, cameraToVisionTarget_, goalTracker_, limelight_);
-//			}
-//		}
-//
-//		public void end() {
-//			goalTracker_.reset();
-//			cameraToVisionTarget_.clear();
-//		}
-//	};
-//
-//	@Override
-//	public void writePeriodicOutputs() {
-//		// Nothing to do here
-//	}
-//
-//	public synchronized Pose2d getFieldToVisionTarget() {
-//		if (!goalTracker_.hasTracks()) {
-//			return null;
-//		}
-//		Pose2d fieldToTarget = goalTracker_.getTracks().get(0).field_to_target;
-//		return new Pose2d(fieldToTarget.getTranslation(),
-//				Rotation2d.fromDegrees(Constants.TARGET_NORMAL));
-//	}
-//
-//	public synchronized Pose2d getRobotToVisionTarget() {
-//		Pose2d fieldToVisionTarget = getFieldToVisionTarget();
-//		if (fieldToVisionTarget == null) {
-//			return null;
-//		}
-//		Transform2d transform = Util.poseToTransform(fieldToVisionTarget);
-//		Pose2d robotToField = Drive.getInstance().getOdometryPose(Timer.getFPGATimestamp() - limelight_.getLatency());
-//		return Util.invertPose2d(robotToField).transformBy(transform);
-//	}
-//
-//	@Override
-//	public void readPeriodicInputs() {
-//
-//	}
-//
-//	@Override
-//	public boolean checkSystem() {
-//		// TODO Auto-generated method stub
-//		return false;
-//	}
-//
-//	@Override
-//	public void zeroSensors() {
-//		goalTracker_.reset();
-//		cameraToVisionTarget_.clear();
-//	}
-//
-//	@Override
-//	public void stop() {
-//		// TODO Auto-generated method stub
-//
-//	}
-//
-//	@Override
-//	public void registerLoops(ILooper enabledLooper) {
-//		enabledLooper.register(trackingLoop);
-//	}
-//
-//	@Override
-//	public void outputTelemetry() {
-//		Pose2d target_pose = getRobotToVisionTarget();
-//		if (target_pose != null) {
-//			SmartDashboard.putNumber("Target X", target_pose.getTranslation().getX());
-//			SmartDashboard.putNumber("Target Y", target_pose.getTranslation().getY());
-//			SmartDashboard.putNumber("Target Rotation", target_pose.getRotation().getDegrees());
-//		} else {
-//			SmartDashboard.putNumber("Target X", 0.0);
-//			SmartDashboard.putNumber("Target Y", 0.0);
-//			SmartDashboard.putNumber("Target Rotation", 0.0);
-//		}
-//	}
-//
-//}
+}
