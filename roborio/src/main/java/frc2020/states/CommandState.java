@@ -87,8 +87,8 @@ public class CommandState {
      */
     private void maybeUpdateDrive(Drive drive, Limelight limelight) {
         if (driveDemand != null) {
-            if (driveDemand.autoSteer) {
-                double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight())/2.0;
+            if ( driveDemand.autoSteer) {
+                double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight()) / 2.0;
                 drive.autoSteer(limelight.getTargetReading().azimuth, average);
             } else if (driveDemand.type == DriveDemand.DemandType.Velocity) {
                 drive.driveVelocity(driveDemand.signal);

@@ -1,5 +1,6 @@
 package frc2020.subsystems;
 
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 import frc2020.robot.Robot;
 import frc2020.util.*;
 import frc2020.util.drivers.NavX;

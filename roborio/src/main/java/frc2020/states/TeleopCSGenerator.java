@@ -14,7 +14,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftJoystick_;
     private Joystick rightJoystick_;
     private LatchedBoolean driveShiftLatch;
-    private boolean autoSteer = false;
+    private boolean autoSteerBall = false;
+    private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
     
     /**
@@ -33,7 +34,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     @Override
     public CommandState getCommandState() {
-        autoSteer = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
+        autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
+        autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
         CommandState state = new CommandState();
         state.setLimelightDemand(generateLimelightDemand());
         state.setDriveDemand(generateDriveDemand());
@@ -50,7 +52,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
-        if (autoSteer) {
+        if (autoSteerBall || autoSteerStation) {
             return DriveDemand.autoSteer(signal);
         }
         return DriveDemand.fromSignal(signal, driveLowGear);
@@ -58,9 +60,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private LimelightDemand generateLimelightDemand() {
         LimelightDemand demand = new LimelightDemand();
-        if (autoSteer) {
+        if (autoSteerBall) {
             demand.ledMode = Limelight.LedMode.PIPELINE;
             demand.pipeline = Constants.POWER_CELL_PIPELINE;
+        } else if (autoSteerStation) {
+            demand.ledMode = Limelight.LedMode.PIPELINE;
+            demand.pipeline = Constants.LOADING_STATION_PIPELINE;
         } else {
             demand.ledMode = Limelight.LedMode.OFF;
             demand.pipeline = Constants.DRIVER_MODE_PIPELINE;
