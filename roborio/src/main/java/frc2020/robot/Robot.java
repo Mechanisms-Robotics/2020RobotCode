@@ -50,7 +50,8 @@ public class Robot extends TimedRobot {
 
     private TeleopCSGenerator teleopCSGenerator_;
 
-    private Limelight limelight_;
+    private Limelight limelight_turret_;
+    private Limelight limelight_low_;
 
     private static Logger logger_ = Logger.getInstance();
 
@@ -69,19 +70,31 @@ public class Robot extends TimedRobot {
         disabledIterator = new Looper();
         autoRunner_ = null;
 
-        var limelight_config = new Limelight.LimelightConfig();
-        limelight_config.height = 1.12;
-        limelight_config.horizontalPlaneToLens = Rotation2d.fromDegrees(15.0);
-        limelight_config.tableName = "limelight";
-        limelight_config.name = "Test";
-        limelight_config.azimuthOnly = true;
-        limelight_ = new Limelight(limelight_config);
-        limelight_.setLed(LedMode.PIPELINE);
+        var limelight_turret_config = new Limelight.LimelightConfig();
+        var limelight_low_config = new Limelight.LimelightConfig();
+
+        limelight_turret_config.height = 1.12;
+        limelight_turret_config.horizontalPlaneToLens = Rotation2d.fromDegrees(15.0);
+        limelight_turret_config.tableName = "limelight-turret";
+        limelight_turret_config.name = "Limelight Turret";
+        limelight_turret_config.azimuthOnly = false;
+
+        limelight_low_config.height = 0.61;
+        limelight_low_config.horizontalPlaneToLens = Rotation2d.fromDegrees(0.0);
+        limelight_low_config.tableName = "limelight-low";
+        limelight_low_config.name = "Limelight Low";
+        limelight_low_config.azimuthOnly = true;
+
+        limelight_turret_ = new Limelight(limelight_turret_config);
+        limelight_low_ = new Limelight(limelight_low_config);
+        limelight_turret_.setLed(LedMode.PIPELINE);
+        limelight_low_.setLed(LedMode.PIPELINE);
 
         manager = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
-                  limelight_
+                  limelight_turret_,
+                  limelight_low_
                 )
         );
 
@@ -114,7 +127,8 @@ public class Robot extends TimedRobot {
 
             manager.registerEnabledLoops(enabledIterator);
             manager.registerDisabledLoops(disabledIterator);
-            limelight_.setPipeline(3); // TODO: Remove harcoded pipline change (and spelling errors)
+            limelight_turret_.setPipeline(0);
+            limelight_low_.setPipeline(2); // TODO: Remove harcoded pipline change (and spelling errors)
             
             //SmartDashboard.putData("PDP", PDP);
         } catch(LoggerNotStartedException e) {
@@ -259,7 +273,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

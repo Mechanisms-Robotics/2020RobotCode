@@ -484,7 +484,7 @@ public class Drive implements Subsystem {
     public synchronized void autoSteer(double targetBearing, double baseDutyCycle) {
         double kP = 0.004;
         double adjustedDutyCycle = kP * targetBearing;
-        baseDutyCycle = Util.limit(baseDutyCycle, -0.75, 0.75);
+        baseDutyCycle = Util.limit(baseDutyCycle, 0.75);
         DriveSignal autoSteerSignal = new DriveSignal(baseDutyCycle + adjustedDutyCycle,
                                                       baseDutyCycle - adjustedDutyCycle, true);
         openLoop(autoSteerSignal);

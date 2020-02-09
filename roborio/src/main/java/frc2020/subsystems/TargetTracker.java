@@ -109,6 +109,11 @@ public class TargetTracker {
 
         LimelightRawData rawData = limelight_.getRawData();
 
+        /**
+         * For the lower limelight we only care about getting the azimuth to the ball and not
+         * any elevation, range, etc. because we just want to steer ourselves in the direction
+         * of the ball
+         */
         Reading reading;
         if (azimuthOnly_) {
             reading = new Reading(rawData.xOffset, 0.0, 0.0, 0.0, 0.0, rawData.hasTarget ? 1.0 : 0.0);
