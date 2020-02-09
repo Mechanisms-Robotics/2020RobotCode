@@ -3,6 +3,7 @@ package frc2020.states;
 import edu.wpi.first.wpilibj.Joystick;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
+import frc2020.subsystems.Limelight;
 import frc2020.util.*;
 
 /**
@@ -13,6 +14,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftJoystick_;
     private Joystick rightJoystick_;
     private LatchedBoolean driveShiftLatch;
+    private boolean autoSteerBall = false;
+    private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
     
     /**
@@ -31,7 +34,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     @Override
     public CommandState getCommandState() {
+        autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
+        autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
         CommandState state = new CommandState();
+        state.setLimelightDemand(generateLimelightDemand());
         state.setDriveDemand(generateDriveDemand());
         return state;
     }
@@ -41,12 +47,29 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
-        final double DEADBAND = 0.1;
+        final double DEADBAND = 0.01;
         double leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
         double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
-        DriveSignal demand = new DriveSignal(leftDrive, rightDrive, true);
-        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) ? !driveLowGear : driveLowGear;
-        return new DriveDemand(demand, DriveDemand.DemandType.OpenLoop, driveLowGear);
+        DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
+        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+        if (autoSteerBall || autoSteerStation) {
+            return DriveDemand.autoSteer(signal);
+        }
+        return DriveDemand.fromSignal(signal, driveLowGear);
     }
 
+    private LimelightDemand generateLimelightDemand() {
+        LimelightDemand demand = new LimelightDemand();
+        if (autoSteerBall) {
+            demand.ledMode = Limelight.LedMode.PIPELINE;
+            demand.pipeline = Constants.POWER_CELL_PIPELINE;
+        } else if (autoSteerStation) {
+            demand.ledMode = Limelight.LedMode.PIPELINE;
+            demand.pipeline = Constants.LOADING_STATION_PIPELINE;
+        } else {
+            demand.ledMode = Limelight.LedMode.OFF;
+            demand.pipeline = Constants.DRIVER_MODE_PIPELINE;
+        }
+        return demand;
+    }
 }

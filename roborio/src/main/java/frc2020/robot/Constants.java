@@ -61,12 +61,19 @@ public class Constants {
     // The Joysticks
     public final static int LEFT_DRIVER_JOYSTICK_PORT = 0;
     public final static int RIGHT_DRIVER_JOYSTICK_PORT = 1;
+    public final static int AUTO_STEER_BUTTON = 2;
+    public final static int AUTO_ALIGN_BUTTON = 3;
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
 
     //CANcoder IDs
     public final static int LEFT_CAN_CODER_ID = 1;
     public final static int RIGHT_CAN_CODER_ID = 2;
+
+    // Limelight pipelines
+    public final static int POWER_CELL_PIPELINE = 3;
+    public final static int DRIVER_MODE_PIPELINE = 2;
+    public final static int LOADING_STATION_PIPELINE = 4;
 
     /**
      * @return the MAC address of the robot

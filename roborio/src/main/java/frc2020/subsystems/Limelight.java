@@ -32,6 +32,7 @@ public class Limelight implements Subsystem {
         public double height = 0.0;
         public Transform2d turretToLens = new Transform2d();
         public Rotation2d horizontalPlaneToLens = new Rotation2d();
+        public boolean azimuthOnly = false;
     }
 
     private NetworkTable networkTable_; // initialized in constructor
@@ -42,7 +43,7 @@ public class Limelight implements Subsystem {
     public Limelight(LimelightConfig config) {
         config_ = config;
         networkTable_ = NetworkTableInstance.getDefault().getTable(config.tableName);
-        targetTracker_ = new TargetTracker(this);
+        targetTracker_ = new TargetTracker(this, config.azimuthOnly);
     }
 
     /**
@@ -138,13 +139,13 @@ public class Limelight implements Subsystem {
      */
     @Override
     public synchronized void outputTelemetry() {
-        TargetTracker.Reading currentReading = targetTracker_.getCurrentReading();
-        SmartDashboard.putNumber("Azimuth: ", currentReading.azimuth);
-        SmartDashboard.putNumber("Elevation: ", currentReading.elevation);
-        SmartDashboard.putNumber("Range: ", currentReading.range);
-        SmartDashboard.putNumber("Range Area: ", currentReading.rangeArea);
-        SmartDashboard.putNumber("Range Corner: ", currentReading.rangeCorner);
-        SmartDashboard.putNumber("Confidence: ", currentReading.confidence);
+        TargetTracker.Reading currentReading = getTargetReading();
+        SmartDashboard.putNumber(config_.name + ": Azimuth: ", currentReading.azimuth);
+        SmartDashboard.putNumber(config_.name + ": Elevation: ", currentReading.elevation);
+        SmartDashboard.putNumber(config_.name + ": Range: ", currentReading.range);
+        SmartDashboard.putNumber(config_.name + ": Range Area: ", currentReading.rangeArea);
+        SmartDashboard.putNumber(config_.name + ": Range Corner: ", currentReading.rangeCorner);
+        SmartDashboard.putNumber(config_.name + ": Confidence: ", currentReading.confidence);
         SmartDashboard.putBoolean(config_.name + ": Has Target", rawData_.hasTarget);
         SmartDashboard.putNumber(config_.name + ": Pipeline Latency (s)", rawData_.latency);
     }
@@ -217,6 +218,10 @@ public class Limelight implements Subsystem {
      */
     public synchronized boolean getTargetValid() {
         return rawData_.hasTarget;
+    }
+
+    public synchronized TargetTracker.Reading getTargetReading() {
+        return targetTracker_.getCurrentReading();
     }
 
     /**
