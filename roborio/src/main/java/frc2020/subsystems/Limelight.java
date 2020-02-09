@@ -140,12 +140,12 @@ public class Limelight implements Subsystem {
     @Override
     public synchronized void outputTelemetry() {
         TargetTracker.Reading currentReading = getTargetReading();
-        SmartDashboard.putNumber("Azimuth: ", currentReading.azimuth);
-        SmartDashboard.putNumber("Elevation: ", currentReading.elevation);
-        SmartDashboard.putNumber("Range: ", currentReading.range);
-        SmartDashboard.putNumber("Range Area: ", currentReading.rangeArea);
-        SmartDashboard.putNumber("Range Corner: ", currentReading.rangeCorner);
-        SmartDashboard.putNumber("Confidence: ", currentReading.confidence);
+        SmartDashboard.putNumber(config_.name + ": Azimuth: ", currentReading.azimuth);
+        SmartDashboard.putNumber(config_.name + ": Elevation: ", currentReading.elevation);
+        SmartDashboard.putNumber(config_.name + ": Range: ", currentReading.range);
+        SmartDashboard.putNumber(config_.name + ": Range Area: ", currentReading.rangeArea);
+        SmartDashboard.putNumber(config_.name + ": Range Corner: ", currentReading.rangeCorner);
+        SmartDashboard.putNumber(config_.name + ": Confidence: ", currentReading.confidence);
         SmartDashboard.putBoolean(config_.name + ": Has Target", rawData_.hasTarget);
         SmartDashboard.putNumber(config_.name + ": Pipeline Latency (s)", rawData_.latency);
     }

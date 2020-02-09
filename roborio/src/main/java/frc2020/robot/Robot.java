@@ -1,6 +1,5 @@
 package frc2020.robot;
 
-import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc2020.util.DriveSignal;
 import frc2020.util.Logger;
 import frc2020.util.LoggerNotStartedException;
@@ -16,12 +15,10 @@ import frc2020.auto.modes.TestMode;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
-import frc2020.robot.Constants;
 
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.Arrays;
 import java.util.UUID;
