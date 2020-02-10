@@ -14,7 +14,11 @@ public class UltrasonicSensor {
 
     private static final int kCacheSize = 5;
 
-
+    /**
+     * Constructs new ultrasonic sensor
+     * 
+     * @param port port of sensor
+     */
     public UltrasonicSensor(int port) {
         mAnalogInput = new AnalogInput(port);
         cache = new LinkedList<Double>();

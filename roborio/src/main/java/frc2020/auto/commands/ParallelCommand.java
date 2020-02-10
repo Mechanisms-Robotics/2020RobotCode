@@ -7,7 +7,7 @@ import java.util.List;
  * Composite command, running all sub-command at the same time. All command are started then updated until all command
  * report being done.
  *
- * @param A List of Command objects
+ * parameter A List of Command objects
  */
 public class ParallelCommand implements Command {
     private final ArrayList<Command> commands;

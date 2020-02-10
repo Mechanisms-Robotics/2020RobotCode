@@ -17,6 +17,11 @@ import frc2020.auto.commands.*;
 import frc2020.robot.Constants;
 import frc2020.subsystems.Drive;
 
+/**
+ * Starting from same point as basic13Ball, shoots three balls, goes straight
+ * to trench, takes up three balls, turns around and goes next to shield
+ * generator column closest to power port, and shoots.
+ */
 public class CenterToTrench8 extends AutoMode {
     private static DifferentialDriveKinematics DRIVE_KINEMATICS = 
         Drive.getInstance().getKinematics();

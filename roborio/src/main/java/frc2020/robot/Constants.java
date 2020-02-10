@@ -61,6 +61,8 @@ public class Constants {
     // The Joysticks
     public final static int LEFT_DRIVER_JOYSTICK_PORT = 0;
     public final static int RIGHT_DRIVER_JOYSTICK_PORT = 1;
+    public final static int AUTO_STEER_BUTTON = 2;
+    public final static int AUTO_ALIGN_BUTTON = 3;
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
 
@@ -68,39 +70,10 @@ public class Constants {
     public final static int LEFT_CAN_CODER_ID = 1;
     public final static int RIGHT_CAN_CODER_ID = 2;
 
-    //Limelight
-    //TODO clean this up and move to limelight class
-    public static final double LIMELIGHT_RES_X = 320.0;
-    public static final double LIMELIGHT_RES_Y = 240.0;
-    public static final double LIMELIGHT_HORIZONTAL_FOV = 59.6;
-    public static final double LIMELIGHT_VERTICAL_FOV = 49.7;
-
-    public static final double TARGET_HEIGHT = 2.496; // meters
-    public static final double TARGET_NORMAL = 180.0; // degrees
-
-    public static final double MAX_TRACK_DISTANCE = 0.2286; // meters
-    public static final double MAX_TRACK_AGE = 2.5; // sec
-    public static final double MAX_GOAL_TRACK_AGE_NOT_TRACKING = 0.1; // sec
-    public static final double MAX_GOAL_TRACK_SMOOTHING_TIME = 0.5; // sec
-    public static final double TRACK_STABILITY_WEIGHT = 0.0;
-    public static final double TRACK_AGE_WEIGHT = 10.0;
-    public static final double TRACK_SWITCHING_WEIGHT = 100.0;
-
-    public static final double CAMERA_FRAME_RATE = 90.0;
-    public static final double MIN_STABILITY = 0.5;
-
-    // Maybe used for confidence calculation
-    public static final double TOP_GOAL_DX = 2.3;
-    public static final double TOP_GOAL_DY = 6.0;
-    public static final double TOP_GOAL_BDX = 1.3;
-    public static final double TARGETING_EPSILON = 0.1;
-    
-    // Defines the plane 1.0 unit away from the camera
-    public static final double VERTICAL_PLANE_HEIGHT = 2.0 *
-        Math.tan(Math.toRadians(LIMELIGHT_VERTICAL_FOV / 2.0)); 
-    public static final double VERTICAL_PLANE_WIDTH = 2.0 *
-        Math.tan(Math.toRadians(LIMELIGHT_HORIZONTAL_FOV / 2.0));
-    public static final double IMAGE_CAPTURE_LATENCY = 11.0 / 1000.0; // seconds
+    // Limelight pipelines
+    public final static int POWER_CELL_PIPELINE = 3;
+    public final static int DRIVER_MODE_PIPELINE = 2;
+    public final static int LOADING_STATION_PIPELINE = 4;
 
     /**
      * @return the MAC address of the robot
