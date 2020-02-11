@@ -1,13 +1,10 @@
 package frc2020.subsystems;
 
-import com.ctre.phoenix.motorcontrol.Faults;
-import com.ctre.phoenix.motorcontrol.StickyFaults;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 
 /**
  * Abstract class for a subsystem with a single sensor and one degree
@@ -27,6 +24,11 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public boolean invertSensorPhase_ = false;
     }
 
+    /**
+     * Subsystem configuration. Note that all default values here
+     * are "safe" meaning that it's fine not to configure them
+     * if you don't need them.
+     */
     public static class SingleMotorSubsystemConstants {
         public String name_ = "ERROR_NO_NAME";
 
@@ -34,15 +36,12 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public MotorConstants[] slaveConstants_ = new MotorConstants[0];
 
         public double homePosition_ = 0.0; // units
-        public boolean useAnalog = false;
-        public double positionConversionFactor = 1.0;
-        public double velocityConversionFactor = 1.0;
-
+        public double positionConversionFactor_ = 1.0;
+        public double velocityConversionFactor_ = 1.0;
 
         public double kP_ = 0.0; // Raw output / raw error
         public double kI_ = 0.0; // Raw output / sum of raw error
         public double kD_ = 0.0; // Raw output / (err - prevErr)
-        public SimpleMotorFeedforward feedforward_ = new SimpleMotorFeedforward(0.0, 0.0, 0.0);
         public int iZone_ = 0;
         public int deadband_ = 0;
 
@@ -80,6 +79,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     protected final int forwardSoftLimitTicks_;
     protected final int reverseSoftLimitTicks_;
 
+    // TODO: Add error handling where needed
     protected SingleMotorSubsystem(final SingleMotorSubsystemConstants constants) {
         constants_ = constants;
         forwardSoftLimitTicks_ = (int)(constants_.maxUnitsLimit_ - constants_.homePosition_);
@@ -103,19 +103,11 @@ public abstract class SingleMotorSubsystem implements Subsystem {
 
         masterPid_ = sparkMaster_.getPIDController();
 
-        if (constants_.useAnalog) {
-            analogDevice = sparkMaster_.getAnalog(CANAnalog.AnalogMode.kAbsolute);
-            analogDevice.setPositionConversionFactor(constants_.positionConversionFactor);
-            analogDevice.setVelocityConversionFactor(constants_.velocityConversionFactor);
-            analogDevice.setInverted(constants_.masterConstants_.invertSensorPhase_);
-            masterPid_.setFeedbackDevice(analogDevice);
-        } else {
-            encoder = sparkMaster_.getEncoder();
-            encoder.setPositionConversionFactor(constants_.positionConversionFactor);
-            encoder.setVelocityConversionFactor(constants_.velocityConversionFactor);
-            encoder.setInverted(constants_.masterConstants_.invertSensorPhase_);
-            masterPid_.setFeedbackDevice(sparkMaster_.getEncoder());
-        }
+        encoder = sparkMaster_.getEncoder();
+        encoder.setPositionConversionFactor(constants_.positionConversionFactor_);
+        encoder.setVelocityConversionFactor(constants_.velocityConversionFactor_);
+        encoder.setInverted(constants_.masterConstants_.invertSensorPhase_);
+        masterPid_.setFeedbackDevice(sparkMaster_.getEncoder());
 
         masterPid_.setP(constants_.velocityKp_, VELOCITY_PID_SLOT);
         masterPid_.setI(constants_.velocityKi_, VELOCITY_PID_SLOT);
@@ -149,6 +141,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     }
 
     public static class PeriodicIO {
+        // Inputs
         public double timestamp;
         public double position;
         public double velocity;
@@ -156,6 +149,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double outputVoltage;
         public double masterCurrent;
 
+        // Outputs
         public double feedforward;
         public double demand;
     }
@@ -174,17 +168,19 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         io_.masterCurrent = sparkMaster_.getOutputCurrent();
         io_.outputPercent = sparkMaster_.getAppliedOutput();
         io_.outputVoltage = io_.outputPercent * sparkMaster_.getBusVoltage();
-        if (constants_.useAnalog) {
-            io_.position = analogDevice.getPosition();
-            io_.velocity = analogDevice.getVelocity();
-        } else {
-            io_.position = encoder.getPosition();
-            io_.velocity = encoder.getVelocity();
-        }
+        io_.position = encoder.getPosition();
+        io_.velocity = encoder.getVelocity();
     }
 
+    // TODO: Add error checking on CAN Bus calls
     @Override
     public synchronized void writePeriodicOutputs() {
+        if (io_.demand > 0 && atForwardLimit()) {
+            return;
+        }
+        if (io_.demand < 0 && atReverseLimit()) {
+            return;
+        }
         if (state_ == ControlState.MOTION_PROFILING) {
             masterPid_.setReference(io_.demand, ControlType.kSmartMotion, MOTION_PROFILE_SLOT, io_.feedforward);
         } else if (state_ == ControlState.POSITION_PID) {
@@ -249,4 +245,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
             state_ = ControlState.POSITION_PID;
         }
     }
+
+    protected abstract boolean atReverseLimit();
+    protected abstract boolean atForwardLimit();
 }
