@@ -41,6 +41,7 @@ public class Robot extends TimedRobot {
     private AutoModeRunner autoRunner_;
     private SubsystemManager manager;
     private Drive drive_;
+    private Intake intake_;
 
    // private Compressor compressor_;
     private AutoMode currentAutoMode_;
@@ -97,6 +98,7 @@ public class Robot extends TimedRobot {
 
 
         drive_ = Drive.getInstance();
+        intake_ = Intake.getInstance();
        // compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
