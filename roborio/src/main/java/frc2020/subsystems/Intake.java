@@ -57,6 +57,9 @@ public class Intake extends SingleMotorSubsystem {
 
     public void toggleIntake() {
         wantDeploy_ = !wantDeploy_;
+        if (!wantDeploy_) {
+            super.stop();
+        }
     }
 
     /** 
@@ -90,12 +93,10 @@ public class Intake extends SingleMotorSubsystem {
         logger_.logInfo("Intaking", logName);
         runIntake(false);
         Timer.delay(1.5);
-        super.stop();
 
         logger_.logInfo("Outtaking", logName);
         runIntake(true);
         Timer.delay(1.5);
-        super.stop();
 
         logger_.logInfo("Stowing intake", logName);
         stowIntake();
