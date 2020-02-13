@@ -192,6 +192,13 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         }
     }
 
+    @Override
+    public synchronized boolean runPassiveTests(){
+        //TODO: Add temp checks
+        boolean hasPassedTests = true;
+        return hasPassedTests;
+    }
+
     public synchronized double getPosition() {
         return io_.position;
     }
@@ -244,6 +251,11 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         if (state_ != ControlState.POSITION_PID) {
             state_ = ControlState.POSITION_PID;
         }
+    }
+
+    @Override
+    public synchronized void stop() {
+        setOpenLoop(0.0);
     }
 
     protected abstract boolean atReverseLimit();
