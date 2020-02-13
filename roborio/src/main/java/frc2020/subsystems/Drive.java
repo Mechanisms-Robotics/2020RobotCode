@@ -287,7 +287,7 @@ public class Drive implements Subsystem {
     /**
      * Handles the periodic function for the drive train
      */
-    private final Loop DriveLoop = new Loop() {
+    private final Loop driveLoop = new Loop() {
 
         DriveState last_state = null;
 
@@ -319,7 +319,7 @@ public class Drive implements Subsystem {
                     case Velocity:
                         break;
                     default:
-                        logger_.logWarning("Invalid drive state_: " + state_, logName);
+                        logger_.logWarning("Invalid drive state_: " + state_.toString(), logName);
                 }
             }
         }
@@ -328,7 +328,9 @@ public class Drive implements Subsystem {
          * Handles any tasks for the drive train on disabling
          */
         public void end() {
-            openLoop(new DriveSignal(0, 0));
+            synchronized (Drive.this) {
+                openLoop(new DriveSignal(0, 0));
+            }
         }
     };
 
@@ -385,7 +387,7 @@ public class Drive implements Subsystem {
     */
     @Override
     public void registerLoops(ILooper in){
-        in.register(DriveLoop);
+        in.register(driveLoop);
     }
 
     /**

@@ -5,10 +5,12 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
+import frc2020.loops.Loop;
 import frc2020.util.Logger;
+import frc2020.util.WheelWatcher;
+import frc2020.util.WheelWatcher.WheelColor;
 
 public class ControlPanel extends SingleMotorSubsystem {
-    //TODO: Implement color sensor
     private static ControlPanel instance_;
 
     //TODO: change on actual robot
@@ -18,7 +20,9 @@ public class ControlPanel extends SingleMotorSubsystem {
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
     private final static double FORWARD_RPM = 3000;
     private final static double REVERSE_RPM = -3000;
+    private final static double GOAL_EDGE_COUNT = 3.0*8.0; // Three rotations | Eight edge counts per rotation
 
+    private WheelWatcher wheelWatcher_ = new WheelWatcher();
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
@@ -38,6 +42,14 @@ public class ControlPanel extends SingleMotorSubsystem {
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
+
+    private ControlPanelState state_ = ControlPanelState.IDLE;
+
+    private WheelColor goalColor_ = WheelColor.UNKNOWN;
+
+    private static enum ControlPanelState {
+        IDLE, POSITION, ROTATION
+    };
 
     public static ControlPanel getInstance() {
         return instance_ == null ? instance_ = new ControlPanel(DEFAULT_CONSTANTS) : instance_;
@@ -99,12 +111,90 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     @Override
     public void zeroSensors() {
-        //nothing to do
+        wheelWatcher_.reset();
     }
 
     @Override
     public void registerLoops(ILooper enabledLooper) {
-        // TODO: determine if needed
+        enabledLooper.register(controlPanelLoop);
+    }
+
+    private final Loop controlPanelLoop = new Loop() {
+
+        ControlPanelState lastState_ = ControlPanelState.IDLE;
+
+        public void init() {
+            state_ = ControlPanelState.IDLE;
+            wheelWatcher_.init();
+        }
+
+        public void run() {
+            synchronized (ControlPanel.this) {
+                if (state_ != lastState_) {
+                    logger_.logInfo("Control Panel state changed to "+state_.toString(), logName);
+
+                    lastState_ = state_;
+                }
+
+                switch(state_) {
+                    case IDLE:
+                        break;
+                    case POSITION:
+                        wheelWatcher_.update();
+
+                        if (goalColor_ == WheelColor.UNKNOWN) {
+                            state_ = ControlPanelState.IDLE;
+                            logger_.logWarning("Control Panel unknown goal color", logName);
+                            break;
+                        }
+
+                        WheelColor colorCompliment = wheelWatcher_.getColorAt90(goalColor_);
+
+                        if (colorCompliment == goalColor_) {
+                            state_ = ControlPanelState.IDLE;
+                            stop();
+                            break;
+                        }
+
+                        runPanelWheel(true);
+                        break;
+                    case ROTATION:
+                        wheelWatcher_.update();
+
+                        if (wheelWatcher_.getEdgeCount() == GOAL_EDGE_COUNT) {
+                            state_ = ControlPanelState.IDLE;
+                            stop();
+                            break;
+                        }
+
+                        runPanelWheel(true);
+                        break;
+                    default:
+                        logger_.logWarning("Control Panel unexpected state "+state_.toString(), logName);
+                        break;
+                }
+            }
+        }
+
+        public void end() {
+            synchronized (ControlPanel.this) {
+                state_ = ControlPanelState.IDLE;
+                stop();
+            }
+        }
+
+    };
+
+
+    public synchronized void startPositionControl(WheelColor color) {
+        wheelWatcher_.reset();
+        goalColor_ = color;
+        state_ = ControlPanelState.POSITION;
+    }
+
+    public synchronized void startRotationControl() {
+        wheelWatcher_.reset();
+        state_ = ControlPanelState.ROTATION;
     }
 
     @Override
