@@ -6,11 +6,8 @@ import java.util.Comparator;
 import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.subsystems.Limelight.LimelightRawData;
-import frc2020.robot.Constants;
 import frc2020.util.Logger;
 import frc2020.util.Util;
 
@@ -36,11 +33,32 @@ public class TargetTracker {
     private final static double MIN_INITIAL_CONFIDENCE = 0.3;
     private final static double MIN_CONFIDENCE = 0.3;
     private final static double DEPRECIATION_FACTOR = 0.9;
-    private final static int MAX_READINGS_SIZE = 200;
+
+    // Since readings will be called every 10 ms or so, we should never have more
+    // than a second or two of readings.
+    private final static int MAX_READINGS_SIZE = 150;
+
+    private final static double TARGET_HEIGHT = 2.496; // meters TODO: join this with CAMERA_DH to avoid duplication?
+    private static final double LIMELIGHT_RES_X = 320.0;
+    private static final double LIMELIGHT_RES_Y = 240.0;
+
+    private static final double LIMELIGHT_HORIZONTAL_FOV = 59.6;
+    public static final double LIMELIGHT_VERTICAL_FOV = 49.7;
+
+    // Defines the plane 1.0 unit away from the camera
+    private static final double VERTICAL_PLANE_HEIGHT = 2.0 *
+            Math.tan(Math.toRadians(LIMELIGHT_VERTICAL_FOV / 2.0));
+    private static final double VERTICAL_PLANE_WIDTH = 2.0 *
+            Math.tan(Math.toRadians(LIMELIGHT_HORIZONTAL_FOV / 2.0));
 
     private static Logger logger_ = Logger.getInstance();
     private final static String logName = "Limelight";
 
+    private final boolean azimuthOnly_;
+
+    /**
+     * This internal class contains all of the most current readings from the limelight
+     */
     public static class Reading {
         public double azimuth; // degrees (0 is ahead, positive to right)
         public double elevation; // degrees (0 is ahead, positive is up)
@@ -59,8 +77,11 @@ public class TargetTracker {
         }
     }
 
+    /**
+     * Useful class for getting range with error calculated into it
+     */
     public static class RangeAndError {
-        public double error;//error is standard deviation
+        public double error; //error is standard deviation
         public double range; 
     }
 
@@ -68,8 +89,9 @@ public class TargetTracker {
     public List<Reading> readings_ = new ArrayList<Reading>();
     private Limelight limelight_;
 
-    public TargetTracker(Limelight limelight) {
+    public TargetTracker(Limelight limelight, boolean azimuthOnly) {
         limelight_ = limelight;
+        this.azimuthOnly_ = azimuthOnly;
     }
 
     /**
@@ -87,24 +109,35 @@ public class TargetTracker {
 
         LimelightRawData rawData = limelight_.getRawData();
 
-        // Perform an initial confidence pass on the raw data
+        /**
+         * For the lower limelight we only care about getting the azimuth to the ball and not
+         * any elevation, range, etc. because we just want to steer ourselves in the direction
+         * of the ball
+         */
+        Reading reading;
+        if (azimuthOnly_) {
+            reading = new Reading(rawData.xOffset, 0.0, 0.0, 0.0, 0.0, rawData.hasTarget ? 1.0 : 0.0);
+        } else {
+            // Perform an initial confidence pass on the raw data
 
-        double initialConfidence = determineConfidenceInRawData(rawData);
+            double initialConfidence = determineConfidenceInRawData(rawData);
 
-        if (initialConfidence < MIN_INITIAL_CONFIDENCE) {
-            return; // no reason to add this reading or to continue
+            if (initialConfidence < MIN_INITIAL_CONFIDENCE) {
+                return; // no reason to add this reading or to continue
+            }
+
+            // If the raw data looks okay, calculate the range and bearing
+
+            reading = determineAzimuthElevationAndRange(rawData);
+
+            // Now determine the final confidence
+
+            /* TODO: determine final confidence based on initial confidence and anything
+             * else that makes sense.  Remember to make sure to constrain to 0 to 1.
+             */
+
+            reading.confidence = initialConfidence;  // TODO
         }
-
-        // If the raw data looks okay, calculate the range and bearing
-
-        Reading reading = determineAzimuthElevationAndRange(rawData);
-
-        // Now determine the final confidence
-
-        // TODO: determine final confidence based on initial confidence and anything
-        // else that makes sense.  Remember to make sure to constrain to 0 to 1
-
-        reading.confidence = initialConfidence;  // TODO
 
         // Add the reading to the array, if it's good
 
@@ -112,10 +145,10 @@ public class TargetTracker {
             return; // no reason to add this reading
         }
 
-        if (readings_.size() <= MAX_READINGS_SIZE){
+        if (readings_.size() <= MAX_READINGS_SIZE) {
             readings_.add(reading);
         } else {
-            logger_.logError("Readings array reached maximum size!", logName);
+            logger_.logWarning("Readings array reached maximum size!", logName);
         }
     }
 
@@ -136,14 +169,15 @@ public class TargetTracker {
         double confidenceSum = 0.0;
 
         // Perform weighted average readings
-        for (int i = 0; i < readings_.size(); i++){
-            averageReading.azimuth += readings_.get(i).confidence*readings_.get(i).azimuth;
-            averageReading.elevation += readings_.get(i).confidence*readings_.get(i).elevation;
-            averageReading.range += readings_.get(i).confidence*readings_.get(i).range;
-            averageReading.rangeArea += readings_.get(i).confidence*readings_.get(i).rangeArea;
-            averageReading.rangeCorner += readings_.get(i).confidence*readings_.get(i).rangeCorner;
-            averageReading.confidence += readings_.get(i).confidence*readings_.get(i).confidence;
-            confidenceSum += readings_.get(i).confidence;
+        for (int i = 0; i < readings_.size(); i++) {
+            Reading reading = readings_.get(i);
+            averageReading.azimuth += reading.confidence*reading.azimuth;
+            averageReading.elevation += reading.confidence*reading.elevation;
+            averageReading.range += reading.confidence*reading.range;
+            averageReading.rangeArea += reading.confidence*reading.rangeArea;
+            averageReading.rangeCorner += reading.confidence*reading.rangeCorner;
+            averageReading.confidence += reading.confidence*reading.confidence;
+            confidenceSum += reading.confidence;
         }
 
         averageReading.azimuth /= confidenceSum;
@@ -161,14 +195,13 @@ public class TargetTracker {
      * out anything that falls below the minimum confidence interval.
      */
     private void depreciateConfidences() {
-
         // Loop through every reading
         for (int i = 0; i < readings_.size(); i++) {
 
             // Depreciate the reading by the Depreciation Factor
             readings_.get(i).confidence *= DEPRECIATION_FACTOR;
 
-            //Remove the reading if the confidence is too low
+            // Remove the reading if the confidence is too low
             if (readings_.get(i).confidence < MIN_CONFIDENCE) {
                 readings_.remove(i);
                 i--;
@@ -221,39 +254,31 @@ public class TargetTracker {
     }
 
     /**
-     * Given raw data from the Limelight, calculate the range and bearing.  The
-     * confidence on the returned reading is zero, and should be reset before use.
+     * Given raw data from the Limelight, calculate the range and bearing.
      *
      * @param rawData Limelight raw readings
-     * @return Returns a ZERO CONFIDENCE range and bearing
+     * @return The calculated reading
      */
     private Reading determineAzimuthElevationAndRange(LimelightRawData rawData)
     {
-        // TODO: Modify this function to take whatever data we need to determine the
-        // azimuth, elevation and range and calculate it.  Return a ZERO CONFIDENCE
-        // reading.
-
-        // Calcutae conner based target
-        // getTopConers()
-        // getConerBasdeTarget()
-
         List<Translation2d> corners = getTopCorners(rawData);
         if (corners == null) {
             return new Reading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
         Rotation2d[] cornerBasedTarget = getCornerBasedTarget(corners);
-        double confidence = 0.0;
+
         RangeAndError rangeArea = getRangeFromArea(rawData);
         RangeAndError rangeCorner = getRangeUsingCorners(cornerBasedTarget);
+        RangeAndError range = getRange(rangeArea, rangeCorner);
+
+        // TODO: We should use error to return a confidence (in range 0.0 to 1.0)
         
         return new Reading(cornerBasedTarget[0].getDegrees(),
                            cornerBasedTarget[1].getDegrees(),
-                           getRange(rangeArea, rangeCorner).range,
+                           range.range,
                            rangeArea.range,
                            rangeCorner.range,
-                           confidence);
-
-        // TODO: we should use the error from getRange above in our eventual confidence
+                           0.0);
     }
 
     /**
@@ -292,7 +317,7 @@ public class TargetTracker {
         Rotation2d angle = target[1];
         angle = angle.rotateBy(limelight_.getHorizontalPlaneToLens());
         
-        double differental_height = Constants.TARGET_HEIGHT - limelight_.getLensHeight();
+        double differental_height = TARGET_HEIGHT - limelight_.getLensHeight();
         double angleTan = angle.getTan();
 
         if(angleTan == 0) {
@@ -368,21 +393,21 @@ public class TargetTracker {
     }
     
     /**
-     * @param pixelCoord taken in pixels
+     * Converts pixels to angles using math on limelight page
      */
     private static Rotation2d[] pixelToAngle(Translation2d pixelCoord) {
         // Convert to angle
         double x_pixels = pixelCoord.getX();
         double y_pixels = pixelCoord.getY();
 
-        double nx = -((x_pixels - (Constants.LIMELIGHT_RES_X / 2.0)) / 
-            (Constants.LIMELIGHT_RES_X / 2.0));
-        double ny = (y_pixels - (Constants.LIMELIGHT_RES_Y / 2.0)) / 
-            (Constants.LIMELIGHT_RES_Y / 2.0);
+        double nx = -((x_pixels - (LIMELIGHT_RES_X / 2.0)) /
+            (LIMELIGHT_RES_X / 2.0));
+        double ny = (y_pixels - (LIMELIGHT_RES_Y / 2.0)) /
+            (LIMELIGHT_RES_Y / 2.0);
         
 
-        double x = Constants.VERTICAL_PLANE_WIDTH / 2 * nx;
-        double y = Constants.VERTICAL_PLANE_HEIGHT / 2 * ny;
+        double x = VERTICAL_PLANE_WIDTH / 2 * nx;
+        double y = VERTICAL_PLANE_HEIGHT / 2 * ny;
 
         return new Rotation2d[] {new Rotation2d(Math.atan2(1.0, x) - (Math.PI/2.0)),
             new Rotation2d(Math.atan2(1.0, y) - (Math.PI/2.0))};
@@ -397,183 +422,4 @@ public class TargetTracker {
         Translation2d centerPoint = Util.interpolateTranslation2d(topCorners.get(0), topCorners.get(1), 0.5);
         return pixelToAngle(centerPoint);
     }
-
 }
-
-//import edu.wpi.first.wpilibj.Timer;
-//        import edu.wpi.first.wpilibj.geometry.*;
-//
-//        import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-//        import frc2020.loops.ILooper;
-//        import frc2020.loops.Loop;
-//        import frc2020.robot.Constants;
-//        import frc2020.util.Util;
-//        import frc2020.util.vision.GoalTracker;
-//        import frc2020.util.vision.TargetInfo;
-
-
-//public class TargetTracker implements Subsystem {
-//
-//    private List<Translation2d> cameraToVisionTarget_ = new ArrayList<>();
-//    private GoalTracker goalTracker_ = new GoalTracker();
-//
-//   	// TODO: Replace suse of this with getting this from the turret when the turret is done
-//	private static final Pose2d TRANSFORM_TO_TURRET = new Pose2d(0, 0, Rotation2d.fromDegrees(180.0));
-//
-//	private Limelight limelight_;
-//	public TargetTracker(Limelight limelight) {
-//		limelight_ = limelight;
-//	}
-//
-//	/**
-//	 * Return the distance to a target seen by a limelight
-//	 * @param target The target to calculate the distance too
-//	 * @param source The limelight that was used to find the target
-//	 * @return a translation 2d that represents the placement of the target relative to the limelight
-//	 * @see TargetInfo
-//	 * @see Limelight
-//	 * @see Translation2d
-//	 */
-//    private static Translation2d getCameraToVisionTargetPose(TargetInfo target, Limelight source) {
-//
-//        // Compensate for camera pitch
-//        Translation2d xz_plane_translation = new Translation2d(target.getX(), target.getZ())
-//            .rotateBy(source.getHorizontalPlaneToLens());
-//        double x = xz_plane_translation.getX();
-//        double y = target.getY();
-//        double z = xz_plane_translation.getY();
-//        Rotation2d angle = new Rotation2d(target.getX(), target.getZ());
-//
-//        // Find the intersection with the goal
-//        double differential_height =  Constants.TARGET_HEIGHT - source.getLensHeight();
-//        double test_distance = differential_height/(Math.tan(angle.getRadians() + Math.toRadians(15.0)));
-//		SmartDashboard.putNumber("Target Distance", test_distance);
-//        if (z > 0.0) {
-//			double scaling = differential_height / z;
-//			double distance = Math.hypot(x, y) * scaling;
-//			//Rotation2d angle = new Rotation2d(x, y);
-//			return new Translation2d(distance * angle.getCos(), distance * angle.getSin());
-//		}
-//		return null;
-//    }
-//
-//    private static void updateGoalTracker(double timestamp, List<Translation2d> cameraToVisionTargetPoses,
-//										  GoalTracker tracker,
-//										  Limelight source) {
-//    	if (cameraToVisionTargetPoses.size() != 2 ||
-//				cameraToVisionTargetPoses.get(0) == null ||
-//						cameraToVisionTargetPoses.get(1) == null) return;
-//
-//    	// Get the center of the target from the two corners
-//		Translation2d target_center = Util.interpolateTranslation2d(cameraToVisionTargetPoses.get(0),
-//				cameraToVisionTargetPoses.get(1), 0.5);
-//		Transform2d transform = new Transform2d(
-//				target_center,
-//				new Rotation2d()
-//		);
-//		Pose2d fieldToVisionTarget = TRANSFORM_TO_TURRET.transformBy(source.getTurretToLens()).
-//				transformBy(transform);
-//		tracker.update(timestamp, List.of(new Pose2d(fieldToVisionTarget.getTranslation(), new Rotation2d())));
-//	}
-//
-//	private final Loop trackingLoop = new Loop() {
-//
-//    	public void init() {
-//    		synchronized (this) {
-//    			goalTracker_.reset();
-//    			cameraToVisionTarget_.clear();
-//			}
-//		}
-//
-//		public void run() {
-//    		synchronized (this) {
-//				double timestamp = Timer.getFPGATimestamp() - limelight_.getLatency();
-//				List<TargetInfo> targets = limelight_.getTarget();
-//
-//				cameraToVisionTarget_.clear();
-//				if (targets == null || targets.isEmpty()) {
-//					goalTracker_.update(timestamp, new ArrayList<>());
-//					return;
-//				}
-//
-//				for (TargetInfo target : targets) {
-//					cameraToVisionTarget_.add(getCameraToVisionTargetPose(target, limelight_));
-//				}
-//
-//				updateGoalTracker(timestamp, cameraToVisionTarget_, goalTracker_, limelight_);
-//			}
-//		}
-//
-//		public void end() {
-//			goalTracker_.reset();
-//			cameraToVisionTarget_.clear();
-//		}
-//	};
-//
-//	@Override
-//	public void writePeriodicOutputs() {
-//		// Nothing to do here
-//	}
-//
-//	public synchronized Pose2d getFieldToVisionTarget() {
-//		if (!goalTracker_.hasTracks()) {
-//			return null;
-//		}
-//		Pose2d fieldToTarget = goalTracker_.getTracks().get(0).field_to_target;
-//		return new Pose2d(fieldToTarget.getTranslation(),
-//				Rotation2d.fromDegrees(Constants.TARGET_NORMAL));
-//	}
-//
-//	public synchronized Pose2d getRobotToVisionTarget() {
-//		Pose2d fieldToVisionTarget = getFieldToVisionTarget();
-//		if (fieldToVisionTarget == null) {
-//			return null;
-//		}
-//		Transform2d transform = Util.poseToTransform(fieldToVisionTarget);
-//		Pose2d robotToField = Drive.getInstance().getOdometryPose(Timer.getFPGATimestamp() - limelight_.getLatency());
-//		return Util.invertPose2d(robotToField).transformBy(transform);
-//	}
-//
-//	@Override
-//	public void readPeriodicInputs() {
-//
-//	}
-//
-//	@Override
-//	public boolean checkSystem() {
-//		// TODO Auto-generated method stub
-//		return false;
-//	}
-//
-//	@Override
-//	public void zeroSensors() {
-//		goalTracker_.reset();
-//		cameraToVisionTarget_.clear();
-//	}
-//
-//	@Override
-//	public void stop() {
-//		// TODO Auto-generated method stub
-//
-//	}
-//
-//	@Override
-//	public void registerLoops(ILooper enabledLooper) {
-//		enabledLooper.register(trackingLoop);
-//	}
-//
-//	@Override
-//	public void outputTelemetry() {
-//		Pose2d target_pose = getRobotToVisionTarget();
-//		if (target_pose != null) {
-//			SmartDashboard.putNumber("Target X", target_pose.getTranslation().getX());
-//			SmartDashboard.putNumber("Target Y", target_pose.getTranslation().getY());
-//			SmartDashboard.putNumber("Target Rotation", target_pose.getRotation().getDegrees());
-//		} else {
-//			SmartDashboard.putNumber("Target X", 0.0);
-//			SmartDashboard.putNumber("Target Y", 0.0);
-//			SmartDashboard.putNumber("Target Rotation", 0.0);
-//		}
-//	}
-//
-//}

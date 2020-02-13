@@ -1,5 +1,6 @@
 package frc2020.subsystems;
 
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 import frc2020.robot.Robot;
 import frc2020.util.*;
 import frc2020.util.drivers.NavX;
@@ -31,7 +32,7 @@ import edu.wpi.first.wpilibj.controller.RamseteController;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 
 /**
- * The base drive train class for the 2019 robot. It contains all functions
+ * The base drive train class for the 2020 robot. It contains all functions
  * required to move for both autonomous and teleop periods of the game.
  * Path following logic inspired by 254
  *
@@ -121,7 +122,7 @@ public class Drive implements Subsystem {
     private SimpleMotorFeedforward feedforward_;
     private boolean doneWithTrajectory_;
 
-    private boolean IS_ROBOT = false;
+    private boolean IS_ROBOT = true;
 
     /**
      * The default constructor starts the drive train and sets it up to be in
@@ -221,6 +222,12 @@ public class Drive implements Subsystem {
         }
     }
 
+    /**
+     * Configures spark maxes by assigning port number and motor type, restores the factory
+     * default settings, sets inversions because one motor is usually flipped, sets ramp
+     * rates for ramping up NEOs, sets the frame period and frame rate sent, and velocity
+     * PIDs
+     */
     private void configSparkMaxs() {
         leftMaster_ = new CANSparkMax(Constants.LEFT_MASTER_PORT, MotorType.kBrushless);
         leftSlave_ = new CANSparkMax(Constants.LEFT_SLAVE_PORT, MotorType.kBrushless);
@@ -263,10 +270,16 @@ public class Drive implements Subsystem {
         rightVelocityPID_.setFF(Constants.VELOCITY_HIGH_GEAR_KF, VELOCITY_PID);
     }
 
+    /**
+     * getter
+     */
     public DifferentialDriveKinematics getKinematics() {
         return kinematics_;
     }
 
+    /**
+     * getter
+     */
     public SimpleMotorFeedforward getFeedforward() {
         return feedforward_;
     }
@@ -319,6 +332,10 @@ public class Drive implements Subsystem {
         }
     };
 
+    /**
+     * In order to calculate how to run our trajectory, we constantly use odometry values
+     * to update how we should proceed to our trajectory endpoint
+     */
     private void updateTrajectoryFollower() {
         if (!doneWithTrajectory_) {
 
@@ -447,7 +464,7 @@ public class Drive implements Subsystem {
         io_.right_feedforward = feedforward_.calculate(signal.getRight());
     }
     /**
-     * Drive the robot atomosly on a pre-defined trajectory
+     * Drive the robot autonomously on a pre-defined trajectory
      * @param trajectory The trajectory to follow
      */
     public synchronized void driveTrajectory(Trajectory trajectory) {
@@ -463,6 +480,15 @@ public class Drive implements Subsystem {
      */
     public boolean isDoneWithTrajectory() {
         return doneWithTrajectory_;
+    }
+
+    public synchronized void autoSteer(double targetBearing, double baseDutyCycle) {
+        double kP = 0.004;
+        double adjustedDutyCycle = kP * targetBearing;
+        baseDutyCycle = Util.limit(baseDutyCycle, 0.75);
+        DriveSignal autoSteerSignal = new DriveSignal(baseDutyCycle + adjustedDutyCycle,
+                                                      baseDutyCycle - adjustedDutyCycle, true);
+        openLoop(autoSteerSignal);
     }
 
     /**
@@ -705,7 +731,8 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Handles reading all of the data from encoders/CANTalons periodically
+    * Handles reading all of the data from encoders/CANTalons periodically. Also
+    * adds these readings to the CSVWriter
     */
     public synchronized void readPeriodicInputs() {
         if (Robot.isReal() && IS_ROBOT) {
@@ -751,6 +778,12 @@ public class Drive implements Subsystem {
         }
     }
 
+    /**
+     * Important variables that are constantly updated, retrieved, set
+     * displayed, and more. These variables all are tracked in one way
+     * or another and we use these to adjust our speeds, trajectories,
+     * loads, etc.
+     */
     public static class PeriodicIO {
         // INPUTS
         double left_distance;
