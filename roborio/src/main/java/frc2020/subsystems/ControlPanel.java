@@ -7,116 +7,109 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 import frc2020.util.Logger;
 
-public class Intake extends SingleMotorSubsystem {
+public class ControlPanel extends SingleMotorSubsystem {
+    //TODO: Implement color sensor
+    private static ControlPanel instance_;
 
-    private static Intake instance_;
-
-    private final static int FLIPPER_FORWARD_PORT = 0; //TODO: Change for actual robot ports
+    //TODO: change on actual robot
+    private final static int FLIPPER_FORWARD_PORT = 0; 
     private final static int FLIPPER_REVERSE_PORT = 1;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
-    private final static double INTAKE_RPM = 3200;
-    private final static double REVERSE_RPM = -3200;
+    private final static double FORWARD_RPM = 3000;
+    private final static double REVERSE_RPM = -3000;
+
+
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
+
+    private Logger logger_ = Logger.getInstance();
+    private String logName;
+
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 3;
+        masterConstants.id_ = 4; //TODO: change on actual robot
         masterConstants.invertMotor_ = false;
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
-        DEFAULT_CONSTANTS.name_ = "Intake";
+        DEFAULT_CONSTANTS.name_ = "ControlPanel";
     }
 
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
 
-    private Logger logger_ = Logger.getInstance();
-    private String logName;
-
-    public static Intake getInstance() {
-        return instance_ == null ? instance_ = new Intake(DEFAULT_CONSTANTS) : instance_;
+    public static ControlPanel getInstance() {
+        return instance_ == null ? instance_ = new ControlPanel(DEFAULT_CONSTANTS) : instance_;
     }
 
-    protected Intake(SingleMotorSubsystemConstants constants) {
+    protected ControlPanel(SingleMotorSubsystemConstants constants) {
         super(constants);
-
+        
         flipper_ = new DoubleSolenoid(FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
         logName = constants.name_;
     }
 
-    public void deployIntake() {
+    public void deployPanelArm() {
         wantDeploy_ = true;
     }
 
-    public void stowIntake() {
+    public void stowPanelArm() {
         super.stop();
         wantDeploy_ = false;
     }
 
-    public void toggleIntake() {
+    public void togglePanelArm() {
         wantDeploy_ = !wantDeploy_;
         if (!wantDeploy_) {
             super.stop();
         }
     }
 
-    /** 
-     * Runs the intake in the given direction
-     * 
-     * @param reverse true if the intake is spinning such that 
-     * we are intaking from above or outtaking from below
-     */
-    public void runIntake(boolean reverse) {
+    public void runPanelWheel(boolean reverse) {
         if (reverse) {
             super.setVelocity(REVERSE_RPM);
-        } else {
-            super.setVelocity(INTAKE_RPM);
+        }
+        else {
+            super.setVelocity(FORWARD_RPM);
         }
     }
 
-    /** 
-     * Runs the active tests for the intake.
-     * Deploys the intake, runs in both directions, then stows.
-     * 
-     * @return true always. This is a visual test
-     */
     @Override
     public boolean runActiveTests() {
-        logger_.logInfo("Running intake active tests", logName);
+        logger_.logInfo("Running panel arm active tests", logName);
 
-        logger_.logInfo("Deploying intake", logName);
-        deployIntake();
-        Timer.delay(1);
+        logger_.logInfo("Deploying panel arm", logName);
+        deployPanelArm();
+        Timer.delay(1.5);
+
+        logger_.logInfo("Spinning panel wheel in forward direction", logName);
+        runPanelWheel(false);
+        Timer.delay(1.5);
         
-        logger_.logInfo("Intaking", logName);
-        runIntake(false);
+        logger_.logInfo("Spinning panel wheel in reverse direction", logName);
+        runPanelWheel(true);
         Timer.delay(1.5);
-
-        logger_.logInfo("Outtaking", logName);
-        runIntake(true);
-        Timer.delay(1.5);
-
-        logger_.logInfo("Stowing intake", logName);
-        stowIntake();
+        
+        logger_.logInfo("Stowing panel arm", logName);
+        stowPanelArm();
 
         return true;
     }
 
     @Override
     public void zeroSensors() {
-        // No sensors to implement
+        //nothing to do
     }
 
     @Override
     public void registerLoops(ILooper enabledLooper) {
-        // No loops to register
+        // TODO: determine if needed
     }
 
     @Override
     public void outputTelemetry() {
-        SmartDashboard.putBoolean("Intake Deployed", isDeployed_);
+        SmartDashboard.putBoolean("Panel Arm deployed", isDeployed_);
     }
 
     @Override
