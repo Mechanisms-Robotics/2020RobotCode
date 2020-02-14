@@ -115,6 +115,22 @@ public class Turret extends SingleMotorSubsystem {
         return getRotation().rotateBy(TURRET_TO_ROBOT);
     }
 
+    public synchronized void setAbsolutePosition(Rotation2d position) {
+
+        // If the demand is outside the zone of no ambiguity then we can just go there
+        if (position.getDegrees() < LEFT_LIMIT_POS_POSITIVE && position.getDegrees() > RIGHT_LIMIT_POS_NEGATIVE) {
+            setSmartPosition(position.getDegrees());
+            return;
+        }
+
+        // If we we can get to the setpoint by going either counter-clockwise or clockwise
+        // we check to see what is the closest way to get there and do that.
+        // This means that if we are at a positive position then it's faster
+        // to turn counter-clockwise. Otherwise turn clockwise.
+        double delta = position.minus(getRotation()).getDegrees();
+        setSmartPosition(getPosition() + delta);
+    }
+
     @Override
     public boolean runActiveTests() {
         if(!hasBeenZeroed) {
