@@ -17,7 +17,6 @@ public class Feeder extends SingleMotorSubsystem {
     private DigitalInput shooterBreakBeam_;
 
     private Logger logger_ = Logger.getInstance();
-    private String logName;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
@@ -38,8 +37,6 @@ public class Feeder extends SingleMotorSubsystem {
         super(constants);
         intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM);
         shooterBreakBeam_ = new DigitalInput(SHOOTER_BREAK_BEAM);
-
-        logName = constants.name_;
     }
 
     //TODO: Check what boolean is when broken
@@ -55,14 +52,14 @@ public class Feeder extends SingleMotorSubsystem {
     @Override
     public boolean runActiveTests() {
         boolean hasPassedTests = true;
-        logger_.logInfo("Starting feeder active tests", logName);
+        logger_.logInfo("Starting feeder active tests", super.logName_);
         if(getIntakeBreakBeamBroken()) {
             hasPassedTests = false;
-            logger_.logWarning("Intake break beams are broken", logName);
+            logger_.logWarning("Intake break beams are broken", super.logName_);
         }
         if(getShooterBreakBeamBroken()) {
             hasPassedTests = false;
-            logger_.logWarning("Shooter break beams are broken", logName);
+            logger_.logWarning("Shooter break beams are broken", super.logName_);
         }
 
         logger_.logInfo("Running feeder intake");

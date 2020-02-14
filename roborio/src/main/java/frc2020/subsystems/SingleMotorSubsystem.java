@@ -79,6 +79,8 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     protected final int forwardSoftLimitTicks_;
     protected final int reverseSoftLimitTicks_;
 
+    protected final String logName_;
+
     // TODO: Add error handling where needed
     protected SingleMotorSubsystem(final SingleMotorSubsystemConstants constants) {
         constants_ = constants;
@@ -138,6 +140,8 @@ public abstract class SingleMotorSubsystem implements Subsystem {
             sparkSlaves_[i].follow(sparkMaster_);
             sparkSlaves_[i].setInverted(constants_.slaveConstants_[i].invertMotor_);
         }
+
+        logName_ = constants_.name_;
     }
 
     public static class PeriodicIO {
