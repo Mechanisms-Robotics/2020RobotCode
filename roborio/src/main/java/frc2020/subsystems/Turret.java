@@ -1,6 +1,5 @@
 package frc2020.subsystems;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.loops.ILooper;
@@ -24,12 +23,10 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.homePosition_ = 0.0; //degrees
         DEFAULT_CONSTANTS.name_ = "Turret";
+        DEFAULT_CONSTANTS.enableHardLimits_ = false;
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
-
-    private boolean leftLimit = false;
-    private boolean rightLimit = false;
 
     private Logger logger_ = Logger.getInstance();
 
@@ -39,14 +36,14 @@ public class Turret extends SingleMotorSubsystem {
 
     @Override
     protected boolean handleZeroing() {
-        if (leftLimit) {
+        if (atLeftLimit()) {
             if (getPosition() >= 0) {
                 encoder.setPosition(LEFT_LIMIT_POS_POSITIVE);
             } else {
                 encoder.setPosition(LEFT_LIMIT_POS_NEGATIVE);
             }
             return true;
-        } else if (rightLimit) {
+        } else if (atRightLimit()) {
             if (getPosition() >= 0) {
                 encoder.setPosition(RIGHT_LIMIT_POS_POSITIVE);
             } else {
@@ -57,18 +54,12 @@ public class Turret extends SingleMotorSubsystem {
         return false;
     }
 
-    @Override
-    public synchronized void readPeriodicInputs() {
-        super.readPeriodicInputs();
-        // TODO: Set left and right limit
-    }
-
     public synchronized boolean atLeftLimit() {
-        return leftLimit;
+        return io_.reverseLimit;
     }
 
     public synchronized boolean atRightLimit() {
-        return rightLimit;
+        return io_.forwardLimit;
     }
 
     // TODO: Make sure sensor phase is correct (clockwise negative)
@@ -77,11 +68,11 @@ public class Turret extends SingleMotorSubsystem {
         // This is a safety. If the robot starts with the turret pointed in the
         // wrong direction, this will prevent us from ripping out the chain.
         if (!hasBeenZeroed) {
-            return io_.velocity <= 0.0 && leftLimit;
+            return io_.velocity <= 0.0 && atLeftLimit();
         }
 
         // If were are here, the robot has been zeroed
-        return encoder.getPosition() <= 0 && leftLimit;
+        return encoder.getPosition() <= 0 && atLeftLimit();
     }
 
     // TODO: Make sure sensor phase is correct (clockwise negative)
@@ -90,11 +81,11 @@ public class Turret extends SingleMotorSubsystem {
         // This is a safety. If the robot starts with the turret pointed in the
         // wrong direction, this will prevent us from ripping out the chain.
         if (!hasBeenZeroed) {
-            return io_.velocity >= 0.0 && rightLimit;
+            return io_.velocity >= 0.0 && atRightLimit();
         }
 
         // If were are here, the robot has been zeroed
-        return encoder.getPosition() >= 0 && rightLimit;
+        return encoder.getPosition() >= 0 && atRightLimit();
     }
 
     /**
@@ -115,20 +106,24 @@ public class Turret extends SingleMotorSubsystem {
         return getRotation().rotateBy(TURRET_TO_ROBOT);
     }
 
+    /**
+     * Sets the position of the turret in turret coordinates.
+     * @param position The desired position of the turret in turret coordinates
+     */
     public synchronized void setAbsolutePosition(Rotation2d position) {
 
+        // TODO: Talk about this function when the turret is't zeroed.
         // If the demand is outside the zone of no ambiguity then we can just go there
-        if (position.getDegrees() < LEFT_LIMIT_POS_POSITIVE && position.getDegrees() > RIGHT_LIMIT_POS_NEGATIVE) {
+        if (position.getDegrees() <= LEFT_LIMIT_POS_POSITIVE && position.getDegrees() >= RIGHT_LIMIT_POS_NEGATIVE) {
             setSmartPosition(position.getDegrees());
             return;
         }
 
-        // If we we can get to the setpoint by going either counter-clockwise or clockwise
-        // we check to see what is the closest way to get there and do that.
-        // This means that if we are at a positive position then it's faster
-        // to turn counter-clockwise. Otherwise turn clockwise.
-        double delta = position.minus(getRotation()).getDegrees();
-        setSmartPosition(getPosition() + delta);
+        // If the demand is inside the zone of ambiguity then we calculate
+        // the shortest distance the turret needs to travel to to the
+        // goal position
+        double distance = position.minus(getRotation()).getDegrees();
+        setSmartPosition(getPosition() + distance);
     }
 
     @Override
