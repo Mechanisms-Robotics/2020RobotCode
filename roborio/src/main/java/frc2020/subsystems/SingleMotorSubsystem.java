@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.Timer;
+import frc2020.util.Util;
 
 /**
  * Abstract class for a subsystem with a single sensor and one degree
@@ -263,6 +264,18 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     @Override
     public synchronized void stop() {
         setOpenLoop(0.0);
+    }
+
+    public synchronized boolean atDemand() {
+        switch (state_){
+            case POSITION_PID:
+            case MOTION_PROFILING:
+                return Util.epsilonEquals(io_.demand, getPosition(), constants_.deadband_);
+            case VELOCITY_PID:
+                return Util.epsilonEquals(io_.demand, getVelocity(), constants_.deadband_);
+            default:
+                return true;
+        }
     }
 
     protected abstract boolean atReverseLimit();
