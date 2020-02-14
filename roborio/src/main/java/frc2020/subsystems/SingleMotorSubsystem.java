@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.Timer;
+import frc2020.util.Util;
 
 /**
  * Abstract class for a subsystem with a single sensor and one degree
@@ -43,7 +44,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double kI_ = 0.0; // Raw output / sum of raw error
         public double kD_ = 0.0; // Raw output / (err - prevErr)
         public int iZone_ = 0;
-        public int deadband_ = 0;
+        public double deadband_ = 0;
 
         public int cruiseVelocity_ = 0;
         public int acceleration_ = 0;
@@ -63,9 +64,12 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double velocityKi_ = 0.0;
         public double velocityKd_ = 0.0;
         public int velocityIZone_ = 0;
+        public double velocityDeadBand_ = 0.0;
 
         public double maxUnitsLimit_ = Double.POSITIVE_INFINITY;
         public double minUnitsLimit_ = Double.NEGATIVE_INFINITY;
+
+        public boolean enableHardLimits_ = true;
     }
     
     protected final SingleMotorSubsystemConstants constants_;
@@ -73,11 +77,15 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     protected final CANPIDController masterPid_;
     protected final CANSparkMax[] sparkSlaves_;
 
-    protected CANAnalog analogDevice;
+    protected final CANDigitalInput forwardSwitch_;
+    protected final CANDigitalInput reverseSwitch_;
+
     protected CANEncoder encoder;
 
     protected final int forwardSoftLimitTicks_;
     protected final int reverseSoftLimitTicks_;
+
+    protected final String logName_;
 
     // TODO: Add error handling where needed
     protected SingleMotorSubsystem(final SingleMotorSubsystemConstants constants) {
@@ -109,6 +117,11 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         encoder.setInverted(constants_.masterConstants_.invertSensorPhase_);
         masterPid_.setFeedbackDevice(sparkMaster_.getEncoder());
 
+        forwardSwitch_ = sparkMaster_.getForwardLimitSwitch(CANDigitalInput.LimitSwitchPolarity.kNormallyOpen);
+        forwardSwitch_.enableLimitSwitch(constants_.enableHardLimits_);
+        reverseSwitch_ = sparkMaster_.getReverseLimitSwitch(CANDigitalInput.LimitSwitchPolarity.kNormallyOpen);
+        reverseSwitch_.enableLimitSwitch(constants_.enableHardLimits_);
+
         masterPid_.setP(constants_.velocityKp_, VELOCITY_PID_SLOT);
         masterPid_.setI(constants_.velocityKi_, VELOCITY_PID_SLOT);
         masterPid_.setD(constants_.velocityKd_, VELOCITY_PID_SLOT);
@@ -138,6 +151,8 @@ public abstract class SingleMotorSubsystem implements Subsystem {
             sparkSlaves_[i].follow(sparkMaster_);
             sparkSlaves_[i].setInverted(constants_.slaveConstants_[i].invertMotor_);
         }
+
+        logName_ = constants_.name_;
     }
 
     public static class PeriodicIO {
@@ -148,6 +163,8 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double outputPercent;
         public double outputVoltage;
         public double masterCurrent;
+        public boolean forwardLimit;
+        public boolean reverseLimit;
 
         // Outputs
         public double feedforward;
@@ -170,11 +187,16 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         io_.outputVoltage = io_.outputPercent * sparkMaster_.getBusVoltage();
         io_.position = encoder.getPosition();
         io_.velocity = encoder.getVelocity();
+        io_.forwardLimit = forwardSwitch_.get();
+        io_.reverseLimit = reverseSwitch_.get();
     }
 
     // TODO: Add error checking on CAN Bus calls
     @Override
     public synchronized void writePeriodicOutputs() {
+        if (!hasBeenZeroed) {
+            hasBeenZeroed = handleZeroing();
+        }
         if (io_.demand > 0 && atForwardLimit()) {
             return;
         }
@@ -258,6 +280,38 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         setOpenLoop(0.0);
     }
 
+    public synchronized boolean atDemand() {
+        switch (state_){
+            case POSITION_PID:
+            case MOTION_PROFILING:
+                return Util.epsilonEquals(io_.demand, getPosition(), constants_.deadband_);
+            case VELOCITY_PID:
+                return Util.epsilonEquals(io_.demand, getVelocity(), constants_.velocityDeadBand_);
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * Get weather or not the reverse limit condition is meet
+     * @return True if the limit condition is met otherwise false
+     */
     protected abstract boolean atReverseLimit();
+
+    /**
+     * Get weather or not the forward limit condition is meet
+     * @return True if limit condition is met otherwise false
+     */
     protected abstract boolean atForwardLimit();
+
+    /**
+     * Used to define the zeroing condition of the subsystem.
+     * Note that if you have no zeroing condition just return true
+     * @use <p>If the zero is where the system starts just return true</p>
+     *      <p>If you have a subsystem that zeros when it hits a limit switch
+     *         set the sensor to the known position of the limit switch
+     *         and then return true</p>
+     * @return True if zeroing occurred false otherwise.
+     */
+    protected abstract boolean handleZeroing();
 }
