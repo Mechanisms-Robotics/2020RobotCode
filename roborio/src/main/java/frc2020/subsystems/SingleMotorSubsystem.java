@@ -175,6 +175,9 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     // TODO: Add error checking on CAN Bus calls
     @Override
     public synchronized void writePeriodicOutputs() {
+        if (!hasBeenZeroed) {
+            hasBeenZeroed = handleZeroing();
+        }
         if (io_.demand > 0 && atForwardLimit()) {
             return;
         }
@@ -260,4 +263,14 @@ public abstract class SingleMotorSubsystem implements Subsystem {
 
     protected abstract boolean atReverseLimit();
     protected abstract boolean atForwardLimit();
+
+    /**
+     * Used to define the zeroing condition of the subsystem.
+     * Note that if you have no zeroing condition just return true
+     * @use <p>If the zero is where the system starts just return true</p>
+     *      <p>If you have a subsystem that zeros when it hits a limit switch
+     *         set the sensor to the known position of the limit switch
+     *         and then return true</p>
+     */
+    protected abstract boolean handleZeroing();
 }

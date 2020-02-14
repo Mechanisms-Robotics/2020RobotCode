@@ -111,4 +111,8 @@ public class Feeder extends SingleMotorSubsystem {
         return false;
     }
 
+    @Override
+    protected boolean handleZeroing() {
+        return true;
+    }
 }

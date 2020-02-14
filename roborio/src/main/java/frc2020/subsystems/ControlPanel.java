@@ -232,4 +232,8 @@ public class ControlPanel extends SingleMotorSubsystem {
         return !isDeployed_;
     }
 
+    @Override
+    protected boolean handleZeroing() {
+        return true;
+    }
 }
