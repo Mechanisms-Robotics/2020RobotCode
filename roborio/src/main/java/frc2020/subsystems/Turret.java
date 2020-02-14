@@ -126,6 +126,17 @@ public class Turret extends SingleMotorSubsystem {
         setSmartPosition(getPosition() + distance);
     }
 
+    /**
+     * Rotates the position of the turret by delta angle
+     * @param delta Delta relative to current turret angle
+     */
+    public synchronized void setRelativePosition(Rotation2d delta) {
+
+        Rotation2d relativeRotation = getRotation().rotateBy(delta);
+
+        setAbsolutePosition(relativeRotation);
+    }
+
     @Override
     public boolean runActiveTests() {
         if(!hasBeenZeroed) {
