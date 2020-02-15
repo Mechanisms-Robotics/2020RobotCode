@@ -33,6 +33,7 @@ public class PeriodicEventManager {
                 events_.remove(i);
                 eventIntervals_.remove(i);
                 lastTimes_.remove(i);
+                return;
             }
         }
     }
@@ -42,11 +43,11 @@ public class PeriodicEventManager {
      */
     public void run() {
         for (int i = 0; i < events_.size(); i++){
-            if (Timer.getFPGATimestamp()-lastTimes_.get(i) >= eventIntervals_.get(i)) {
-                if (events_.get(i).condition()){
+            if (events_.get(i).condition()){
+                if (Timer.getFPGATimestamp()-lastTimes_.get(i) >= eventIntervals_.get(i)) {
                     events_.get(i).run();
+                    lastTimes_.set(i, Timer.getFPGATimestamp());
                 }
-                lastTimes_.set(i, Timer.getFPGATimestamp());
             }
         }
     }
