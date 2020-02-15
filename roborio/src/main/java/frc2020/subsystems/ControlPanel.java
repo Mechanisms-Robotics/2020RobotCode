@@ -28,11 +28,10 @@ public class ControlPanel extends SingleMotorSubsystem {
         new SingleMotorSubsystemConstants();
 
     private Logger logger_ = Logger.getInstance();
-    private String logName;
 
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 4; //TODO: change on actual robot
+        masterConstants.id_ = 5; //TODO: change on actual robot
         masterConstants.invertMotor_ = false;
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
@@ -59,7 +58,6 @@ public class ControlPanel extends SingleMotorSubsystem {
         super(constants);
         
         flipper_ = new DoubleSolenoid(FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
-        logName = constants.name_;
     }
 
     public void deployPanelArm() {
@@ -89,21 +87,21 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     @Override
     public boolean runActiveTests() {
-        logger_.logInfo("Running panel arm active tests", logName);
+        logger_.logInfo("Running panel arm active tests", super.logName_);
 
-        logger_.logInfo("Deploying panel arm", logName);
+        logger_.logInfo("Deploying panel arm", super.logName_);
         deployPanelArm();
         Timer.delay(1.5);
 
-        logger_.logInfo("Spinning panel wheel in forward direction", logName);
+        logger_.logInfo("Spinning panel wheel in forward direction", super.logName_);
         runPanelWheel(false);
         Timer.delay(1.5);
         
-        logger_.logInfo("Spinning panel wheel in reverse direction", logName);
+        logger_.logInfo("Spinning panel wheel in reverse direction", super.logName_);
         runPanelWheel(true);
         Timer.delay(1.5);
         
-        logger_.logInfo("Stowing panel arm", logName);
+        logger_.logInfo("Stowing panel arm", super.logName_);
         stowPanelArm();
 
         return true;
@@ -131,7 +129,7 @@ public class ControlPanel extends SingleMotorSubsystem {
         public void run() {
             synchronized (ControlPanel.this) {
                 if (state_ != lastState_) {
-                    logger_.logInfo("Control Panel state changed to "+state_.toString(), logName);
+                    logger_.logInfo("Control Panel state changed to "+state_.toString(), logName_);
 
                     lastState_ = state_;
                 }
@@ -144,7 +142,7 @@ public class ControlPanel extends SingleMotorSubsystem {
 
                         if (goalColor_ == WheelColor.UNKNOWN) {
                             state_ = ControlPanelState.IDLE;
-                            logger_.logWarning("Control Panel unknown goal color", logName);
+                            logger_.logWarning("Control Panel unknown goal color", logName_);
                             break;
                         }
 
@@ -170,7 +168,7 @@ public class ControlPanel extends SingleMotorSubsystem {
                         runPanelWheel(true);
                         break;
                     default:
-                        logger_.logWarning("Control Panel unexpected state "+state_.toString(), logName);
+                        logger_.logWarning("Control Panel unexpected state "+state_.toString(), logName_);
                         break;
                 }
             }
@@ -232,4 +230,8 @@ public class ControlPanel extends SingleMotorSubsystem {
         return !isDeployed_;
     }
 
+    @Override
+    protected boolean handleZeroing() {
+        return true;
+    }
 }

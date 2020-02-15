@@ -33,7 +33,6 @@ public class Intake extends SingleMotorSubsystem {
     private boolean isDeployed_ = false;
 
     private Logger logger_ = Logger.getInstance();
-    private String logName;
 
     public static Intake getInstance() {
         return instance_ == null ? instance_ = new Intake(DEFAULT_CONSTANTS) : instance_;
@@ -43,7 +42,6 @@ public class Intake extends SingleMotorSubsystem {
         super(constants);
 
         flipper_ = new DoubleSolenoid(FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
-        logName = constants.name_;
     }
 
     public void deployIntake() {
@@ -84,21 +82,21 @@ public class Intake extends SingleMotorSubsystem {
      */
     @Override
     public boolean runActiveTests() {
-        logger_.logInfo("Running intake active tests", logName);
+        logger_.logInfo("Running intake active tests", super.logName_);
 
-        logger_.logInfo("Deploying intake", logName);
+        logger_.logInfo("Deploying intake", super.logName_);
         deployIntake();
         Timer.delay(1);
         
-        logger_.logInfo("Intaking", logName);
+        logger_.logInfo("Intaking", super.logName_);
         runIntake(false);
         Timer.delay(1.5);
 
-        logger_.logInfo("Outtaking", logName);
+        logger_.logInfo("Outtaking", super.logName_);
         runIntake(true);
         Timer.delay(1.5);
 
-        logger_.logInfo("Stowing intake", logName);
+        logger_.logInfo("Stowing intake", super.logName_);
         stowIntake();
 
         return true;
@@ -147,6 +145,11 @@ public class Intake extends SingleMotorSubsystem {
     @Override
     protected boolean atForwardLimit() {
         return !isDeployed_;
+    }
+
+    @Override
+    protected boolean handleZeroing() {
+        return true;
     }
 
 }
