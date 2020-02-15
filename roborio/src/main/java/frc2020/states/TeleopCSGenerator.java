@@ -23,6 +23,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean outtakeFeeder = false;
     private LatchedBoolean manualControlLatch;
     private boolean manualControl;
+    private LatchedBoolean deployIntakeLatch;
+    private boolean deployIntake;
+    private boolean intakeIntake;
+    private boolean outtakeIntake;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
@@ -38,6 +42,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         rightSecondJoystick_ = new Joystick(rJoySecPort);
         driveShiftLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
+        deployIntakeLatch = new LatchedBoolean();
     }
 
     /**
@@ -52,11 +57,15 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         outtakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
         manualControl = manualControlLatch.update(rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) && 
             rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
+        deployIntake = deployIntakeLatch.update(rightJoystick_.getRawButton(Constants.INTAKE_DEPLOY_TOGGLE));
+        intakeIntake = rightJoystick_.getTrigger();
+        outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
         CommandState state = new CommandState();
         state.setManualControl(manualControl);
         state.setLimelightDemand(generateLimelightDemand());
         state.setDriveDemand(generateDriveDemand());
         state.setFeederDemand(generateFeederDemand());
+        state.setIntakeDemand(generateIntakeDemand());
         return state;
     }
 
@@ -94,12 +103,26 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private FeederDemand generateFeederDemand() {
         FeederDemand demand = new FeederDemand();
         if (intakeFeeder && outtakeFeeder) {
-            logger_.logInfo("Intake and outtake hat pressed at same time", logName);
+            logger_.logInfo("Intake and outtake feeder hats pressed at same time", logName);
         } else if (intakeFeeder) {
             demand.intake = true;
         } else if (outtakeFeeder) {
             demand.outtake = true;
         }
+        return demand;
+    }
+
+    private IntakeDemand generateIntakeDemand() {
+        IntakeDemand demand = new IntakeDemand();
+        if (intakeIntake && outtakeIntake) {
+            logger_.logInfo("Intake and outtake intake buttons pressed at same time", logName);
+        } else if (intakeIntake) {
+            demand.intake = true;
+        } else if (outtakeIntake) {
+            demand.outtake = true;
+        }
+
+        demand.deploy = deployIntake;
         return demand;
     }
 }

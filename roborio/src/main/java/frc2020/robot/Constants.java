@@ -72,6 +72,9 @@ public class Constants {
     public final static int MANUAL_CONTROL_BUTTON_2 = 13;
     public final static int MANUAL_FEEDER_INTAKE_HAT = 0;
     public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180;
+    public final static int INTAKE_DEPLOY_TOGGLE = 3;
+    public final static int INTAKE_OUTTAKE_BUTTON = 2;
+    public final static int INTAKE_INTAKE_BUTTON = 1; //trigger
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
 
