@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 import frc2020.loops.Loop;
-import frc2020.util.Logger;
 import frc2020.util.WheelWatcher;
 import frc2020.util.WheelWatcher.WheelColor;
 
@@ -26,8 +25,6 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
-
-    private Logger logger_ = Logger.getInstance();
 
     static {
         var masterConstants = new MotorConstants();

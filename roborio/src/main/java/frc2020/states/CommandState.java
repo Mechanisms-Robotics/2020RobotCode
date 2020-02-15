@@ -89,12 +89,15 @@ public class CommandState {
      * from this command state
      * @param drive An instance of the drive train subsystem
      */
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder) {
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder) { 
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         if (manualDemand) {
             maybeUpdateFeeder(feeder);
             feederDemand = null;
+        } else { // TODO: Remove when superstructure implemented
+            feederDemand = new FeederDemand();
+            maybeUpdateFeeder(feeder);
         }
         driveDemand = null;
         limelightDemand = null;

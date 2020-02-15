@@ -3,7 +3,6 @@ package frc2020.subsystems;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
-import frc2020.util.Logger;
 
 public class Feeder extends SingleMotorSubsystem {
 
@@ -11,8 +10,6 @@ public class Feeder extends SingleMotorSubsystem {
 
     private final static int INTAKE_SPEED = 3000; // rpm
     private final static int OUTTAKE_SPEED = -3000; // rpm
-
-    private Logger logger_ = Logger.getInstance();
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
@@ -69,12 +66,12 @@ public class Feeder extends SingleMotorSubsystem {
         }
 
         logger_.logInfo("Running feeder intake");
-        super.setVelocity(3000); //TODO: Adjust velocity once we can test speed
+        super.setVelocity(INTAKE_SPEED); //TODO: Adjust velocity once we can test speed
         Timer.delay(1.5);
         super.stop();
 
         logger_.logInfo("Running feeder outtake");
-        super.setVelocity(-3000); //TODO: Adjust velocity once we can test speed
+        super.setVelocity(OUTTAKE_SPEED); //TODO: Adjust velocity once we can test speed
         Timer.delay(1.5);
         super.stop();
 

@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.Timer;
+import frc2020.util.Logger;
 import frc2020.util.Util;
 
 /**
@@ -85,6 +86,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     protected final int forwardSoftLimitTicks_;
     protected final int reverseSoftLimitTicks_;
 
+    protected Logger logger_ = Logger.getInstance();
     protected final String logName_;
 
     // TODO: Add error handling where needed
