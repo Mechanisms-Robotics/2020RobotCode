@@ -295,13 +295,17 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     }
 
     /**
-     * Get weather or not the reverse limit condition is meet
+     * Get whether or not the reverse software limit is met
+     * This is not about limit switches.
+     * This is about programatic conditions where subclasses indicate motion should stop.
      * @return True if the limit condition is met otherwise false
      */
     protected abstract boolean atReverseLimit();
 
     /**
-     * Get weather or not the forward limit condition is meet
+     * Get whether or not the forward limit condition is met    
+     * This is not about limit switches.
+     * This is about programatic conditions where subclasses indicate motion should stop.
      * @return True if limit condition is met otherwise false
      */
     protected abstract boolean atForwardLimit();
