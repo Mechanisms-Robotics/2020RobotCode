@@ -42,6 +42,7 @@ public class Turret extends SingleMotorSubsystem {
             } else {
                 encoder.setPosition(LEFT_LIMIT_POS_NEGATIVE);
             }
+            logger_.logInfo("Turret zeroed at left limit!", super.logName_);
             return true;
         } else if (atRightLimit()) {
             if (getPosition() >= 0) {
@@ -49,6 +50,7 @@ public class Turret extends SingleMotorSubsystem {
             } else {
                 encoder.setPosition(RIGHT_LIMIT_POS_NEGATIVE);
             }
+            logger_.logInfo("Turret zeroed at right limit!", super.logName_);
             return true;
         }
         return false;
@@ -112,7 +114,6 @@ public class Turret extends SingleMotorSubsystem {
      */
     public synchronized void setAbsolutePosition(Rotation2d position) {
 
-        // TODO: Talk about this function when the turret is't zeroed.
         // If the demand is outside the zone of no ambiguity then we can just go there
         if (position.getDegrees() <= LEFT_LIMIT_POS_POSITIVE && position.getDegrees() >= RIGHT_LIMIT_POS_NEGATIVE) {
             setSmartPosition(position.getDegrees());
@@ -132,6 +133,7 @@ public class Turret extends SingleMotorSubsystem {
      */
     public synchronized void setRelativePosition(Rotation2d delta) {
 
+        // Calculate current rotation rotated by delta
         Rotation2d relativeRotation = getRotation().rotateBy(delta);
 
         setAbsolutePosition(relativeRotation);
