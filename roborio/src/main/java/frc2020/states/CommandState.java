@@ -184,7 +184,9 @@ public class CommandState {
             }
 
             if(intakeDemand.deploy) {
-                intake.toggleIntake();
+                intake.deployIntake();
+            } else {
+                intake.stowIntake();
             }
         }
     }
