@@ -2,6 +2,7 @@ package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 import frc2020.util.Logger;
 
@@ -225,6 +226,6 @@ public class Turret extends SingleMotorSubsystem {
 
     @Override
     public void outputTelemetry() {
-
+        SmartDashboard.putNumber("Turret Rotation", getRotation().getDegrees());
     }
 }
