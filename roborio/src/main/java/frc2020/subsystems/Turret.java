@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
-import frc2020.util.Logger;
 
 public class Turret extends SingleMotorSubsystem {
 
@@ -28,8 +27,6 @@ public class Turret extends SingleMotorSubsystem {
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
-
-    private Logger logger_ = Logger.getInstance();
 
     protected Turret(SingleMotorSubsystemConstants constants) {
         super(constants);

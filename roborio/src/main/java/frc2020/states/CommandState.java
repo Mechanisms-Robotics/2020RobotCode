@@ -1,6 +1,8 @@
 package frc2020.states;
 
+import frc2020.util.Logger;
 import frc2020.subsystems.Drive;
+import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Limelight;
 import frc2020.util.DriveSignal;
 
@@ -12,6 +14,10 @@ public class CommandState {
     //Demand variables, these are modified in the CSGenerators
     public DriveDemand driveDemand;
     public LimelightDemand limelightDemand;
+    public FeederDemand feederDemand;
+    public boolean manualDemand = false;
+
+    private Logger logger_ = Logger.getInstance();
 
     //Subsystem demands are defined as mini classes
     public static class DriveDemand {
@@ -48,6 +54,15 @@ public class CommandState {
         public int pipeline = 0;
     }
 
+    public static class FeederDemand {
+        public boolean outtake = false;
+        public boolean intake = false;
+    }
+
+    public void setManualControl(boolean manualControl) {
+        manualDemand = manualControl;
+    }
+
     /**
      * Setter for each subsystem demand
      * @param demand
@@ -58,6 +73,10 @@ public class CommandState {
 
     public void setLimelightDemand(LimelightDemand demand) {
         limelightDemand = demand;
+    }
+
+    public void setFeederDemand(FeederDemand demand) {
+        feederDemand = demand;
     }
 
     /**
@@ -73,9 +92,16 @@ public class CommandState {
      * from this command state
      * @param drive An instance of the drive train subsystem
      */
-    public void updateSubsystems(Drive drive, Limelight limelight) {
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder) { 
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
+        if (manualDemand) {
+            maybeUpdateFeeder(feeder);
+            feederDemand = null;
+        } else { // TODO: Remove when superstructure implemented
+            feederDemand = new FeederDemand();
+            maybeUpdateFeeder(feeder);
+        }
         driveDemand = null;
         limelightDemand = null;
     }
@@ -112,6 +138,23 @@ public class CommandState {
         if (limelightDemand != null) {
             limelight.setPipeline(limelightDemand.pipeline);
             limelight.setLed(limelightDemand.ledMode);
+        }
+    }
+
+    private void maybeUpdateFeeder(Feeder feeder) {
+        if (feederDemand != null) {
+            if (feederDemand.outtake && feederDemand.intake) {
+                logger_.logInfo("Both intake and outake pressed");
+                feeder.stop();
+                return;
+            }
+            if (feederDemand.outtake) {
+                feeder.runFeeder(true);
+            } else if (feederDemand.intake) {
+                feeder.runFeeder(false);
+            } else {
+                feeder.stop();
+            }
         }
     }
 }

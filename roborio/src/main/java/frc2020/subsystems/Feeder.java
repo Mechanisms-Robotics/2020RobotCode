@@ -1,22 +1,15 @@
 package frc2020.subsystems;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
-import frc2020.util.Logger;
 
 public class Feeder extends SingleMotorSubsystem {
 
     private static Feeder instance_;
 
-    private final static int INTAKE_BREAK_BEAM = 1; // TODO: Check actual robot ports
-    private final static int SHOOTER_BREAK_BEAM = 2;
-
-    private DigitalInput intakeBreakBeam_;
-    private DigitalInput shooterBreakBeam_;
-
-    private Logger logger_ = Logger.getInstance();
+    private final static int INTAKE_SPEED = 3000; // rpm
+    private final static int OUTTAKE_SPEED = -3000; // rpm
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
@@ -27,26 +20,36 @@ public class Feeder extends SingleMotorSubsystem {
 
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Feeder";
+        DEFAULT_CONSTANTS.enableHardLimits_ = false;
     }
 
     public static Feeder getInstance() {
         return instance_ == null ? instance_ = new Feeder(DEFAULT_CONSTANTS) : instance_;
     }
 
+    public void runFeeder(boolean outtake) {
+        runFeeder(outtake ? OUTTAKE_SPEED : INTAKE_SPEED);
+    }
+
+    /**
+     * @param speed in rpm
+     */
+    public void runFeeder(int speed) {
+        super.setVelocity(speed);
+    }
+
     protected Feeder(SingleMotorSubsystemConstants constants) {
         super(constants);
-        intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM);
-        shooterBreakBeam_ = new DigitalInput(SHOOTER_BREAK_BEAM);
     }
 
     //TODO: Check what boolean is when broken
     public synchronized boolean getIntakeBreakBeamBroken() {
-        return intakeBreakBeam_.get();
+        return super.io_.forwardLimit;
     }
     
     //TODO: Check what boolean is when broken
     public synchronized boolean getShooterBreakBeamBroken() {
-        return shooterBreakBeam_.get();
+        return super.io_.reverseLimit;
     }
 
     @Override
@@ -63,12 +66,12 @@ public class Feeder extends SingleMotorSubsystem {
         }
 
         logger_.logInfo("Running feeder intake");
-        super.setVelocity(3000); //TODO: Adjust velocity once we can test speed
+        super.setVelocity(INTAKE_SPEED); //TODO: Adjust velocity once we can test speed
         Timer.delay(1.5);
         super.stop();
 
         logger_.logInfo("Running feeder outtake");
-        super.setVelocity(-3000); //TODO: Adjust velocity once we can test speed
+        super.setVelocity(OUTTAKE_SPEED); //TODO: Adjust velocity once we can test speed
         Timer.delay(1.5);
         super.stop();
 
@@ -82,8 +85,7 @@ public class Feeder extends SingleMotorSubsystem {
 
     @Override
     public void registerLoops(ILooper enabledLooper) {
-        // TODO: Determine if needed
-
+        // No loops to register for the time being
     }
 
     @Override

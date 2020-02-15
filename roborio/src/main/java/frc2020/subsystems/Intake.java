@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
-import frc2020.util.Logger;
 
 public class Intake extends SingleMotorSubsystem {
 
@@ -31,8 +30,6 @@ public class Intake extends SingleMotorSubsystem {
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
-
-    private Logger logger_ = Logger.getInstance();
 
     public static Intake getInstance() {
         return instance_ == null ? instance_ = new Intake(DEFAULT_CONSTANTS) : instance_;
