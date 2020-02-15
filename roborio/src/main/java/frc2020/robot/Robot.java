@@ -152,8 +152,8 @@ public class Robot extends TimedRobot {
             logger_.logRobotInit();
             CrashTracker.logRobotInit();
 
-            manager.registerEnabledLoops(enabledIterator);
-            manager.registerDisabledLoops(disabledIterator);
+            manager_.registerEnabledLoops(enabledIterator_);
+            manager_.registerDisabledLoops(disabledIterator_);
             limelight_turret_.setPipeline(0);
             limelight_low_.setPipeline(2); // TODO: Remove harcoded pipline change (and spelling errors)
             
