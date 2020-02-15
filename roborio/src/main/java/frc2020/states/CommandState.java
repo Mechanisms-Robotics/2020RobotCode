@@ -3,6 +3,7 @@ package frc2020.states;
 import frc2020.util.Logger;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Feeder;
+import frc2020.subsystems.Intake;
 import frc2020.subsystems.Limelight;
 import frc2020.util.DriveSignal;
 
@@ -15,6 +16,7 @@ public class CommandState {
     public DriveDemand driveDemand;
     public LimelightDemand limelightDemand;
     public FeederDemand feederDemand;
+    public IntakeDemand intakeDemand;
     public boolean manualDemand = false;
 
     private Logger logger_ = Logger.getInstance();
@@ -59,6 +61,12 @@ public class CommandState {
         public boolean intake = false;
     }
 
+    public static class IntakeDemand {
+        public boolean outtake = false;
+        public boolean intake = false;
+        public boolean deploy = false;
+    }
+
     public void setManualControl(boolean manualControl) {
         manualDemand = manualControl;
     }
@@ -79,6 +87,10 @@ public class CommandState {
         feederDemand = demand;
     }
 
+    public void setIntakeDemand(IntakeDemand demand) {
+        intakeDemand = demand;
+    }
+
     /**
      * Getter for each subsystem demand
      * @return
@@ -92,9 +104,10 @@ public class CommandState {
      * from this command state
      * @param drive An instance of the drive train subsystem
      */
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder) { 
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake) { 
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
+        maybeUpdateIntake(intake);
         if (manualDemand) {
             maybeUpdateFeeder(feeder);
             feederDemand = null;
@@ -104,6 +117,7 @@ public class CommandState {
         }
         driveDemand = null;
         limelightDemand = null;
+        intakeDemand = null;
     }
 
     /**
@@ -144,16 +158,35 @@ public class CommandState {
     private void maybeUpdateFeeder(Feeder feeder) {
         if (feederDemand != null) {
             if (feederDemand.outtake && feederDemand.intake) {
-                logger_.logInfo("Both intake and outake pressed");
+                logger_.logInfo("Both feeder intake and outake hats pressed");
                 feeder.stop();
-                return;
-            }
-            if (feederDemand.outtake) {
+            } else if (feederDemand.outtake) {
                 feeder.runFeeder(true);
             } else if (feederDemand.intake) {
                 feeder.runFeeder(false);
             } else {
                 feeder.stop();
+            }
+        }
+    }
+
+    private void maybeUpdateIntake(Intake intake) {
+        if(intakeDemand != null) {
+            if (intakeDemand.outtake && intakeDemand.intake) {
+                logger_.logInfo("Both intake intake and outake buttons pressed");
+                intake.stop();
+            } else if (intakeDemand.outtake) {
+                intake.runIntake(true);
+            } else if (intakeDemand.intake) {
+                intake.runIntake(false);
+            } else {
+                intake.stop();
+            }
+
+            if(intakeDemand.deploy) {
+                intake.deployIntake();
+            } else {
+                intake.stowIntake();
             }
         }
     }

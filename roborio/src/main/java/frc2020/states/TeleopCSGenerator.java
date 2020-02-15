@@ -23,6 +23,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean outtakeFeeder = false;
     private LatchedBoolean manualControlLatch;
     private boolean manualControl;
+    private LatchedBoolean deployIntakeLatch;
+    private boolean deployIntake;
+    private boolean intakeIntake;
+    private boolean outtakeIntake;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
@@ -38,6 +42,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         rightSecondJoystick_ = new Joystick(rJoySecPort);
         driveShiftLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
+        deployIntakeLatch = new LatchedBoolean();
     }
 
     /**
@@ -46,17 +51,33 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     @Override
     public CommandState getCommandState() {
+        // Whether to track a power cell
         autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
+        // Whether to auto target to station
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
+
+        // Feeder
         intakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_INTAKE_HAT;
         outtakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
+
+        // Whether to use manual control or not
         manualControl = manualControlLatch.update(rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) && 
             rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
+
+        // Intake
+        deployIntake = deployIntakeLatch.update(rightJoystick_.getRawButton(Constants.INTAKE_DEPLOY_TOGGLE)) != deployIntake;
+        intakeIntake = rightJoystick_.getTrigger();
+        outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
+        // This is so that if they press intake/outake and it is not deployed it will deploy
+        deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
+
+        // The command state for the robot
         CommandState state = new CommandState();
         state.setManualControl(manualControl);
         state.setLimelightDemand(generateLimelightDemand());
         state.setDriveDemand(generateDriveDemand());
         state.setFeederDemand(generateFeederDemand());
+        state.setIntakeDemand(generateIntakeDemand());
         return state;
     }
 
@@ -94,12 +115,26 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private FeederDemand generateFeederDemand() {
         FeederDemand demand = new FeederDemand();
         if (intakeFeeder && outtakeFeeder) {
-            logger_.logInfo("Intake and outtake hat pressed at same time", logName);
+            logger_.logInfo("Intake and outtake feeder hats pressed at same time", logName);
         } else if (intakeFeeder) {
             demand.intake = true;
         } else if (outtakeFeeder) {
             demand.outtake = true;
         }
+        return demand;
+    }
+
+    private IntakeDemand generateIntakeDemand() {
+        IntakeDemand demand = new IntakeDemand();
+        if (intakeIntake && outtakeIntake) {
+            logger_.logInfo("Intake and outtake intake buttons pressed at same time", logName);
+        } else if (intakeIntake) {
+            demand.intake = true;
+        } else if (outtakeIntake) {
+            demand.outtake = true;
+        }
+
+        demand.deploy = deployIntake;
         return demand;
     }
 }
