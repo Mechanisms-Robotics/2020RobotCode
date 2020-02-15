@@ -14,6 +14,8 @@ import com.ctre.phoenix.sensors.*;
 import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
+import com.revrobotics.SparkMax;
+import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
@@ -176,7 +178,7 @@ public class Drive implements Subsystem {
         } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
             logger_.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", logName);
         } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            logger_.logDebug("Left CAN Coder magnet is green (healthy)", logName);
+            logger_.logInfo("Left CAN Coder magnet is green (healthy)", logName);
         } else {
             logger_.logError("Left CAN Coder magnet not detected", logName);
         }
@@ -187,7 +189,7 @@ public class Drive implements Subsystem {
         } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
             logger_.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", logName);
         } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            logger_.logDebug("Right CAN Coder magnet is green (healthy)", logName);
+            logger_.logInfo("Right CAN Coder magnet is green (healthy)", logName);
         } else {
             logger_.logError("Right CAN Coder magnet not detected", logName);
         }
@@ -862,13 +864,343 @@ public class Drive implements Subsystem {
 
     @Override
     public boolean runPassiveTests() {
-        // TODO Auto-generated method stub
-        return false;
+
+        boolean passedChecks = true;
+
+        logger_.logInfo("Starting passive tests", logName);
+
+        logger_.logInfo("Checking encoder magnet strengths", logName);
+
+        // Checks for alignment of magnet with encoder (the encoder light color)
+        MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
+        if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+            logger_.logError("Left CAN Coder magnet in the red (out of range)", logName);
+            passedChecks = false;
+        } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+            logger_.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", logName);
+            passedChecks = false;
+        } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
+            logger_.logInfo("Left CAN Coder magnet is green (healthy)", logName);
+        } else {
+            logger_.logError("Left CAN Coder magnet not detected", logName);
+            passedChecks = false;
+        }
+
+        MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
+        if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+            logger_.logError("Right CAN Coder magnet in the red (out of range)", logName);
+            passedChecks = false;
+        } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+            logger_.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", logName);
+            passedChecks = false;
+        } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
+            logger_.logInfo("Right CAN Coder magnet is green (healthy)", logName);
+        } else {
+            logger_.logError("Right CAN Coder magnet not detected", logName);
+            passedChecks = false;
+        }
+
+        logger_.logInfo("Checking NavX communications", logName);
+
+        // Checks if NavX is connected
+        if (gyro_.isConnected()) {
+            logger_.logInfo("NavX connected", logName);
+        } else {
+            logger_.logError("NavX not responding", logName);
+            passedChecks = false;
+        }
+
+        // Checks for sticky faults in spark maxes
+        boolean faultInSparkMaxes = false;
+
+        if (checkSparkMaxFaults(leftMaster_, "left master")) {
+            faultInSparkMaxes = true;
+        }
+        if (checkSparkMaxFaults(leftSlave_, "left slave")) {
+            faultInSparkMaxes = true;
+        }
+        if (checkSparkMaxFaults(rightMaster_, "right master")) {
+            faultInSparkMaxes = true;
+        }
+        if (checkSparkMaxFaults(rightSlave_, "right slave")) {
+            faultInSparkMaxes = true;
+        }
+
+        if (faultInSparkMaxes) {
+            passedChecks = false;
+        }
+
+        return passedChecks;
     }
 
     @Override
     public boolean runActiveTests() {
-        // TODO Auto-generated method stub
-        return false;
+
+        boolean passedChecks = true;
+
+        double testRunTime = 5.0; //seconds
+        int sampleCount = 5;
+        
+        logger_.logInfo("Starting active tests", logName);
+
+        logger_.logInfo("Running high gear motor tests", logName);
+
+        shifter_.set(highGear_);
+
+        Timer.delay(0.5);
+
+        this.openLoop(new DriveSignal(1.0, 1.0, false));
+
+        double leftMotorHighGearRPM = 0.0;
+        double rightMotorHighGearRPM = 0.0;
+
+        double leftOutputShaftHighGearRPM = 0.0;
+        double rightOutputShaftHighGearRPM = 0.0;
+        
+        double leftMotorHighGearCurrent = 0.0;
+        double rightMotorHighGearCurrent = 0.0;
+
+        for(int i = 0; i < sampleCount; i++) {
+            Timer.delay(testRunTime/sampleCount);
+
+            leftMotorHighGearRPM += leftMaster_.getEncoder().getVelocity();
+            rightMotorHighGearRPM += rightMaster_.getEncoder().getVelocity();
+
+            leftOutputShaftHighGearRPM += metersPerSecondToRpm(leftCanCoder.getVelocity());
+            rightOutputShaftHighGearRPM += metersPerSecondToRpm(rightCanCoder.getVelocity());
+
+            leftMotorHighGearCurrent += leftMaster_.getOutputCurrent();
+            rightMotorHighGearCurrent += rightMaster_.getOutputCurrent();
+        }
+
+        leftMotorHighGearRPM /= sampleCount;
+        rightMotorHighGearRPM /= sampleCount;
+
+        leftOutputShaftHighGearRPM /= sampleCount;
+        rightOutputShaftHighGearRPM /= sampleCount;
+
+        leftMotorHighGearCurrent /= sampleCount;
+        rightMotorHighGearCurrent /= sampleCount;
+
+
+        this.openLoop(new DriveSignal(0.0, 0.0, false));
+
+        Timer.delay(0.5);
+
+        shifter_.set(lowGear_);
+
+        Timer.delay(0.5);
+
+        logger_.logInfo("Running low gear motor tests", logName);
+
+        this.openLoop(new DriveSignal(1.0, 1.0, false));
+
+        double leftMotorLowGearRPM = 0.0;
+        double rightMotorLowGearRPM = 0.0;
+
+        double leftOutputShaftLowGearRPM = 0.0;
+        double rightOutputShaftLowGearRPM = 0.0;
+
+        double leftMotorLowGearCurrent = 0.0;
+        double rightMotorLowGearCurrent = 0.0;
+
+        for(int i = 0; i < sampleCount; i++) {
+            Timer.delay(testRunTime/sampleCount);
+
+            leftMotorLowGearRPM += leftMaster_.getEncoder().getVelocity();
+            rightMotorLowGearRPM += rightMaster_.getEncoder().getVelocity();
+
+            leftOutputShaftLowGearRPM += metersPerSecondToRpm(leftCanCoder.getVelocity());
+            rightOutputShaftLowGearRPM += metersPerSecondToRpm(rightCanCoder.getVelocity());
+
+            leftMotorLowGearCurrent += leftMaster_.getOutputCurrent();
+            rightMotorLowGearCurrent += rightMaster_.getOutputCurrent();
+        }
+
+        this.openLoop(new DriveSignal(0.0, 0.0, false));
+
+        leftMotorLowGearRPM /= sampleCount;
+        rightMotorLowGearRPM /= sampleCount;
+
+        leftOutputShaftLowGearRPM /= sampleCount;
+        rightOutputShaftLowGearRPM /= sampleCount;
+
+        leftMotorLowGearCurrent /= sampleCount;
+        rightMotorLowGearCurrent /= sampleCount;
+
+        // TODO: Verify RPM Expected Values
+
+        double expectedHighGearMotorRPM = 5800;
+        double expectedHighGearOutputShaftRPM = expectedHighGearMotorRPM / HIGH_GEAR_RATIO;
+
+        double expectedLowGearMotorRPM = 5800;
+        double expectedLowGearOutputShaftRPM = 230;
+
+        double highGearMotorEpsilon = 100;
+        double highGearOutputShaftEpsilon = highGearMotorEpsilon / HIGH_GEAR_RATIO;
+
+        double lowGearMotorEpsilon = 100;
+        double lowGearOutputShaftEpsilon = 20;
+
+        // Sanity checks high gear RPMs
+        if (!checkRPM(leftMotorHighGearRPM, expectedHighGearMotorRPM, highGearMotorEpsilon, "Left motor high gear")) {
+            passedChecks = false;
+        }
+
+        if (!checkRPM(leftOutputShaftHighGearRPM, expectedHighGearOutputShaftRPM,
+                      highGearOutputShaftEpsilon, "Left output shaft high gear")) {
+            passedChecks = false;
+        }
+
+        if (!checkRPM(rightMotorHighGearRPM, expectedHighGearMotorRPM, highGearMotorEpsilon, "Right motor high gear")) {
+            passedChecks = false;
+        }
+        
+        if (!checkRPM(rightOutputShaftHighGearRPM, expectedHighGearOutputShaftRPM, 
+                      highGearOutputShaftEpsilon, "Right output shaft high gear")) {
+            passedChecks = false;
+        }
+
+        // Sanity checks low gear RPMs
+        if (!checkRPM(leftMotorLowGearRPM, expectedLowGearMotorRPM, lowGearMotorEpsilon, "Left motor low gear")) {
+            passedChecks = false;
+        }
+
+        if (!checkRPM(leftOutputShaftLowGearRPM, expectedLowGearOutputShaftRPM,
+                      lowGearOutputShaftEpsilon, "Left output shaft low gear")) {
+            passedChecks = false;
+        }
+
+        if (!checkRPM(rightMotorLowGearRPM, expectedLowGearMotorRPM, lowGearMotorEpsilon, "Right motor low gear")) {
+            passedChecks = false;
+        }
+        
+        if (!checkRPM(rightOutputShaftLowGearRPM, expectedLowGearOutputShaftRPM, 
+                      lowGearOutputShaftEpsilon, "Right output shaft low gear")) {
+            passedChecks = false;
+        }
+
+        if (leftOutputShaftHighGearRPM < leftOutputShaftLowGearRPM) {
+            logger_.logWarning("Left output shaft RPM inconsistent for gearing", logName);
+            passedChecks = false;
+        }
+
+        if (rightOutputShaftHighGearRPM < rightOutputShaftLowGearRPM) {
+            logger_.logWarning("Right output shaft RPM inconsistent for gearing", logName);
+            passedChecks = false;
+        }
+
+        double gearRatioRPMEpsilon = 20;
+
+        // Check that input vs output RPMs make sense
+        if (!Util.epsilonEquals(leftMotorHighGearRPM / HIGH_GEAR_RATIO, leftOutputShaftHighGearRPM, gearRatioRPMEpsilon)) {
+            logger_.logWarning("Left input/output RPMs inconsistent", logName);
+            passedChecks = false;
+        }
+
+        if (!Util.epsilonEquals(rightMotorHighGearRPM / HIGH_GEAR_RATIO, rightOutputShaftHighGearRPM, gearRatioRPMEpsilon)) {
+            logger_.logWarning("Right input/output RPMs inconsistent", logName);
+            passedChecks = false;
+        }
+
+        // TODO: Verify Expected Current Values
+
+        double expectedHighGearMotorCurrent = 1.0;
+        double expectedLowGearMotorCurrent = 1.0;
+
+        double highGearMotorCurrentEpsilon = 1.0;
+        double lowGearMotorCurrentEpsilon = 1.0;
+
+        if (!checkCurrent(leftMotorHighGearCurrent, expectedHighGearMotorCurrent, 
+                          highGearMotorCurrentEpsilon, "Left motor high gear current")) {
+            logger_.logWarning("Left motor high gear current inconsistent", logName);
+            passedChecks = false;
+        }
+
+        if (!checkCurrent(rightMotorHighGearCurrent, expectedHighGearMotorCurrent, 
+                          highGearMotorCurrentEpsilon, "Right motor high gear current")) {
+            logger_.logWarning("Right motor high gear current inconsistent", logName);
+            passedChecks = false;
+        }
+        
+        if (!checkCurrent(leftMotorLowGearCurrent, expectedLowGearMotorCurrent, 
+                          lowGearMotorCurrentEpsilon, "Left motor low gear current")) {
+            logger_.logWarning("Left motor low gear current inconsistent", logName);
+            passedChecks = false;
+        }
+
+        if (!checkCurrent(rightMotorLowGearCurrent, expectedLowGearMotorCurrent, 
+                          lowGearMotorCurrentEpsilon, "Right motor low gear current")) {
+            logger_.logWarning("Right motor low gear current inconsistent", logName);
+            passedChecks = false;
+        }
+
+        shifter_.set(highGear_);
+
+        return passedChecks;
+    }
+
+    private boolean checkSparkMaxFaults(CANSparkMax motor, String motorName) {
+
+        boolean failedChecks = false;
+
+        if (motor.getStickyFaults() == 0) {
+            logger_.logInfo("No " + motorName + " sticky faults", logName);
+        } else {
+            if (motor.getStickyFault(FaultID.kCANRX) || motor.getStickyFault(FaultID.kCANTX)) {
+                logger_.logError("Communication error with " + motorName, logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kDRVFault)||motor.getStickyFault(FaultID.kEEPROMCRC)) {
+                logger_.logError("OOF replace " + motorName + "motor controller", logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kMotorFault)) {
+                logger_.logError("OOF motor fault replace " + motorName + " motor", logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kOtherFault)) {
+                logger_.logError("Something bad happened with " + motorName, logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kSensorFault)) {
+                logger_.logError("OOF sensor fault replace " + motorName + " motor", logName);
+                failedChecks = true;
+            }
+            if (motor.getStickyFault(FaultID.kOvercurrent)) {
+                logger_.logWarning("Overcurrent on " + motorName, logName);
+                failedChecks = true;
+            }
+        }
+
+        return failedChecks;
+    }
+
+    private boolean checkRPM(double motorRPM, double expectedMotorRPM, double motorEpsilon, String motorName) {
+        logger_.logDebug(motorName + " RPM: " + motorRPM, logName);
+        if (!Util.epsilonEquals(motorRPM, expectedMotorRPM, motorEpsilon)) {
+            if (motorRPM < expectedMotorRPM) {
+                logger_.logWarning(motorName + " RPM lower than expected", logName);
+            } else {
+                logger_.logWarning(motorName + " RPM higher than expected", logName);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkCurrent(double motorCurrent, double expectedMotorCurrent, double motorEpsilon, String motorName) {
+        logger_.logDebug(motorName + " Current: " + motorCurrent, logName);
+        if (!Util.epsilonEquals(motorCurrent, expectedMotorCurrent, motorEpsilon)) {
+            if (motorCurrent < expectedMotorCurrent) {
+                logger_.logWarning(motorName + " current lower than expected", logName);
+            } else {
+                logger_.logWarning(motorName + " current higher than expected", logName);
+            }
+            return false;
+        }
+
+        return true;
     }
 }

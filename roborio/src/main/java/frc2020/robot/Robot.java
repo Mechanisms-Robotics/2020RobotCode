@@ -3,6 +3,8 @@ package frc2020.robot;
 import frc2020.util.DriveSignal;
 import frc2020.util.Logger;
 import frc2020.util.LoggerNotStartedException;
+import frc2020.util.PeriodicEvent;
+import frc2020.util.PeriodicEventManager;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
@@ -31,15 +33,14 @@ import java.util.UUID;
  * project.
  */
 public class Robot extends TimedRobot {
-    private UUID runUUID;
-    private double lastFlushTime_;
+    private UUID runUUID_;
 
-    private Looper enabledIterator;
-    private Looper disabledIterator;
+    private Looper enabledIterator_;
+    private Looper disabledIterator_;
     //private PowerDistributionPanel PDP;
     private SendableChooser<AutoChooser.AutoModeChoices> autoChooser_;
     private AutoModeRunner autoRunner_;
-    private SubsystemManager manager;
+    private SubsystemManager manager_;
     private Drive drive_;
     private Intake intake_;
 
@@ -53,19 +54,21 @@ public class Robot extends TimedRobot {
 
     private static Logger logger_ = Logger.getInstance();
 
+    private PeriodicEventManager periodicEventManager_ = new PeriodicEventManager();
+
     /**
-    * Default constructor, initializes the enabledIterator, disabledIterator,
+    * Default constructor, initializes the enabledIterator_, disabledIterator_,
     * SubsystemManager, Drive instance, compressor, PDP, TeleopCSGenerator, and
     * the AutoChooser
     */
     public Robot() {
 
-        runUUID = UUID.randomUUID();
-        logger_.start(runUUID,
+        runUUID_ = UUID.randomUUID();
+        logger_.start(runUUID_,
          "RobotLog", Logger.Level.Debug);
 
-        enabledIterator = new Looper();
-        disabledIterator = new Looper();
+        enabledIterator_ = new Looper();
+        disabledIterator_ = new Looper();
         autoRunner_ = null;
 
         var limelight_turret_config = new Limelight.LimelightConfig();
@@ -88,14 +91,13 @@ public class Robot extends TimedRobot {
         limelight_turret_.setLed(LedMode.PIPELINE);
         limelight_low_.setLed(LedMode.PIPELINE);
 
-        manager = new SubsystemManager(
+        manager_ = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
                   limelight_turret_,
                   limelight_low_
                 )
         );
-
 
         drive_ = Drive.getInstance();
         intake_ = Intake.getInstance();
@@ -105,13 +107,39 @@ public class Robot extends TimedRobot {
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
         autoChooser_ = AutoChooser.getAutoChooser();
 
-        
-
         // Pre-Generate Trajectories
         TestMode.generateTrajectories();
         Basic13Ball.generateTrajectories();
         CenterToTrench8.generateTrajectories();
         RightToTrench8.generateTrajectories();
+
+        PeriodicEvent flushLog_ = new PeriodicEvent(){
+            @Override
+            public void run() {
+                logger_.flush();
+            }
+        
+            @Override
+            public boolean condition() {
+                return true;
+            }
+        };
+
+        PeriodicEvent runPassiveTests_ = new PeriodicEvent() {
+            @Override
+            public void run() {
+                manager_.runPassiveTests();
+            }
+        
+            @Override
+            public boolean condition() {
+                return m_ds.isDisabled();
+            }
+        };
+
+        periodicEventManager_.addEvent(flushLog_, Constants.LOGGER_FLUSH_TIME);
+        periodicEventManager_.addEvent(runPassiveTests_, Constants.PASSIVE_TEST_TIME);
+
     }
 
     /**
@@ -124,8 +152,8 @@ public class Robot extends TimedRobot {
             logger_.logRobotInit();
             CrashTracker.logRobotInit();
 
-            manager.registerEnabledLoops(enabledIterator);
-            manager.registerDisabledLoops(disabledIterator);
+            manager_.registerEnabledLoops(enabledIterator_);
+            manager_.registerDisabledLoops(disabledIterator_);
             limelight_turret_.setPipeline(0);
             limelight_low_.setPipeline(2); // TODO: Remove harcoded pipline change (and spelling errors)
             
@@ -148,12 +176,8 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         try {
-            double now = Timer.getFPGATimestamp();
-            if (now - lastFlushTime_ > Constants.LOGGER_FLUSH_TIME) {
-                logger_.flush();
-                lastFlushTime_ = now;
-            }
-            manager.outputToSmartDashboard();
+            periodicEventManager_.run();
+            manager_.outputToSmartDashboard();
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
 //            if (target != null) {
 //                SmartDashboard.putNumber("Distance", target.getTranslation().getX());
@@ -167,22 +191,22 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * Logs disabled init, stops the enabledIterator and autoRunner, enables the
-     * disabledIterator, stops drive_, and logs crashes
+     * Logs disabled init, stops the enabledIterator_ and autoRunner, enables the
+     * disabledIterator_, stops drive_, and logs crashes
      */
     @Override
     public void disabledInit() {
         try {
             logger_.logRobotDisabled();
             CrashTracker.logDisabledInit();
-            enabledIterator.stop();
+            enabledIterator_.stop();
             if (autoRunner_ != null) {
                 autoRunner_.stop();
             }
             autoRunner_ = null;
             currentAutoMode_ = null;
-            disabledIterator.start();
-            drive_.openLoop(new DriveSignal(0,0, false));
+            disabledIterator_.start();
+            drive_.openLoop(new DriveSignal(0, 0, false));
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -199,21 +223,21 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * Stops the disabledIterator and autoRunner, sets ramp mode and shifter mode
-     * on drive, starts the enabledIterator, and logs crashes
+     * Stops the disabledIterator_ and autoRunner, sets ramp mode and shifter mode
+     * on drive, starts the enabledIterator_, and logs crashes
      */
     @Override
     public void autonomousInit() {
         try {
             logger_.logRobotAutoInit();
-            disabledIterator.stop();
+            disabledIterator_.stop();
             if (autoRunner_ != null) {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
             drive_.zeroSensors();
             drive_.setHighGear();
-            enabledIterator.start();
+            enabledIterator_.start();
             autoRunner_ = new AutoModeRunner();
             autoRunner_.setAutoMode(new RightToTrench8());
             autoRunner_.start();
@@ -234,8 +258,8 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * Logs teleop init, stops the disabledIterator, sets the compressor to use
-     * closed loop control, starts the enabledIterator, sets ramp mode and shifter
+     * Logs teleop init, stops the disabledIterator_, sets the compressor to use
+     * closed loop control, starts the enabledIterator_, sets ramp mode and shifter
      * mode of drive, stops the autoRunner, starts a new autoRunner, and logs crashes
      */
     @Override
@@ -243,9 +267,9 @@ public class Robot extends TimedRobot {
         try {
             logger_.logRobotTeleopInit();
             CrashTracker.logTeleopInit();
-            disabledIterator.stop();
+            disabledIterator_.stop();
             //compressor_.setClosedLoopControl(true);
-            enabledIterator.start();
+            enabledIterator_.start();
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setHighGear();
@@ -280,14 +304,15 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * Stops the disabledIterator, starts the enabledIterator, and logs crashes
+     * Stops the disabledIterator_, starts the enabledIterator_, and logs crashes
      */
     @Override
     public void testInit() {
         try {
             logger_.logRobotTestInit();
-            disabledIterator.stop();
-            enabledIterator.start();
+            disabledIterator_.stop();
+            enabledIterator_.start();
+            manager_.runActiveTests();
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;

@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.SerialPort;
  */
 public class NavX {
     protected class Callback implements ITimestampedDataSubscriber {
+
         @Override
         public void timestampedDataReceived(long system_timestamp, long sensor_timestamp, AHRSUpdateBase update,
                                             Object context) {
@@ -148,4 +149,13 @@ public class NavX {
     public double getPitchDegrees() {
         return mAHRS.getPitch();
     }
+
+    public long getLastSensorTimestamp() {
+        return mLastSensorTimestampMs;
+    }
+
+    public boolean isConnected() {
+        return mAHRS.isConnected();
+    }
+
 }
