@@ -1,5 +1,6 @@
 package frc2020.states;
 
+import frc2020.util.Logger;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Limelight;
@@ -15,6 +16,8 @@ public class CommandState {
     public LimelightDemand limelightDemand;
     public FeederDemand feederDemand;
     public boolean manualDemand = false;
+
+    private Logger logger_ = Logger.getInstance();
 
     //Subsystem demands are defined as mini classes
     public static class DriveDemand {
@@ -140,9 +143,18 @@ public class CommandState {
 
     private void maybeUpdateFeeder(Feeder feeder) {
         if (feederDemand != null) {
-            feeder.runFeeder(feederDemand.outtake);
-        } else {
-            feeder.stop();
+            if (feederDemand.outtake && feederDemand.intake) {
+                logger_.logInfo("Both intake and outake pressed");
+                feeder.stop();
+                return;
+            }
+            if (feederDemand.outtake) {
+                feeder.runFeeder(true);
+            } else if (feederDemand.intake) {
+                feeder.runFeeder(false);
+            } else {
+                feeder.stop();
+            }
         }
     }
 }
