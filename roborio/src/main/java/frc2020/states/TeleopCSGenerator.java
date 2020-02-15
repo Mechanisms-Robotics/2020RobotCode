@@ -13,19 +13,31 @@ import frc2020.util.*;
 public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftJoystick_;
     private Joystick rightJoystick_;
+    private Joystick leftSecondJoystick_;
+    private Joystick rightSecondJoystick_;
     private LatchedBoolean driveShiftLatch;
     private boolean autoSteerBall = false;
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
+    private boolean intakeFeeder = false;
+    private boolean outtakeFeeder = false;
+    private LatchedBoolean manualControlLatch;
+    private boolean manualControl;
+
+    private Logger logger_ = Logger.getInstance();
+    private String logName = "TeleopCS";
     
     /**
      * All ports and constants should be applied in here.
      * Anything specific to this generator should be constructed here.
      */
-    public TeleopCSGenerator(int lJoyPort, int rJoyPort) {
+    public TeleopCSGenerator(int lJoyPort, int rJoyPort, int lJoySecPort, int rJoySecPort) {
         leftJoystick_ = new Joystick(lJoyPort);
         rightJoystick_ = new Joystick(rJoyPort);
+        leftSecondJoystick_ = new Joystick(lJoySecPort);
+        rightSecondJoystick_ = new Joystick(rJoySecPort);
         driveShiftLatch = new LatchedBoolean();
+        manualControlLatch = new LatchedBoolean();
     }
 
     /**
@@ -36,9 +48,15 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     public CommandState getCommandState() {
         autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
+        intakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_INTAKE_HAT;
+        outtakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
+        manualControl = manualControlLatch.update(rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) && 
+            rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
         CommandState state = new CommandState();
+        state.setManualControl(manualControl);
         state.setLimelightDemand(generateLimelightDemand());
         state.setDriveDemand(generateDriveDemand());
+        state.setFeederDemand(generateFeederDemand());
         return state;
     }
 
@@ -69,6 +87,18 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else {
             demand.ledMode = Limelight.LedMode.OFF;
             demand.pipeline = Constants.DRIVER_MODE_PIPELINE;
+        }
+        return demand;
+    }
+
+    private FeederDemand generateFeederDemand() {
+        FeederDemand demand = new FeederDemand();
+        if (intakeFeeder && outtakeFeeder) {
+            logger_.logInfo("Intake and outtake hat pressed at same time", logName);
+        } else if (intakeFeeder) {
+            demand.intake = true;
+        } else if (outtakeFeeder) {
+            demand.outtake = true;
         }
         return demand;
     }

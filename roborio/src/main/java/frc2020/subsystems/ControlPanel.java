@@ -122,8 +122,10 @@ public class ControlPanel extends SingleMotorSubsystem {
         ControlPanelState lastState_ = ControlPanelState.IDLE;
 
         public void init() {
-            state_ = ControlPanelState.IDLE;
-            wheelWatcher_.init();
+            synchronized (ControlPanel.this) {
+                state_ = ControlPanelState.IDLE;
+                wheelWatcher_.init();
+            }
         }
 
         public void run() {

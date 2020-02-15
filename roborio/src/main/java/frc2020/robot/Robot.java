@@ -43,6 +43,7 @@ public class Robot extends TimedRobot {
     private SubsystemManager manager_;
     private Drive drive_;
     private Intake intake_;
+    private Feeder feeder_;
 
    // private Compressor compressor_;
     private AutoMode currentAutoMode_;
@@ -95,16 +96,19 @@ public class Robot extends TimedRobot {
                 Arrays.asList(
                   Drive.getInstance(),
                   limelight_turret_,
-                  limelight_low_
+                  limelight_low_,
+                  Feeder.getInstance()
                 )
         );
 
         drive_ = Drive.getInstance();
         intake_ = Intake.getInstance();
+        feeder_ = Feeder.getInstance();
        // compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
-        teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT);
+        teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT,
+            Constants.LEFT_SECONDARY_DRIVER_JOYSTICK_PORT, Constants.RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT);
         autoChooser_ = AutoChooser.getAutoChooser();
 
         // Pre-Generate Trajectories
@@ -296,7 +300,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

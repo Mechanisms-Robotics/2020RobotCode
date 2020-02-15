@@ -64,8 +64,14 @@ public class Constants {
     // The Joysticks
     public final static int LEFT_DRIVER_JOYSTICK_PORT = 0;
     public final static int RIGHT_DRIVER_JOYSTICK_PORT = 1;
+    public final static int LEFT_SECONDARY_DRIVER_JOYSTICK_PORT = 3;
+    public final static int RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT = 4;
     public final static int AUTO_STEER_BUTTON = 2;
     public final static int AUTO_ALIGN_BUTTON = 3;
+    public final static int MANUAL_CONTROL_BUTTON_1 = 7;
+    public final static int MANUAL_CONTROL_BUTTON_2 = 13;
+    public final static int MANUAL_FEEDER_INTAKE_HAT = 0;
+    public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180;
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
 
