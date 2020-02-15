@@ -37,12 +37,22 @@ public class NavX {
     protected final long kInvalidTimestamp = -1;
     protected long mLastSensorTimestampMs;
 
+    /**
+     * Constructs new navx using SPI ports protocol
+     * 
+     * @param spi_port_id id of navx
+     */
     public NavX(SPI.Port spi_port_id) {
         mAHRS = new AHRS(spi_port_id, (byte) 200);
         resetState();
         mAHRS.registerCallback(new Callback(), null);
     }
 
+    /**
+     * Constructs new navx
+     * 
+     * @param serial_port_id the id of the navx
+     */
     public NavX(SerialPort.Port serial_port_id) {
         mAHRS = new AHRS(serial_port_id);
         resetState();
@@ -75,7 +85,7 @@ public class NavX {
     }
 
     /**
-     * Set the angel to transform all reading by. Generally used for when the navx is mounted at an angle or
+     * Set the angle to transform all reading by. Generally used for when the navx is mounted at an angle or
      * or the robot is turned on crooked.
      *
      * @param adjustment
@@ -85,18 +95,21 @@ public class NavX {
     }
 
     /**
-     * @return The raw yaw reading of the navx
+     * @return The raw yaw reading of the navx in degrees
      */
     protected synchronized double getRawYawDegrees() {
         return mYawDegrees;
     }
 
+    /**
+     * @return The unadjusted yaw of navx as a Rotation2d
+     */
     public synchronized Rotation2d getRawRotation() {
         return Rotation2d.fromDegrees(getRawYawDegrees());
     }
 
     /**
-     * @return The Yaw as a rotation 2d
+     * @return The true yaw of the navx as a rotation 2d
      */
     public Rotation2d getYaw() {
         return mAngleAdjustment.rotateBy(Rotation2d.fromDegrees(getRawYawDegrees()));
@@ -123,10 +136,16 @@ public class NavX {
         return mAHRS.getRawAccelX();
     }
 
+    /**
+     * @return The navx roll in degrees
+     */
     public double getRollDegrees() {
         return mAHRS.getRoll();
     }
 
+    /**
+     * @return The navx pitch in degrees
+     */
     public double getPitchDegrees() {
         return mAHRS.getPitch();
     }

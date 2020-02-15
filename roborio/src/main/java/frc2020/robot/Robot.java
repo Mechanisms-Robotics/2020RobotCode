@@ -1,6 +1,5 @@
 package frc2020.robot;
 
-import edu.wpi.first.wpilibj.geometry.Pose2d;
 import frc2020.util.DriveSignal;
 import frc2020.util.Logger;
 import frc2020.util.LoggerNotStartedException;
@@ -18,12 +17,10 @@ import frc2020.auto.modes.TestMode;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
-import frc2020.robot.Constants;
 
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -45,13 +42,15 @@ public class Robot extends TimedRobot {
     private AutoModeRunner autoRunner_;
     private SubsystemManager manager_;
     private Drive drive_;
+    private Intake intake_;
 
    // private Compressor compressor_;
     private AutoMode currentAutoMode_;
 
     private TeleopCSGenerator teleopCSGenerator_;
 
-    private Limelight limelight_;
+    private Limelight limelight_turret_;
+    private Limelight limelight_low_;
 
     private static Logger logger_ = Logger.getInstance();
 
@@ -72,22 +71,36 @@ public class Robot extends TimedRobot {
         disabledIterator_ = new Looper();
         autoRunner_ = null;
 
-        var limelight_config = new Limelight.LimelightConfig();
-        limelight_config.height = 1.12;
-        limelight_config.horizontalPlaneToLens = Rotation2d.fromDegrees(15.0);
-        limelight_config.tableName = "limelight";
-        limelight_config.name = "Test";
-        limelight_ = new Limelight(limelight_config);
-        limelight_.setLed(LedMode.PIPELINE);
+        var limelight_turret_config = new Limelight.LimelightConfig();
+        var limelight_low_config = new Limelight.LimelightConfig();
+
+        limelight_turret_config.height = 1.12;
+        limelight_turret_config.horizontalPlaneToLens = Rotation2d.fromDegrees(15.0);
+        limelight_turret_config.tableName = "limelight-turret";
+        limelight_turret_config.name = "Limelight Turret";
+        limelight_turret_config.azimuthOnly = false;
+
+        limelight_low_config.height = 0.61;
+        limelight_low_config.horizontalPlaneToLens = Rotation2d.fromDegrees(0.0);
+        limelight_low_config.tableName = "limelight-low";
+        limelight_low_config.name = "Limelight Low";
+        limelight_low_config.azimuthOnly = true;
+
+        limelight_turret_ = new Limelight(limelight_turret_config);
+        limelight_low_ = new Limelight(limelight_low_config);
+        limelight_turret_.setLed(LedMode.PIPELINE);
+        limelight_low_.setLed(LedMode.PIPELINE);
 
         manager_ = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
-                  limelight_
+                  limelight_turret_,
+                  limelight_low_
                 )
         );
 
         drive_ = Drive.getInstance();
+        intake_ = Intake.getInstance();
        // compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
@@ -139,8 +152,10 @@ public class Robot extends TimedRobot {
             logger_.logRobotInit();
             CrashTracker.logRobotInit();
 
-            manager_.registerEnabledLoops(enabledIterator_);
-            manager_.registerDisabledLoops(disabledIterator_);
+            manager.registerEnabledLoops(enabledIterator);
+            manager.registerDisabledLoops(disabledIterator);
+            limelight_turret_.setPipeline(0);
+            limelight_low_.setPipeline(2); // TODO: Remove harcoded pipline change (and spelling errors)
             
             //SmartDashboard.putData("PDP", PDP);
         } catch(LoggerNotStartedException e) {
@@ -281,7 +296,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

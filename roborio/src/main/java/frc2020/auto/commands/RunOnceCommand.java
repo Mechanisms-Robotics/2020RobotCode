@@ -1,5 +1,8 @@
 package frc2020.auto.commands;
 
+/**
+ * Abstract Command class that should be run only once
+ */
 public abstract class RunOnceCommand implements Command {
     @Override
     public boolean isFinished() {
@@ -13,7 +16,6 @@ public abstract class RunOnceCommand implements Command {
 
     @Override
     public void start() {
-
     }
 
     @Override
@@ -21,5 +23,9 @@ public abstract class RunOnceCommand implements Command {
         runOnce();
     }
 
+    /**
+     * Overide this function and input the command that
+     * you want to be run only once
+     */
     public abstract void runOnce();
 }
