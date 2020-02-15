@@ -96,9 +96,8 @@ public class Robot extends TimedRobot {
                 Arrays.asList(
                   Drive.getInstance(),
                   limelight_turret_,
-                  limelight_low_,
-                  Feeder.getInstance(),
-                  Intake.getInstance()
+                  limelight_low_
+                  // TODO: Put subystems here once tuned
                 )
         );
 
