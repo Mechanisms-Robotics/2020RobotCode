@@ -44,6 +44,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double kP_ = 0.0; // Raw output / raw error
         public double kI_ = 0.0; // Raw output / sum of raw error
         public double kD_ = 0.0; // Raw output / (err - prevErr)
+        public double kF_ = 0.0;
         public int iZone_ = 0;
         public double deadband_ = 0;
 
@@ -59,11 +60,13 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double positionKp_ = 0.0;
         public double positionKi_ = 0.0;
         public double positionKd_ = 0.0;
+        public double positionKf_ = 0.0;
         public int positionIZone_ = 0;
 
         public double velocityKp_ = 0.0;
         public double velocityKi_ = 0.0;
         public double velocityKd_ = 0.0;
+        public double velocityKf_ = 0.0;
         public int velocityIZone_ = 0;
         public double velocityDeadBand_ = 0.0;
 
@@ -127,18 +130,21 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         masterPid_.setP(constants_.velocityKp_, VELOCITY_PID_SLOT);
         masterPid_.setI(constants_.velocityKi_, VELOCITY_PID_SLOT);
         masterPid_.setD(constants_.velocityKd_, VELOCITY_PID_SLOT);
+        masterPid_.setFF(constants_.velocityKf_, VELOCITY_PID_SLOT);
         masterPid_.setIZone(constants_.velocityIZone_, VELOCITY_PID_SLOT);
         masterPid_.setFF(0.0, VELOCITY_PID_SLOT);
 
         masterPid_.setP(constants_.positionKp_, POSITION_PID_SLOT);
         masterPid_.setI(constants_.positionKi_, POSITION_PID_SLOT);
         masterPid_.setD(constants_.positionKd_, POSITION_PID_SLOT);
+        masterPid_.setFF(constants_.positionKf_, POSITION_PID_SLOT);
         masterPid_.setIZone(constants_.positionIZone_, POSITION_PID_SLOT);
         masterPid_.setFF(0.0, POSITION_PID_SLOT);
 
         masterPid_.setP(constants_.kP_, MOTION_PROFILE_SLOT);
         masterPid_.setI(constants_.kI_, MOTION_PROFILE_SLOT);
         masterPid_.setD(constants_.kD_, MOTION_PROFILE_SLOT);
+        masterPid_.setFF(constants_.kF_, MOTION_PROFILE_SLOT);
         masterPid_.setIZone(constants_.iZone_, MOTION_PROFILE_SLOT);
         masterPid_.setFF(0.0, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionAllowedClosedLoopError(constants_.deadband_, MOTION_PROFILE_SLOT);
