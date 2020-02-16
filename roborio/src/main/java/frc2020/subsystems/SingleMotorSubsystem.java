@@ -119,7 +119,6 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         encoder = sparkMaster_.getEncoder();
         encoder.setPositionConversionFactor(constants_.positionConversionFactor_);
         encoder.setVelocityConversionFactor(constants_.velocityConversionFactor_);
-        encoder.setInverted(constants_.masterConstants_.invertSensorPhase_);
         masterPid_.setFeedbackDevice(sparkMaster_.getEncoder());
 
         forwardSwitch_ = sparkMaster_.getForwardLimitSwitch(CANDigitalInput.LimitSwitchPolarity.kNormallyOpen);
