@@ -29,6 +29,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean outtakeIntake;
     private LatchedBoolean spinFlywheelLatch;
     private boolean spinFlywheel;
+    private LatchedBoolean toggleLongRangeLatch;
+    private boolean toggleLongRange;
 
 
     private Logger logger_ = Logger.getInstance();
@@ -47,6 +49,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
+        toggleLongRangeLatch = new LatchedBoolean();
     }
 
     /**
@@ -77,6 +80,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         //Flywheel
         spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
+        toggleLongRange = toggleLongRangeLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_RANGE_TOGGLE)) != toggleLongRange;
 
         // The command state for the robot
         CommandState state = new CommandState();
@@ -150,6 +154,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         FlywheelDemand demand = new FlywheelDemand();
 
         demand.spin = spinFlywheel;
+        demand.longRange = toggleLongRange;
 
         return demand;
     }

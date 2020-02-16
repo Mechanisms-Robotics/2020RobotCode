@@ -50,6 +50,10 @@ public class Flywheel extends SingleMotorSubsystem {
         super.setVelocity(FLYWHEEL_SPEED);
     }
 
+    public synchronized void spinLongRangeFlywheel() {
+        super.setVelocity(LONG_RANGE_SPEED);
+    }
+
     /**
      * @return true if flywheel speed is our desired stable speed
      */

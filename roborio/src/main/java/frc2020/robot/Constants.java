@@ -76,6 +76,7 @@ public class Constants {
     public final static int INTAKE_OUTTAKE_BUTTON = 2; // right driver
     public final static int INTAKE_INTAKE_BUTTON = 1; // right driver trigger
     public final static int FLYWHEEL_SPIN_TOGGLE = 2; // right second
+    public final static int FLYWHEEL_RANGE_TOGGLE = 3; // right second
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
 

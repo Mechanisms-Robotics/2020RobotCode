@@ -71,6 +71,7 @@ public class CommandState {
 
     public static class FlywheelDemand {
         public boolean spin = false;
+        public boolean longRange = false;
     }
 
     public void setManualControl(boolean manualControl) {
@@ -208,7 +209,11 @@ public class CommandState {
     private void maybeUpdateFlywheel(Flywheel flywheel) {
         if(flywheelDemand != null) {
             if(flywheelDemand.spin) {
-                flywheel.spinFlywheel();
+                if(flywheelDemand.longRange) {
+                    flywheel.spinLongRangeFlywheel();
+                } else {
+                    flywheel.spinFlywheel();
+                }
             } else {
                 flywheel.stop();
             }
