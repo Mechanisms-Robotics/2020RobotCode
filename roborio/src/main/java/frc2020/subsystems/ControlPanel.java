@@ -28,7 +28,7 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 5; //TODO: change on actual robot
+        masterConstants.id_ = 6; //TODO: change on actual robot
         masterConstants.invertMotor_ = false;
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;

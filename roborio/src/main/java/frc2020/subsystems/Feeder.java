@@ -15,7 +15,7 @@ public class Feeder extends SingleMotorSubsystem {
         new SingleMotorSubsystemConstants();
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 4;
+        masterConstants.id_ = 5;
         masterConstants.invertMotor_ = false;
         masterConstants.invertSensorPhase_ = false;
 

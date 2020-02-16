@@ -44,8 +44,9 @@ public class Robot extends TimedRobot {
     private Drive drive_;
     private Intake intake_;
     private Feeder feeder_;
+    private Flywheel flywheel_;
 
-   // private Compressor compressor_;
+    private Compressor compressor_;
     private AutoMode currentAutoMode_;
 
     private TeleopCSGenerator teleopCSGenerator_;
@@ -96,15 +97,19 @@ public class Robot extends TimedRobot {
                 Arrays.asList(
                   Drive.getInstance(),
                   limelight_turret_,
-                  limelight_low_
+                  limelight_low_,
                   // TODO: Put subystems here once tuned
+                  Feeder.getInstance(),
+                  Flywheel.getInstance()
                 )
         );
 
         drive_ = Drive.getInstance();
         intake_ = Intake.getInstance();
         feeder_ = Feeder.getInstance();
-       // compressor_ = new Compressor();
+        flywheel_ = Flywheel.getInstance();
+
+        compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT,
@@ -211,6 +216,7 @@ public class Robot extends TimedRobot {
             currentAutoMode_ = null;
             disabledIterator_.start();
             drive_.openLoop(new DriveSignal(0, 0, false));
+            teleopCSGenerator_.disableManualControl();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -241,6 +247,7 @@ public class Robot extends TimedRobot {
             }
             drive_.zeroSensors();
             drive_.setHighGear();
+            teleopCSGenerator_.disableManualControl();
             enabledIterator_.start();
             autoRunner_ = new AutoModeRunner();
             autoRunner_.setAutoMode(new RightToTrench8());
@@ -272,7 +279,7 @@ public class Robot extends TimedRobot {
             logger_.logRobotTeleopInit();
             CrashTracker.logTeleopInit();
             disabledIterator_.stop();
-            //compressor_.setClosedLoopControl(true);
+            compressor_.setClosedLoopControl(false); //TODO: Change back once we're done
             enabledIterator_.start();
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
@@ -281,6 +288,7 @@ public class Robot extends TimedRobot {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
+            teleopCSGenerator_.disableManualControl();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -300,7 +308,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_, flywheel_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -316,6 +324,7 @@ public class Robot extends TimedRobot {
             logger_.logRobotTestInit();
             disabledIterator_.stop();
             enabledIterator_.start();
+            teleopCSGenerator_.disableManualControl();
             manager_.runActiveTests();
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);

@@ -14,13 +14,13 @@ public class Intake extends SingleMotorSubsystem {
     private final static int FLIPPER_REVERSE_PORT = 6;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
-    private final static double INTAKE_RPM = 3200;
+    private final static double INTAKE_RPM = 4000;
     private final static double REVERSE_RPM = -3200;
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 3;
+        masterConstants.id_ = 9;
         masterConstants.invertMotor_ = false;
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
