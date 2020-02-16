@@ -20,7 +20,7 @@ public class Intake extends SingleMotorSubsystem {
         new SingleMotorSubsystemConstants();
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 3;
+        masterConstants.id_ = 9;
         masterConstants.invertMotor_ = false;
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
