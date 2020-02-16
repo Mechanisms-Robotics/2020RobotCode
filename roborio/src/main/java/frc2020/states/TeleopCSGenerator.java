@@ -3,7 +3,9 @@ package frc2020.states;
 import edu.wpi.first.wpilibj.Joystick;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
+import frc2020.subsystems.Drive;
 import frc2020.subsystems.Limelight;
+import frc2020.subsystems.Drive.DriveMode;
 import frc2020.util.*;
 
 /**
@@ -28,6 +30,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean intakeIntake;
     private boolean outtakeIntake;
 
+    private Drive drive_;
+
+    private CheesyDriveHelper cheesyHelper_;
+
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
     
@@ -43,6 +49,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         driveShiftLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
+
+        drive_ = Drive.getInstance();
+
+        cheesyHelper_ = new CheesyDriveHelper();
     }
 
     /**
@@ -87,8 +97,29 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     private DriveDemand generateDriveDemand() {
         final double DEADBAND = 0.01;
-        double leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-        double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
+
+        double leftDrive = 0.0;
+        double rightDrive = 0.0;
+
+        if (drive_.getDriveMode() == DriveMode.Tank) {
+            leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+            rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
+        } else if (drive_.getDriveMode() == DriveMode.Arcade) {
+            leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+            rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+            leftDrive += Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX());
+            rightDrive -= Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX());
+        } else if (drive_.getDriveMode() == DriveMode.Cheesy){
+            double throttle = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+            double wheel = Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX());
+            // TODO: Pass cheesyDrive highGear
+            DriveSignal dSignal = cheesyHelper_.cheesyDrive(throttle, wheel, false, false);
+            leftDrive = dSignal.getLeft();
+            rightDrive = dSignal.getRight();
+        } else {
+            logger_.logWarning("Invalid drive mode!", logName);
+        }
+
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
         if (autoSteerBall || autoSteerStation) {

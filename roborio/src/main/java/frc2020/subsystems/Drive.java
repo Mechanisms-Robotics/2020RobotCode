@@ -126,6 +126,14 @@ public class Drive implements Subsystem {
 
     private boolean IS_ROBOT = true;
 
+    private DriveMode mode_ = DriveMode.Tank;
+
+    public enum DriveMode {
+        Tank,
+        Arcade,
+        Cheesy
+    }
+
     /**
      * The default constructor starts the drive train and sets it up to be in
      * OpenLoop mode
@@ -275,6 +283,13 @@ public class Drive implements Subsystem {
     /**
      * getter
      */
+    public DriveMode getDriveMode() {
+        return mode_;
+    }
+
+    /**
+     * getter
+     */
     public DifferentialDriveKinematics getKinematics() {
         return kinematics_;
     }
@@ -390,6 +405,10 @@ public class Drive implements Subsystem {
     @Override
     public void registerLoops(ILooper in){
         in.register(driveLoop);
+    }
+
+    public synchronized void setDriveMode(DriveMode desiredMode) {
+        mode_ = desiredMode;
     }
 
     /**

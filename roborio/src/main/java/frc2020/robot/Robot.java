@@ -6,6 +6,7 @@ import frc2020.util.LoggerNotStartedException;
 import frc2020.util.PeriodicEvent;
 import frc2020.util.PeriodicEventManager;
 import frc2020.subsystems.Limelight;
+import frc2020.subsystems.Drive.DriveMode;
 import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
@@ -143,6 +144,8 @@ public class Robot extends TimedRobot {
 
         periodicEventManager_.addEvent(flushLog_, Constants.LOGGER_FLUSH_TIME);
         periodicEventManager_.addEvent(runPassiveTests_, Constants.PASSIVE_TEST_TIME);
+
+        drive_.setDriveMode(DriveMode.Arcade);
 
     }
 
