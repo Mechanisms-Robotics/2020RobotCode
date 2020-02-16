@@ -8,7 +8,7 @@ public class Flywheel extends SingleMotorSubsystem {
     private static Flywheel instance_;
 
     // TODO: Set speed for actual robot
-    private static int FLYWHEEL_SPEED = 6000;
+    private static int FLYWHEEL_SPEED = 5000;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
@@ -17,20 +17,20 @@ public class Flywheel extends SingleMotorSubsystem {
         masterConstants.id_ = 10;
         masterConstants.invertMotor_ = false;
 
-        // MotorConstants[] slaveConstantsArray = new MotorConstants[1];
-        // var slaveConstants = new MotorConstants();
-        // slaveConstants.id_ = 11;
-        // slaveConstants.invertMotor_ = false;
-        // slaveConstantsArray[0] = slaveConstants;
+        MotorConstants[] slaveConstantsArray = new MotorConstants[1];
+        var slaveConstants = new MotorConstants();
+        slaveConstants.id_ = 11;
+        slaveConstants.invertMotor_ = true;
+        slaveConstantsArray[0] = slaveConstants;
 
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
-        // DEFAULT_CONSTANTS.slaveConstants_ = slaveConstantsArray;
+        DEFAULT_CONSTANTS.slaveConstants_ = slaveConstantsArray;
         DEFAULT_CONSTANTS.name_ = "Flywheel";
         DEFAULT_CONSTANTS.velocityDeadBand_ = 0; // rpm
         DEFAULT_CONSTANTS.velocityKp_ = 0.0006;
         DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         DEFAULT_CONSTANTS.velocityKd_ = 0.0;
-        DEFAULT_CONSTANTS.velocityKf_ = 0.0003;
+        DEFAULT_CONSTANTS.velocityKf_ = 0.00019;
 
     }
 
