@@ -13,12 +13,12 @@ public class Flywheel extends SingleMotorSubsystem {
         new SingleMotorSubsystemConstants();
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 7;
+        masterConstants.id_ = 10;
         masterConstants.invertMotor_ = true;
         masterConstants.invertSensorPhase_ = false;
 
         var slaveConstants = new MotorConstants();
-        slaveConstants.id_ = 8;
+        slaveConstants.id_ = 11;
         slaveConstants.invertMotor_ = false;
         masterConstants.invertSensorPhase_ = true;
 

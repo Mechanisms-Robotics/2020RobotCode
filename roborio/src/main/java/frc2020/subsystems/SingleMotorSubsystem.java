@@ -131,21 +131,18 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         masterPid_.setD(constants_.velocityKd_, VELOCITY_PID_SLOT);
         masterPid_.setFF(constants_.velocityKf_, VELOCITY_PID_SLOT);
         masterPid_.setIZone(constants_.velocityIZone_, VELOCITY_PID_SLOT);
-        masterPid_.setFF(0.0, VELOCITY_PID_SLOT);
 
         masterPid_.setP(constants_.positionKp_, POSITION_PID_SLOT);
         masterPid_.setI(constants_.positionKi_, POSITION_PID_SLOT);
         masterPid_.setD(constants_.positionKd_, POSITION_PID_SLOT);
         masterPid_.setFF(constants_.positionKf_, POSITION_PID_SLOT);
         masterPid_.setIZone(constants_.positionIZone_, POSITION_PID_SLOT);
-        masterPid_.setFF(0.0, POSITION_PID_SLOT);
 
         masterPid_.setP(constants_.kP_, MOTION_PROFILE_SLOT);
         masterPid_.setI(constants_.kI_, MOTION_PROFILE_SLOT);
         masterPid_.setD(constants_.kD_, MOTION_PROFILE_SLOT);
         masterPid_.setFF(constants_.kF_, MOTION_PROFILE_SLOT);
         masterPid_.setIZone(constants_.iZone_, MOTION_PROFILE_SLOT);
-        masterPid_.setFF(0.0, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionAllowedClosedLoopError(constants_.deadband_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxAccel(constants_.acceleration_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxVelocity(constants_.cruiseVelocity_, MOTION_PROFILE_SLOT);
