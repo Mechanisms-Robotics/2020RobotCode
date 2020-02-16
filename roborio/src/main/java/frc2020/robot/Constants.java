@@ -66,17 +66,18 @@ public class Constants {
     public final static int RIGHT_DRIVER_JOYSTICK_PORT = 1;
     public final static int LEFT_SECONDARY_DRIVER_JOYSTICK_PORT = 3;
     public final static int RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT = 4;
-    public final static int AUTO_STEER_BUTTON = 2;
-    public final static int AUTO_ALIGN_BUTTON = 3;
-    public final static int MANUAL_CONTROL_BUTTON_1 = 7;
-    public final static int MANUAL_CONTROL_BUTTON_2 = 13;
-    public final static int MANUAL_FEEDER_INTAKE_HAT = 0;
-    public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180;
-    public final static int INTAKE_DEPLOY_TOGGLE = 3;
-    public final static int INTAKE_OUTTAKE_BUTTON = 2;
-    public final static int INTAKE_INTAKE_BUTTON = 1; //trigger
+    public final static int AUTO_STEER_BUTTON = 2; // left driver
+    public final static int AUTO_ALIGN_BUTTON = 3; // left driver
+    public final static int MANUAL_CONTROL_BUTTON_1 = 7; //right second
+    public final static int MANUAL_CONTROL_BUTTON_2 = 13; //right second
+    public final static int MANUAL_FEEDER_INTAKE_HAT = 0; //right second
+    public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180; //right second
+    public final static int INTAKE_DEPLOY_TOGGLE = 3; //right driver
+    public final static int INTAKE_OUTTAKE_BUTTON = 2; // right driver
+    public final static int INTAKE_INTAKE_BUTTON = 1; // right driver trigger
+    public final static int FLYWHEEL_SPIN_TOGGLE = 2; // right second
 
-    public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4;
+    public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
 
     //CANcoder IDs
     public final static int LEFT_CAN_CODER_ID = 1;

@@ -3,6 +3,7 @@ package frc2020.states;
 import frc2020.util.Logger;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Feeder;
+import frc2020.subsystems.Flywheel;
 import frc2020.subsystems.Intake;
 import frc2020.subsystems.Limelight;
 import frc2020.util.DriveSignal;
@@ -17,6 +18,7 @@ public class CommandState {
     public LimelightDemand limelightDemand;
     public FeederDemand feederDemand;
     public IntakeDemand intakeDemand;
+    public FlywheelDemand flywheelDemand;
     public boolean manualDemand = false;
 
     private Logger logger_ = Logger.getInstance();
@@ -67,6 +69,10 @@ public class CommandState {
         public boolean deploy = false;
     }
 
+    public static class FlywheelDemand {
+        public boolean spin = false;
+    }
+
     public void setManualControl(boolean manualControl) {
         manualDemand = manualControl;
     }
@@ -91,6 +97,10 @@ public class CommandState {
         intakeDemand = demand;
     }
 
+    public void setFlywheelDemand(FlywheelDemand demand) {
+        flywheelDemand = demand;
+    }
+
     /**
      * Getter for each subsystem demand
      * @return
@@ -104,16 +114,20 @@ public class CommandState {
      * from this command state
      * @param drive An instance of the drive train subsystem
      */
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake) { 
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, Flywheel flywheel) { 
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
         if (manualDemand) {
             maybeUpdateFeeder(feeder);
+            maybeUpdateFlywheel(flywheel);
             feederDemand = null;
+            flywheelDemand = null;
         } else { // TODO: Remove when superstructure implemented
             feederDemand = new FeederDemand();
+            flywheelDemand = new FlywheelDemand();
             maybeUpdateFeeder(feeder);
+            maybeUpdateFlywheel(flywheel);
         }
         driveDemand = null;
         limelightDemand = null;
@@ -187,6 +201,16 @@ public class CommandState {
                 intake.deployIntake();
             } else {
                 intake.stowIntake();
+            }
+        }
+    }
+
+    private void maybeUpdateFlywheel(Flywheel flywheel) {
+        if(flywheelDemand != null) {
+            if(flywheelDemand.spin) {
+                flywheel.spinFlywheel();
+            } else {
+                flywheel.stop();
             }
         }
     }

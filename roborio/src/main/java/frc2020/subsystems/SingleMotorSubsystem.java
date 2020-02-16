@@ -149,7 +149,6 @@ public abstract class SingleMotorSubsystem implements Subsystem {
 
 
         for (int i = 0; i < sparkSlaves_.length; ++i) {
-            sparkSlaves_[i].restoreFactoryDefaults();
             sparkSlaves_[i] = new CANSparkMax(constants_.slaveConstants_[i].id_, MotorType.kBrushless);
             sparkSlaves_[i].restoreFactoryDefaults();
             sparkSlaves_[i].follow(sparkMaster_);

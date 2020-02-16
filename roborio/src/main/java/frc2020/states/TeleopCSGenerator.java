@@ -27,6 +27,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean deployIntake;
     private boolean intakeIntake;
     private boolean outtakeIntake;
+    private LatchedBoolean spinFlywheelLatch;
+    private boolean spinFlywheel;
+
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
@@ -43,6 +46,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         driveShiftLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
+        spinFlywheelLatch = new LatchedBoolean();
     }
 
     /**
@@ -71,6 +75,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         // This is so that if they press intake/outake and it is not deployed it will deploy
         deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
 
+        //Flywheel
+        spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
+
         // The command state for the robot
         CommandState state = new CommandState();
         state.setManualControl(manualControl);
@@ -78,6 +85,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setDriveDemand(generateDriveDemand());
         state.setFeederDemand(generateFeederDemand());
         state.setIntakeDemand(generateIntakeDemand());
+        state.setFlywheelDemand(generateFlywheelDemand());
         return state;
     }
 
@@ -136,5 +144,17 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         demand.deploy = deployIntake;
         return demand;
+    }
+
+    private FlywheelDemand generateFlywheelDemand() {
+        FlywheelDemand demand = new FlywheelDemand();
+
+        demand.spin = spinFlywheel;
+
+        return demand;
+    }
+
+    public synchronized void disableManualControl() {
+        manualControl = false;
     }
 }

@@ -1,5 +1,6 @@
 package frc2020.subsystems;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 
 public class Flywheel extends SingleMotorSubsystem {
@@ -7,25 +8,30 @@ public class Flywheel extends SingleMotorSubsystem {
     private static Flywheel instance_;
 
     // TODO: Set speed for actual robot
-    private static int FLYWHEEL_SPEED = 5500;
+    private static int FLYWHEEL_SPEED = 6000;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
     static {
         var masterConstants = new MotorConstants();
         masterConstants.id_ = 10;
-        masterConstants.invertMotor_ = true;
-        masterConstants.invertSensorPhase_ = false;
+        masterConstants.invertMotor_ = false;
 
-        var slaveConstants = new MotorConstants();
-        slaveConstants.id_ = 11;
-        slaveConstants.invertMotor_ = false;
-        masterConstants.invertSensorPhase_ = true;
+        // MotorConstants[] slaveConstantsArray = new MotorConstants[1];
+        // var slaveConstants = new MotorConstants();
+        // slaveConstants.id_ = 11;
+        // slaveConstants.invertMotor_ = false;
+        // slaveConstantsArray[0] = slaveConstants;
 
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
-        DEFAULT_CONSTANTS.slaveConstants_ = new MotorConstants[]{slaveConstants};
+        // DEFAULT_CONSTANTS.slaveConstants_ = slaveConstantsArray;
         DEFAULT_CONSTANTS.name_ = "Flywheel";
-        DEFAULT_CONSTANTS.velocityDeadBand_ = 50; // rpm
+        DEFAULT_CONSTANTS.velocityDeadBand_ = 0; // rpm
+        DEFAULT_CONSTANTS.velocityKp_ = 0.0006;
+        DEFAULT_CONSTANTS.velocityKi_ = 0.0;
+        DEFAULT_CONSTANTS.velocityKd_ = 0.0;
+        DEFAULT_CONSTANTS.velocityKf_ = 0.0003;
+
     }
 
     protected Flywheel(SingleMotorSubsystemConstants constants) {
@@ -71,6 +77,7 @@ public class Flywheel extends SingleMotorSubsystem {
     @Override
     public void outputTelemetry() {
         // No telemetry to output for flywheel
+        SmartDashboard.putNumber("Master Flywheel Speed", super.io_.velocity);
     }
 
     @Override
