@@ -18,7 +18,7 @@ public class Turret extends SingleMotorSubsystem {
             new SingleMotorSubsystemConstants();
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 6;
+        masterConstants.id_ = 7;
         masterConstants.invertMotor_ = false;
         masterConstants.invertSensorPhase_ = false;
 

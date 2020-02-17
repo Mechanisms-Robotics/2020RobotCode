@@ -27,7 +27,7 @@ public class Hood extends SingleMotorSubsystem {
 
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 9;
+        masterConstants.id_ = 8;
         masterConstants.invertMotor_ = false;
 
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;

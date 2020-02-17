@@ -8,19 +8,24 @@ public class Feeder extends SingleMotorSubsystem {
 
     private static Feeder instance_;
 
-    private final static int INTAKE_SPEED = 3000; // rpm
-    private final static int OUTTAKE_SPEED = -3000; // rpm
+    private final static int INTAKE_SPEED = 3500; // rpm
+    private final static int OUTTAKE_SPEED = -3500; // rpm
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 4;
+        masterConstants.id_ = 5;
         masterConstants.invertMotor_ = false;
+        masterConstants.invertSensorPhase_ = false;
 
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Feeder";
         DEFAULT_CONSTANTS.enableHardLimits_ = false;
+        DEFAULT_CONSTANTS.velocityKp_ = 0.00005;
+        DEFAULT_CONSTANTS.velocityKi_ = 0.0;
+        DEFAULT_CONSTANTS.velocityKd_ = 0.0;
+        DEFAULT_CONSTANTS.velocityKf_ = 0.00017;
     }
 
     public static Feeder getInstance() {

@@ -1,6 +1,7 @@
 package frc2020.subsystems;
 
 import com.revrobotics.*;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
@@ -44,6 +45,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double kP_ = 0.0; // Raw output / raw error
         public double kI_ = 0.0; // Raw output / sum of raw error
         public double kD_ = 0.0; // Raw output / (err - prevErr)
+        public double kF_ = 0.0;
         public int iZone_ = 0;
         public double deadband_ = 0;
 
@@ -59,11 +61,13 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double positionKp_ = 0.0;
         public double positionKi_ = 0.0;
         public double positionKd_ = 0.0;
+        public double positionKf_ = 0.0;
         public int positionIZone_ = 0;
 
         public double velocityKp_ = 0.0;
         public double velocityKi_ = 0.0;
         public double velocityKd_ = 0.0;
+        public double velocityKf_ = 0.0;
         public int velocityIZone_ = 0;
         public double velocityDeadBand_ = 0.0;
 
@@ -90,6 +94,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     protected final String logName_;
 
     // TODO: Add error handling where needed
+    // TODO: Implement brake modes
     protected SingleMotorSubsystem(final SingleMotorSubsystemConstants constants) {
         constants_ = constants;
         forwardSoftLimitTicks_ = (int)(constants_.maxUnitsLimit_ - constants_.homePosition_);
@@ -104,6 +109,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         sparkMaster_.setClosedLoopRampRate(constants.closedLoopRampRate_);
         sparkMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
         sparkMaster_.setSmartCurrentLimit(constants_.currentLimitStall_, constants_.currentLimitFree_);
+        sparkMaster_.setIdleMode(IdleMode.kCoast);
 
         if (constants_.useVoltageComp_) {
             sparkMaster_.enableVoltageCompensation(constants_.maxVoltage_);
@@ -116,7 +122,6 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         encoder = sparkMaster_.getEncoder();
         encoder.setPositionConversionFactor(constants_.positionConversionFactor_);
         encoder.setVelocityConversionFactor(constants_.velocityConversionFactor_);
-        encoder.setInverted(constants_.masterConstants_.invertSensorPhase_);
         masterPid_.setFeedbackDevice(sparkMaster_.getEncoder());
 
         forwardSwitch_ = sparkMaster_.getForwardLimitSwitch(CANDigitalInput.LimitSwitchPolarity.kNormallyOpen);
@@ -127,31 +132,30 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         masterPid_.setP(constants_.velocityKp_, VELOCITY_PID_SLOT);
         masterPid_.setI(constants_.velocityKi_, VELOCITY_PID_SLOT);
         masterPid_.setD(constants_.velocityKd_, VELOCITY_PID_SLOT);
+        masterPid_.setFF(constants_.velocityKf_, VELOCITY_PID_SLOT);
         masterPid_.setIZone(constants_.velocityIZone_, VELOCITY_PID_SLOT);
-        masterPid_.setFF(0.0, VELOCITY_PID_SLOT);
 
         masterPid_.setP(constants_.positionKp_, POSITION_PID_SLOT);
         masterPid_.setI(constants_.positionKi_, POSITION_PID_SLOT);
         masterPid_.setD(constants_.positionKd_, POSITION_PID_SLOT);
+        masterPid_.setFF(constants_.positionKf_, POSITION_PID_SLOT);
         masterPid_.setIZone(constants_.positionIZone_, POSITION_PID_SLOT);
-        masterPid_.setFF(0.0, POSITION_PID_SLOT);
 
         masterPid_.setP(constants_.kP_, MOTION_PROFILE_SLOT);
         masterPid_.setI(constants_.kI_, MOTION_PROFILE_SLOT);
         masterPid_.setD(constants_.kD_, MOTION_PROFILE_SLOT);
+        masterPid_.setFF(constants_.kF_, MOTION_PROFILE_SLOT);
         masterPid_.setIZone(constants_.iZone_, MOTION_PROFILE_SLOT);
-        masterPid_.setFF(0.0, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionAllowedClosedLoopError(constants_.deadband_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxAccel(constants_.acceleration_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxVelocity(constants_.cruiseVelocity_, MOTION_PROFILE_SLOT);
 
 
         for (int i = 0; i < sparkSlaves_.length; ++i) {
-            sparkSlaves_[i].restoreFactoryDefaults();
             sparkSlaves_[i] = new CANSparkMax(constants_.slaveConstants_[i].id_, MotorType.kBrushless);
             sparkSlaves_[i].restoreFactoryDefaults();
-            sparkSlaves_[i].follow(sparkMaster_);
-            sparkSlaves_[i].setInverted(constants_.slaveConstants_[i].invertMotor_);
+            sparkSlaves_[i].follow(sparkMaster_, constants_.slaveConstants_[i].invertMotor_);
+            sparkSlaves_[i].setIdleMode(IdleMode.kCoast);
         }
 
         logName_ = constants_.name_;

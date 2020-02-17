@@ -241,8 +241,8 @@ public class Drive implements Subsystem {
         rightMaster_.restoreFactoryDefaults();
         rightSlave_.restoreFactoryDefaults();
         
-        leftMaster_.setInverted(true);
-        rightMaster_.setInverted(false);
+        leftMaster_.setInverted(false);
+        rightMaster_.setInverted(true);
 
         leftSlave_.follow(leftMaster_);
         rightSlave_.follow(rightMaster_);
