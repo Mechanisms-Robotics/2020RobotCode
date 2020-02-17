@@ -38,8 +38,12 @@ public class Constants {
     public final static int FREE_LIMIT = 40; // Amps DC
 
     //The Shifters (drive)
-    public final static int SHIFT_FORWARD = 3;
-    public final static int SHIFT_REVERSE = 4;
+    public final static int SHIFT_FORWARD = 6;
+    public final static int SHIFT_REVERSE = 7;
+
+    //Climber
+    public final static int CLIMB_FORWARD = 2;
+    public final static int CLIMB_REVERSE = 3;
 
     // Drive Train Physical Properties
     // meters NOTE: This is the effective wheel diameter not the measured one
