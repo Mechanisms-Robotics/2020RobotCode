@@ -7,6 +7,8 @@ import frc2020.loops.ILooper;
 
 public class Turret extends SingleMotorSubsystem {
 
+    private static Turret instance_;
+
     // TODO: Measure physical position of limits.
     private final static double LEFT_LIMIT_POS_POSITIVE = 140;
     private final static double RIGHT_LIMIT_POS_NEGATIVE = -140;
@@ -39,6 +41,10 @@ public class Turret extends SingleMotorSubsystem {
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
+
+    public static Turret getInstance() {
+        return instance_ == null ? instance_ = new Turret(DEFAULT_CONSTANTS) : instance_;
+    }
 
     protected Turret(SingleMotorSubsystemConstants constants) {
         super(constants);
