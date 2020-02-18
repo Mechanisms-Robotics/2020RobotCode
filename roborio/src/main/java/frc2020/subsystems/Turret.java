@@ -24,6 +24,18 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.homePosition_ = 0.0; //degrees
         DEFAULT_CONSTANTS.name_ = "Turret";
         DEFAULT_CONSTANTS.enableHardLimits_ = false;
+
+        DEFAULT_CONSTANTS.positionConversionFactor_ = 3.3; // degrees / encoder
+        DEFAULT_CONSTANTS.velocityConversionFactor_ = 3.3;
+        DEFAULT_CONSTANTS.closedLoopRampRate_ = 0.1;
+        DEFAULT_CONSTANTS.cruiseVelocity_ = 12000; //deg/min
+        DEFAULT_CONSTANTS.acceleration_ = 12000; //deg/min^2
+        DEFAULT_CONSTANTS.velocityDeadBand_ = 2.5;
+
+        DEFAULT_CONSTANTS.kP_ = 0.0001;
+        DEFAULT_CONSTANTS.kI_ = 0.0;
+        DEFAULT_CONSTANTS.kD_ = 0.0;
+        DEFAULT_CONSTANTS.kF_ = 0.0;
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);

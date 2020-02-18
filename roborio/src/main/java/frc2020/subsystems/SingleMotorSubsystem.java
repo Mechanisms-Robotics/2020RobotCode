@@ -146,7 +146,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         masterPid_.setD(constants_.kD_, MOTION_PROFILE_SLOT);
         masterPid_.setFF(constants_.kF_, MOTION_PROFILE_SLOT);
         masterPid_.setIZone(constants_.iZone_, MOTION_PROFILE_SLOT);
-        masterPid_.setSmartMotionAllowedClosedLoopError(constants_.deadband_, MOTION_PROFILE_SLOT);
+        masterPid_.setSmartMotionAllowedClosedLoopError(constants_.velocityDeadBand_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxAccel(constants_.acceleration_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxVelocity(constants_.cruiseVelocity_, MOTION_PROFILE_SLOT);
 
