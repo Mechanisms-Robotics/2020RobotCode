@@ -110,6 +110,22 @@ public class CommandState {
         return driveDemand;
     }
 
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake) {
+        maybeUpdateLimelight(limelight);
+        maybeUpdateDrive(drive, limelight);
+        maybeUpdateIntake(intake);
+        if (manualDemand) {
+            maybeUpdateFeeder(feeder);
+            feederDemand = null;
+        } else { // TODO: Remove when superstructure implemented
+            feederDemand = new FeederDemand();
+            maybeUpdateFeeder(feeder);
+        }
+        driveDemand = null;
+        limelightDemand = null;
+        intakeDemand = null;
+    }
+
     /**
      * Tries to update all the subsystems for the robot
      * from this command state

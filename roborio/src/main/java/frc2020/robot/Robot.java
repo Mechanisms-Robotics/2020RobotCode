@@ -99,15 +99,15 @@ public class Robot extends TimedRobot {
                   limelight_turret_,
                   limelight_low_,
                   // TODO: Put subystems here once tuned
-                  Feeder.getInstance(),
-                  Flywheel.getInstance()
+                  Feeder.getInstance()//,
+                  //Flywheel.getInstance()
                 )
         );
 
         drive_ = Drive.getInstance();
         intake_ = Intake.getInstance();
         feeder_ = Feeder.getInstance();
-        flywheel_ = Flywheel.getInstance();
+        //flywheel_ = Flywheel.getInstance();
 
         compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
@@ -308,7 +308,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_, flywheel_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
