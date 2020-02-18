@@ -44,6 +44,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private double turretManualJoystick;
     private double turretManualRelative;
     private final double MAX_MANUAL_DEG_PER_SEC = 90.0;
+    private boolean turretZero;
+    private LatchedBoolean turretZeroLatch;
+    private boolean turret45, turret90, turret180;
+    private LatchedBoolean turret45Latch, turret90Latch, turret180Latch;
+    private boolean turretNeg45, turretNeg90, turretNeg180;
+    private LatchedBoolean turretNeg45Latch, turretNeg90Latch, turretNeg180Latch;
 
     private double lastTimestamp = -1.0;
 
@@ -64,6 +70,15 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployIntakeLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
         toggleLongRangeLatch = new LatchedBoolean();
+
+        //Turret
+        turretZeroLatch = new LatchedBoolean();
+        turret45Latch = new LatchedBoolean();
+        turret90Latch = new LatchedBoolean();
+        turret180Latch = new LatchedBoolean();
+        turretNeg45Latch = new LatchedBoolean();
+        turretNeg90Latch = new LatchedBoolean();
+        turretNeg180Latch = new LatchedBoolean();
     }
 
     /**
@@ -113,6 +128,13 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             turretManualRelative = 0.0;
         }
         lastTimestamp = now;
+        turretZero = turretZeroLatch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_ZERO_MANUAL));
+        turret45 = turret45Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_LEFT_1));
+        turret90 = turret90Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_LEFT_2));
+        turret180 = turret180Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_LEFT_3));
+        turretNeg45 = turretNeg45Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_RIGHT_1));
+        turretNeg90 = turretNeg90Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_RIGHT_2));
+        turretNeg180 = turretNeg180Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_RIGHT_3));
 
         // The command state for the robot
         CommandState state = new CommandState();
@@ -190,6 +212,22 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
     
     private TurretDemand generateTurretDemand() {
+        if (turretZero) {
+            return TurretDemand.turnAbsolute(0);
+        } else if(turret45) {
+            return TurretDemand.turnAbsolute(45);
+        } else if(turret90) {
+            return TurretDemand.turnAbsolute(90);
+        } else if(turret180) {
+            return TurretDemand.turnAbsolute(180);
+        } else if(turretNeg45) {
+            return TurretDemand.turnAbsolute(-45);
+        } else if(turretNeg90) {
+            return TurretDemand.turnAbsolute(-90);
+        } else if(turretNeg180) {
+            return TurretDemand.turnAbsolute(-180);
+        }
+
         return TurretDemand.turnRelative(turretManualRelative);
     }
 
