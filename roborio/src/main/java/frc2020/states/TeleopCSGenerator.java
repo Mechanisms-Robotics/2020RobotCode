@@ -1,6 +1,7 @@
 package frc2020.states;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Timer;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Limelight;
@@ -40,7 +41,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean toggleLongRangeLatch;
     private boolean toggleLongRange;
     
+    private double turretManualJoystick;
+    private double turretManualRelative;
+    private final double MAX_MANUAL_DEG_PER_SEC = 90.0;
 
+    private double lastTimestamp = -1.0;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
@@ -67,6 +72,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     @Override
     public CommandState getCommandState() {
+        double now = Timer.getFPGATimestamp();
+
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
         leftDrive = Math.abs(leftJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
@@ -96,6 +103,17 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
         toggleLongRange = toggleLongRangeLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_RANGE_TOGGLE)) != toggleLongRange;
 
+        //Turret
+        turretManualJoystick = Math.abs(leftSecondJoystick_.getX()) <= JOYSTICK_DEADBAND ? 0 : -leftSecondJoystick_.getX();
+        if(lastTimestamp > 0) {
+            // The joystick linearly scales to the max speed.
+            // Multiply by the time delta to get the relative turret change per iteration
+            turretManualRelative = (turretManualJoystick * MAX_MANUAL_DEG_PER_SEC) * (now - lastTimestamp); 
+        } else {
+            turretManualRelative = 0.0;
+        }
+        lastTimestamp = now;
+
         // The command state for the robot
         CommandState state = new CommandState();
         state.setManualControl(manualControl);
@@ -104,6 +122,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setFeederDemand(generateFeederDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFlywheelDemand(generateFlywheelDemand());
+        state.setTurretDemand(generateTurretDemand());
         return state;
     }
 
@@ -168,6 +187,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         demand.longRange = toggleLongRange;
 
         return demand;
+    }
+    
+    private TurretDemand generateTurretDemand() {
+        return TurretDemand.turnRelative(turretManualRelative);
     }
 
     public synchronized void disableManualControl() {
