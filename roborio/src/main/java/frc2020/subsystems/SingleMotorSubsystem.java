@@ -6,6 +6,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.util.Logger;
 import frc2020.util.Util;
 
@@ -274,10 +275,11 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     }
 
     public synchronized void setOpenLoop(double units, double feedforward) {
+        //logger_.logDebug("Set open loop units: " + units, logName_);
         io_.demand = units;
         io_.feedforward = feedforward;
-        if (state_ != ControlState.POSITION_PID) {
-            state_ = ControlState.POSITION_PID;
+        if (state_ != ControlState.OPEN_LOOP) {
+            state_ = ControlState.OPEN_LOOP;
         }
     }
 
@@ -296,6 +298,17 @@ public abstract class SingleMotorSubsystem implements Subsystem {
             default:
                 return true;
         }
+    }
+
+    @Override
+    public void outputTelemetry() {
+        SmartDashboard.putNumber(constants_.name_ + " : Position", io_.position);
+        SmartDashboard.putNumber(constants_.name_ + " : Velocity", io_.velocity);
+        SmartDashboard.putNumber(constants_.name_ + " : Demand", io_.velocity);
+        SmartDashboard.putString(constants_.name_ + " : Control State", state_.toString());
+        SmartDashboard.putBoolean(constants_.name_ + " : Forward Limit", io_.forwardLimit);
+        SmartDashboard.putBoolean(constants_.name_ + " : Reverse Limit", io_.reverseLimit);
+        SmartDashboard.putBoolean(constants_.name_ + " : Zeroed", hasBeenZeroed);
     }
 
     /**

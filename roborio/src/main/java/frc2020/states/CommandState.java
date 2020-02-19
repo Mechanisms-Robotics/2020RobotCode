@@ -1,5 +1,6 @@
 package frc2020.states;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.util.Logger;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.subsystems.Drive;
@@ -162,11 +163,13 @@ public class CommandState {
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
         if (manualDemand) {
+            //logger_.logDebug("Turret Demand: " + turretDemand.angleDemand + " Turret Type: " + turretDemand.type.toString());
             maybeUpdateFeeder(feeder);
             maybeUpdateTurret(turret);
             feederDemand = null;
             turretDemand = null;
         } else { // TODO: Remove when superstructure implemented
+            //logger_.logDebug("Manual control not set");
             feederDemand = new FeederDemand();
             turretDemand = new TurretDemand();
             maybeUpdateFeeder(feeder);
@@ -208,7 +211,7 @@ public class CommandState {
         if (manualDemand) {
             maybeUpdateFeeder(feeder);
             maybeUpdateFlywheel(flywheel);
-            maybeUpdateTurret(turret);
+            //maybeUpdateTurret(turret);
             feederDemand = null;
             flywheelDemand = null;
             turretDemand = null;
@@ -218,7 +221,7 @@ public class CommandState {
             turretDemand = new TurretDemand();
             maybeUpdateFeeder(feeder);
             maybeUpdateFlywheel(flywheel);
-            maybeUpdateTurret(turret);
+            //maybeUpdateTurret(turret);
         }
         driveDemand = null;
         limelightDemand = null;

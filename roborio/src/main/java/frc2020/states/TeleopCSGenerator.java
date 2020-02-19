@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.Timer;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Limelight;
+import frc2020.subsystems.Turret;
 import frc2020.util.*;
 
 /**
@@ -43,7 +44,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     
     private double turretManualJoystick;
     private double turretManualRelative;
-    private final double MAX_MANUAL_DEG_PER_SEC = 90.0;
+    private final double MAX_MANUAL_DEG_PER_SEC = 200.0;
     private boolean turretZero;
     private LatchedBoolean turretZeroLatch;
     private boolean turret45, turret90, turret180;
@@ -127,6 +128,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else {
             turretManualRelative = 0.0;
         }
+
+//        logger_.logDebug("Turret Manual Joystick : " + turretManualJoystick, logName);
+//        logger_.logDebug("Turret Relative Speed: " + turretManualRelative, logName);
         lastTimestamp = now;
         turretZero = turretZeroLatch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_ZERO_MANUAL));
         turret45 = turret45Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_LEFT_1));
@@ -212,21 +216,23 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
     
     private TurretDemand generateTurretDemand() {
-        if (turretZero) {
-            return TurretDemand.turnAbsolute(0);
-        } else if(turret45) {
-            return TurretDemand.turnAbsolute(45);
-        } else if(turret90) {
-            return TurretDemand.turnAbsolute(90);
-        } else if(turret180) {
-            return TurretDemand.turnAbsolute(180);
-        } else if(turretNeg45) {
-            return TurretDemand.turnAbsolute(-45);
-        } else if(turretNeg90) {
-            return TurretDemand.turnAbsolute(-90);
-        } else if(turretNeg180) {
-            return TurretDemand.turnAbsolute(-180);
-        }
+//        if (turretZero) {
+//            return TurretDemand.turnAbsolute(0);
+//        } else if(turret45) {
+//            return TurretDemand.turnAbsolute(45);
+//        } else if(turret90) {
+//            return TurretDemand.turnAbsolute(90);
+//        } else if(turret180) {
+//            return TurretDemand.turnAbsolute(180);
+//        } else if(turretNeg45) {
+//            return TurretDemand.turnAbsolute(-45);
+//        } else if(turretNeg90) {
+//            return TurretDemand.turnAbsolute(-90);
+//        } else if(turretNeg180) {
+//            return TurretDemand.turnAbsolute(-180);
+//        }
+        //logger_.logDebug("Calling set open loop");
+        //Turret.getInstance().setOpenLoop(turretManualJoystick);
 
         return TurretDemand.turnRelative(turretManualRelative);
     }

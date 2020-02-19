@@ -1,5 +1,6 @@
 package frc2020.subsystems;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -10,8 +11,8 @@ public class Turret extends SingleMotorSubsystem {
     private static Turret instance_;
 
     // TODO: Measure physical position of limits.
-    private final static double LEFT_LIMIT_POS_POSITIVE = 140;
-    private final static double RIGHT_LIMIT_POS_NEGATIVE = -140;
+    private final static double LEFT_LIMIT_POS_POSITIVE = 113;
+    private final static double RIGHT_LIMIT_POS_NEGATIVE = -113;
     private final static double LEFT_LIMIT_POS_NEGATIVE = LEFT_LIMIT_POS_POSITIVE - 360;
     private final static double RIGHT_LIMIT_POS_POSITIVE = RIGHT_LIMIT_POS_NEGATIVE + 360;
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
@@ -42,16 +43,22 @@ public class Turret extends SingleMotorSubsystem {
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
 
+    private final DigitalInput leftLimit;
+    private final DigitalInput rightLimit;
+
     public static Turret getInstance() {
         return instance_ == null ? instance_ = new Turret(DEFAULT_CONSTANTS) : instance_;
     }
 
     protected Turret(SingleMotorSubsystemConstants constants) {
         super(constants);
+        leftLimit = new DigitalInput(0);
+        rightLimit = new DigitalInput(1);
     }
 
     @Override
     protected boolean handleZeroing() {
+        //logger_.logDebug("Calling handle zeroing", logName_);
         if (atLeftLimit()) {
             if (getPosition() >= 0) {
                 encoder.setPosition(LEFT_LIMIT_POS_POSITIVE);
@@ -73,11 +80,11 @@ public class Turret extends SingleMotorSubsystem {
     }
 
     public synchronized boolean atLeftLimit() {
-        return io_.reverseLimit;
+        return !leftLimit.get();
     }
 
     public synchronized boolean atRightLimit() {
-        return io_.forwardLimit;
+        return !rightLimit.get();
     }
 
     // TODO: Make sure sensor phase is correct (clockwise negative)
@@ -150,6 +157,7 @@ public class Turret extends SingleMotorSubsystem {
     public synchronized void setRelativePosition(Rotation2d delta) {
 
         // Calculate current rotation rotated by delta
+        logger_.logDebug("delta: " + delta + "  rotation: " + getRotation());
         Rotation2d relativeRotation = getRotation().rotateBy(delta);
 
         setAbsolutePosition(relativeRotation);
@@ -241,6 +249,8 @@ public class Turret extends SingleMotorSubsystem {
 
     @Override
     public void outputTelemetry() {
-        SmartDashboard.putNumber("Turret Rotation", getRotation().getDegrees());
+        super.outputTelemetry();
+        SmartDashboard.putBoolean("Turret Left Limit", atLeftLimit());
+        SmartDashboard.putBoolean("Turret Right Limit", atRightLimit());
     }
 }
