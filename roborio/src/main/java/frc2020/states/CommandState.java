@@ -8,7 +8,6 @@ import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Flywheel;
 import frc2020.subsystems.Intake;
 import frc2020.subsystems.Limelight;
-import frc2020.subsystems.Turret;
 import frc2020.util.DriveSignal;
 
 /**
@@ -22,7 +21,6 @@ public class CommandState {
     public FeederDemand feederDemand;
     public IntakeDemand intakeDemand;
     public FlywheelDemand flywheelDemand;
-    public TurretDemand turretDemand;
     public boolean manualDemand = false;
 
     private Logger logger_ = Logger.getInstance();
@@ -78,30 +76,6 @@ public class CommandState {
         public boolean longRange = false;
     }
 
-    public static class TurretDemand {
-        public double angleDemand = 0.0;
-        public DemandType type = DemandType.Relative;
-
-        public enum DemandType {
-            Absolute,
-            Relative
-        }
-
-        public static TurretDemand turnRelative(double relative) {
-            TurretDemand demand = new TurretDemand();
-            demand.angleDemand = relative;
-            demand.type = DemandType.Relative;
-            return demand;
-        }
-
-        public static TurretDemand turnAbsolute(double absolute) {
-            TurretDemand demand = new TurretDemand();
-            demand.angleDemand = absolute;
-            demand.type = DemandType.Absolute;
-            return demand;
-        }
-    }
-
     public void setManualControl(boolean manualControl) {
         manualDemand = manualControl;
     }
@@ -130,10 +104,6 @@ public class CommandState {
         flywheelDemand = demand;
     }
 
-    public void setTurretDemand(TurretDemand demand) {
-        turretDemand = demand;
-    }
-
     /**
      * Getter for each subsystem demand
      * @return
@@ -158,27 +128,6 @@ public class CommandState {
         intakeDemand = null;
     }
 
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, Turret turret) {
-        maybeUpdateLimelight(limelight);
-        maybeUpdateDrive(drive, limelight);
-        maybeUpdateIntake(intake);
-        if (manualDemand) {
-            //logger_.logDebug("Turret Demand: " + turretDemand.angleDemand + " Turret Type: " + turretDemand.type.toString());
-            maybeUpdateFeeder(feeder);
-            maybeUpdateTurret(turret);
-            feederDemand = null;
-            turretDemand = null;
-        } else { // TODO: Remove when superstructure implemented
-            //logger_.logDebug("Manual control not set");
-            feederDemand = new FeederDemand();
-            turretDemand = new TurretDemand();
-            maybeUpdateFeeder(feeder);
-            maybeUpdateTurret(turret);
-        }
-        driveDemand = null;
-        limelightDemand = null;
-        intakeDemand = null;
-    }
     /**
      * Tries to update all the subsystems for the robot
      * from this command state
@@ -198,30 +147,6 @@ public class CommandState {
             flywheelDemand = new FlywheelDemand();
             maybeUpdateFeeder(feeder);
             maybeUpdateFlywheel(flywheel);
-        }
-        driveDemand = null;
-        limelightDemand = null;
-        intakeDemand = null;
-    }
-
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, Flywheel flywheel, Turret turret) { 
-        maybeUpdateLimelight(limelight);
-        maybeUpdateDrive(drive, limelight);
-        maybeUpdateIntake(intake);
-        if (manualDemand) {
-            maybeUpdateFeeder(feeder);
-            maybeUpdateFlywheel(flywheel);
-            //maybeUpdateTurret(turret);
-            feederDemand = null;
-            flywheelDemand = null;
-            turretDemand = null;
-        } else { // TODO: Remove when superstructure implemented
-            feederDemand = new FeederDemand();
-            flywheelDemand = new FlywheelDemand();
-            turretDemand = new TurretDemand();
-            maybeUpdateFeeder(feeder);
-            maybeUpdateFlywheel(flywheel);
-            //maybeUpdateTurret(turret);
         }
         driveDemand = null;
         limelightDemand = null;
@@ -309,16 +234,6 @@ public class CommandState {
                 }
             } else {
                 flywheel.stop();
-            }
-        }
-    }
-
-    private void maybeUpdateTurret(Turret turret) {
-        if(turretDemand != null) {
-            if(turretDemand.type == TurretDemand.DemandType.Absolute) {
-                turret.setAbsolutePosition(Rotation2d.fromDegrees(turretDemand.angleDemand));
-            } else if(turretDemand.type == TurretDemand.DemandType.Relative) {
-                turret.setRelativePosition(Rotation2d.fromDegrees(turretDemand.angleDemand));
             }
         }
     }

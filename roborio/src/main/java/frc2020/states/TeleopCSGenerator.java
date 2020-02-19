@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.Timer;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Limelight;
-import frc2020.subsystems.Turret;
 import frc2020.util.*;
 
 /**
@@ -41,18 +40,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean spinFlywheel;
     private LatchedBoolean toggleLongRangeLatch;
     private boolean toggleLongRange;
-    
-    private double turretManualJoystick;
-    private double turretManualRelative;
-    private final double MAX_MANUAL_DEG_PER_SEC = 200.0;
-    private boolean turretZero;
-    private LatchedBoolean turretZeroLatch;
-    private boolean turret45, turret90, turret180;
-    private LatchedBoolean turret45Latch, turret90Latch, turret180Latch;
-    private boolean turretNeg45, turretNeg90, turretNeg180;
-    private LatchedBoolean turretNeg45Latch, turretNeg90Latch, turretNeg180Latch;
-
-    private double lastTimestamp = -1.0;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
@@ -71,15 +58,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployIntakeLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
         toggleLongRangeLatch = new LatchedBoolean();
-
-        //Turret
-        turretZeroLatch = new LatchedBoolean();
-        turret45Latch = new LatchedBoolean();
-        turret90Latch = new LatchedBoolean();
-        turret180Latch = new LatchedBoolean();
-        turretNeg45Latch = new LatchedBoolean();
-        turretNeg90Latch = new LatchedBoolean();
-        turretNeg180Latch = new LatchedBoolean();
     }
 
     /**
@@ -119,27 +97,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
         toggleLongRange = toggleLongRangeLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_RANGE_TOGGLE)) != toggleLongRange;
 
-        //Turret
-        turretManualJoystick = Math.abs(leftSecondJoystick_.getX()) <= JOYSTICK_DEADBAND ? 0 : -leftSecondJoystick_.getX();
-        if(lastTimestamp > 0) {
-            // The joystick linearly scales to the max speed.
-            // Multiply by the time delta to get the relative turret change per iteration
-            turretManualRelative = (turretManualJoystick * MAX_MANUAL_DEG_PER_SEC) * (now - lastTimestamp); 
-        } else {
-            turretManualRelative = 0.0;
-        }
-
-//        logger_.logDebug("Turret Manual Joystick : " + turretManualJoystick, logName);
-//        logger_.logDebug("Turret Relative Speed: " + turretManualRelative, logName);
-        lastTimestamp = now;
-        turretZero = turretZeroLatch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_ZERO_MANUAL));
-        turret45 = turret45Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_LEFT_1));
-        turret90 = turret90Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_LEFT_2));
-        turret180 = turret180Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_LEFT_3));
-        turretNeg45 = turretNeg45Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_RIGHT_1));
-        turretNeg90 = turretNeg90Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_RIGHT_2));
-        turretNeg180 = turretNeg180Latch.update(leftSecondJoystick_.getRawButton(Constants.TURRET_MANUAL_RIGHT_3));
-
         // The command state for the robot
         CommandState state = new CommandState();
         state.setManualControl(manualControl);
@@ -148,7 +105,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setFeederDemand(generateFeederDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFlywheelDemand(generateFlywheelDemand());
-        state.setTurretDemand(generateTurretDemand());
         return state;
     }
 
@@ -214,28 +170,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         return demand;
     }
-    
-    private TurretDemand generateTurretDemand() {
-//        if (turretZero) {
-//            return TurretDemand.turnAbsolute(0);
-//        } else if(turret45) {
-//            return TurretDemand.turnAbsolute(45);
-//        } else if(turret90) {
-//            return TurretDemand.turnAbsolute(90);
-//        } else if(turret180) {
-//            return TurretDemand.turnAbsolute(180);
-//        } else if(turretNeg45) {
-//            return TurretDemand.turnAbsolute(-45);
-//        } else if(turretNeg90) {
-//            return TurretDemand.turnAbsolute(-90);
-//        } else if(turretNeg180) {
-//            return TurretDemand.turnAbsolute(-180);
-//        }
-        //logger_.logDebug("Calling set open loop");
-        //Turret.getInstance().setOpenLoop(turretManualJoystick);
 
-        return TurretDemand.turnRelative(turretManualRelative);
-    }
 
     public synchronized void disableManualControl() {
         manualControl = false;

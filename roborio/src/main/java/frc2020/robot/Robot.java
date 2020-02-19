@@ -45,7 +45,6 @@ public class Robot extends TimedRobot {
     private Intake intake_;
     private Feeder feeder_;
     private Flywheel flywheel_;
-    private Turret turret_;
 
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
@@ -100,8 +99,7 @@ public class Robot extends TimedRobot {
                   limelight_turret_,
                   limelight_low_,
                   // TODO: Put subystems here once tuned
-                  Feeder.getInstance(),
-                  Turret.getInstance()//,
+                  Feeder.getInstance()
                   //Flywheel.getInstance()
                 )
         );
@@ -110,7 +108,6 @@ public class Robot extends TimedRobot {
         intake_ = Intake.getInstance();
         feeder_ = Feeder.getInstance();
         //flywheel_ = Flywheel.getInstance();
-        turret_ = Turret.getInstance();
 
         compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
@@ -311,7 +308,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_, turret_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -328,8 +325,7 @@ public class Robot extends TimedRobot {
             disabledIterator_.stop();
             enabledIterator_.start();
             teleopCSGenerator_.disableManualControl();
-            //manager_.runActiveTests();
-            turret_.setOpenLoop(-0.2);
+            manager_.runActiveTests();
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;
