@@ -8,6 +8,8 @@ public class Climber extends SingleMotorSubsystem {
 
     private static Climber instance_;
 
+    private boolean hasDeployed_ = false; //This is set to true ONCE after deploy
+
     private DoubleSolenoid armFlipper_;
     private final static int ARM_FLIPPER_PCM_ID = 1;
     private final static int ARM_FLIPPER_FORWARD_PORT = 0;
@@ -56,17 +58,24 @@ public class Climber extends SingleMotorSubsystem {
         winchLock_ = new DoubleSolenoid(WINCH_LOCK_PCM_ID, WINCH_LOCK_FORWARD_PORT, WINCH_LOCK_REVERSE_PORT);
     }
 
-    public void deployClimber() {
+    public void deployClimberArm() {
         wantDeploy_ = true;
     }
 
-    public void stowClimber() {
+    public void stowClimberArm() {
+        if(!hasDeployed_) {
+            super.stop();
+        }
         wantDeploy_ = false;
     }
 
     public void lockWinch() {
         super.stop();
         wantLock_ = true;
+    }
+
+    public void unlockWinch() {
+        wantLock_ = false;
     }
 
     public void controlWinch(double demand) {
@@ -101,6 +110,10 @@ public class Climber extends SingleMotorSubsystem {
             } else {
                 armFlipper_.set(STOWED_VALUE);
             }
+        }
+
+        if(isDeployed_) {
+            hasDeployed_ = true;
         }
 
         if(wantLock_ != isLocked_) {
