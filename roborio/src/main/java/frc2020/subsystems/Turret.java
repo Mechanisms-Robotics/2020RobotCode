@@ -5,10 +5,17 @@ import frc2020.loops.ILooper;
 
 public class Turret extends SingleMotorSubsystem {
 
+    // Notes about sensor vs turret units
+    // Turret units has the back of the robot as 0
+    // Sensor units has the reverse limit switch as 0
+    // This makes measurements and calibration much simplier
+
     private static Turret instance_;
 
-    private static double FORWARD_LIMIT_SWITCH_POSITION = 355;
-    private static double REVERSE_LIMIT_SWITCH_POSITION = 0;
+    // TODO: Measure
+    private final static Rotation2d TURRET_HOME_TO_SENSOR_HOME = Rotation2d.fromDegrees(0.0);
+    private final static double FORWARD_LIMIT_SWITCH_POSITION = 355;
+    private final static double REVERSE_LIMIT_SWITCH_POSITION = 0;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
             new SingleMotorSubsystemConstants();
@@ -47,6 +54,33 @@ public class Turret extends SingleMotorSubsystem {
         super(constants);
     }
 
+    /**
+     * Set's the poseidon of the turret given a change in rotation.
+     * @param deltaRotation The rotation to change the turret angle by.
+     *                      positive counter-clockwise
+     */
+    public synchronized void setRelativeRotation(Rotation2d deltaRotation) {
+        setSmartPosition(getPosition() + deltaRotation.getDegrees());
+    }
+
+    /**
+     * The absolute position to set the turret's angle to given an absolute
+     * rotation
+     * @param absolutePosition The absolute rotation to turn to. Positive counter-clockwise
+     *                         0 is the turret facing the back of the robot.
+     */
+    public synchronized void setAbsoluteRotation(Rotation2d absolutePosition) {
+        setSmartPosition(toTurretSetpoint(absolutePosition));
+    }
+
+    private static double toTurretSetpoint(Rotation2d setpoint) {
+        double correctedRotation = setpoint.rotateBy(TURRET_HOME_TO_SENSOR_HOME).getDegrees();
+        if (correctedRotation < 0.0) {
+            correctedRotation += 360.0;
+        }
+        return correctedRotation;
+    }
+
     @Override
     protected boolean handleZeroing() {
         // TODO: Enable zeroing once sensor units and limit swich posotion is found
@@ -64,8 +98,6 @@ public class Turret extends SingleMotorSubsystem {
         return false;
     }
 
-    // TODO: Check that each limit switch is pluged in to it's
-    // correct forward or reverse limit switch port.
     @Override
     protected synchronized boolean atReverseLimit() {
         return io_.reverseLimit;
