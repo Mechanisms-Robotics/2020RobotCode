@@ -12,10 +12,15 @@ public class Climber extends SingleMotorSubsystem {
     private final static int ARM_FLIPPER_PCM_ID = 1;
     private final static int ARM_FLIPPER_FORWARD_PORT = 0;
     private final static int ARM_FLIPPER_REVERSE_PORT = 1;
+    private boolean wantDeploy_ = false;
+    private boolean isDeployed_ = false;
+
     private DoubleSolenoid winchLock_;
     private final static int WINCH_LOCK_PCM_ID = 0;
     private final static int WINCH_LOCK_FORWARD_PORT = 0;
     private final static int WINCH_LOCK_REVERSE_PORT = 1;
+    private boolean wantLock_ = false;
+    private boolean isLocked_ = false;
 
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
@@ -52,7 +57,20 @@ public class Climber extends SingleMotorSubsystem {
     }
 
     public void deployClimber() {
-        armFlipper_.set()
+        wantDeploy_ = true;
+    }
+
+    public void stowClimber() {
+        wantDeploy_ = false;
+    }
+
+    public void lockWinch() {
+        super.stop();
+        wantLock_ = true;
+    }
+
+    public void controlWinch(double demand) {
+        super.setOpenLoop(demand);
     }
 
     @Override
@@ -71,6 +89,35 @@ public class Climber extends SingleMotorSubsystem {
     public void registerLoops(ILooper enabledLooper) {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public synchronized void writePeriodicOutputs() {
+        super.writePeriodicOutputs();
+
+        if (wantDeploy_ != isDeployed_) {
+            if (wantDeploy_) {
+                armFlipper_.set(DEPLOYED_VALUE);
+            } else {
+                armFlipper_.set(STOWED_VALUE);
+            }
+        }
+
+        if(wantLock_ != isLocked_) {
+            if(wantLock_) {
+                winchLock_.set(LOCKED_VALUE);
+            } else {
+                winchLock_.set(UNLOCKED_VALUE);
+            }
+        }
+    }
+
+    @Override
+    public synchronized void readPeriodicInputs() {
+        super.readPeriodicInputs();
+
+        isDeployed_ = armFlipper_.get() == DEPLOYED_VALUE;
+        isLocked_ = winchLock_.get() == LOCKED_VALUE;
     }
 
     @Override
