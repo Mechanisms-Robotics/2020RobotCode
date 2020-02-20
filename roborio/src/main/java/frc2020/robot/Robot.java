@@ -46,6 +46,7 @@ public class Robot extends TimedRobot {
     private Intake intake_;
     private Feeder feeder_;
     private Flywheel flywheel_;
+    private Climber climber_;
 
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
@@ -101,7 +102,8 @@ public class Robot extends TimedRobot {
                   limelight_low_,
                   // TODO: Put subystems here once tuned
                   Feeder.getInstance(),
-                  Intake.getInstance()
+                  Intake.getInstance(),
+                  Climber.getInstance()
                   //Flywheel.getInstance()
                 )
         );
@@ -110,6 +112,7 @@ public class Robot extends TimedRobot {
         intake_ = Intake.getInstance();
         feeder_ = Feeder.getInstance();
         //flywheel_ = Flywheel.getInstance();
+        climber_ = Climber.getInstance();
 
         compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
@@ -221,6 +224,7 @@ public class Robot extends TimedRobot {
             disabledIterator_.start();
             drive_.openLoop(new DriveSignal(0, 0, false));
             teleopCSGenerator_.disableManualControl();
+            climber_.resetHasDeployed();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -288,6 +292,8 @@ public class Robot extends TimedRobot {
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setHighGear();
+            climber_.resetHasDeployed();
+            climber_.unlockWinch();
             if (autoRunner_ != null) {
                 autoRunner_.stop();
                 autoRunner_ = null;
@@ -312,7 +318,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_, climber_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
