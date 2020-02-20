@@ -38,8 +38,12 @@ public class Constants {
     public final static int FREE_LIMIT = 40; // Amps DC
 
     //The Shifters (drive)
-    public final static int SHIFT_FORWARD = 3;
-    public final static int SHIFT_REVERSE = 4;
+    public final static int SHIFT_FORWARD = 6;
+    public final static int SHIFT_REVERSE = 7;
+
+    //Climber
+    public final static int CLIMB_FORWARD = 2;
+    public final static int CLIMB_REVERSE = 3;
 
     // Drive Train Physical Properties
     // meters NOTE: This is the effective wheel diameter not the measured one
@@ -72,11 +76,13 @@ public class Constants {
     public final static int MANUAL_CONTROL_BUTTON_2 = 13; //right second
     public final static int MANUAL_FEEDER_INTAKE_HAT = 0; //right second
     public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180; //right second
-    public final static int INTAKE_DEPLOY_TOGGLE = 3; //right driver
-    public final static int INTAKE_OUTTAKE_BUTTON = 2; // right driver
-    public final static int INTAKE_INTAKE_BUTTON = 1; // right driver trigger
-    public final static int FLYWHEEL_SPIN_TOGGLE = 2; // right second
-    public final static int FLYWHEEL_RANGE_TOGGLE = 3; // right second
+    public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
+    public final static int INTAKE_OUTTAKE_BUTTON = 3; // right driver
+    public final static int INTAKE_INTAKE_BUTTON = 2; // right driver 
+    public final static int FLYWHEEL_SPIN_TOGGLE = 2; // left second
+    public final static int DEPLOY_CLIMBER_TOGGLE_1 = 3; //right second
+    public final static int DEPLOY_CLIMBER_TOGGLE_2 = 4; //right second
+    public final static int LOCK_CLIMBER_TOGGLE = 2; //right second
 
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
 

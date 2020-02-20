@@ -15,22 +15,29 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick rightJoystick_;
     private Joystick leftSecondJoystick_;
     private Joystick rightSecondJoystick_;
+    private final double JOYSTICK_DEADBAND = 0.01;
     private LatchedBoolean driveShiftLatch;
+    private double leftDrive = 0.0;
+    private double rightDrive = 0.0;
     private boolean autoSteerBall = false;
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
     private boolean intakeFeeder = false;
     private boolean outtakeFeeder = false;
     private LatchedBoolean manualControlLatch;
-    private boolean manualControl;
+    private boolean manualControl = false;
     private LatchedBoolean deployIntakeLatch;
-    private boolean deployIntake;
-    private boolean intakeIntake;
-    private boolean outtakeIntake;
+    private boolean deployIntake = false;
+    private boolean intakeIntake = false;
+    private boolean outtakeIntake = false;
     private LatchedBoolean spinFlywheelLatch;
-    private boolean spinFlywheel;
-    private LatchedBoolean toggleLongRangeLatch;
-    private boolean toggleLongRange;
+    private boolean spinFlywheel = false;
+
+    private LatchedBoolean deployClimberLatch;
+    private boolean deployClimber = false;
+    private LatchedBoolean lockClimberLatch;
+    private boolean lockClimber = false;
+    private double climberSpeed = 0.0;
 
 
     private Logger logger_ = Logger.getInstance();
@@ -48,8 +55,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         driveShiftLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
+        deployClimberLatch = new LatchedBoolean();
+        lockClimberLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
-        toggleLongRangeLatch = new LatchedBoolean();
     }
 
     /**
@@ -58,6 +66,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     @Override
     public CommandState getCommandState() {
+        //Drive
+        leftDrive = Math.abs(leftJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
+        rightDrive = Math.abs(rightJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightJoystick_.getY();
+        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+
         // Whether to track a power cell
         autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         // Whether to auto target to station
@@ -72,15 +85,22 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
 
         // Intake
-        deployIntake = deployIntakeLatch.update(rightJoystick_.getRawButton(Constants.INTAKE_DEPLOY_TOGGLE)) != deployIntake;
-        intakeIntake = rightJoystick_.getTrigger();
+        deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
+        intakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_INTAKE_BUTTON);
         outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
         // This is so that if they press intake/outake and it is not deployed it will deploy
         deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
 
         //Flywheel
-        spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
-        toggleLongRange = toggleLongRangeLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_RANGE_TOGGLE)) != toggleLongRange;
+        spinFlywheel = spinFlywheelLatch.update(leftSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
+
+        //Climber
+        boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
+            rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
+        deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
+        lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
+
+        climberSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
 
         // The command state for the robot
         CommandState state = new CommandState();
@@ -90,6 +110,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setFeederDemand(generateFeederDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFlywheelDemand(generateFlywheelDemand());
+        state.setClimberDemand(generateClimberDemand());
         return state;
     }
 
@@ -98,11 +119,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
-        final double DEADBAND = 0.01;
-        double leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-        double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
-        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+        
         if (autoSteerBall || autoSteerStation) {
             return DriveDemand.autoSteer(signal);
         }
@@ -154,7 +172,16 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         FlywheelDemand demand = new FlywheelDemand();
 
         demand.spin = spinFlywheel;
-        demand.longRange = toggleLongRange;
+
+        return demand;
+    }
+
+    private ClimberDemand generateClimberDemand() {
+        ClimberDemand demand = new ClimberDemand();
+
+        demand.deploy = deployClimber;
+        demand.lock = lockClimber;
+        demand.winchSpeed = climberSpeed;
 
         return demand;
     }

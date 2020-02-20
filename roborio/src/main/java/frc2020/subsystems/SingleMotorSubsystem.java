@@ -276,8 +276,8 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     public synchronized void setOpenLoop(double units, double feedforward) {
         io_.demand = units;
         io_.feedforward = feedforward;
-        if (state_ != ControlState.POSITION_PID) {
-            state_ = ControlState.POSITION_PID;
+        if (state_ != ControlState.OPEN_LOOP) {
+            state_ = ControlState.OPEN_LOOP;
         }
     }
 

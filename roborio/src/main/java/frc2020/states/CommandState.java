@@ -1,6 +1,7 @@
 package frc2020.states;
 
 import frc2020.util.Logger;
+import frc2020.subsystems.Climber;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Flywheel;
@@ -19,6 +20,7 @@ public class CommandState {
     public FeederDemand feederDemand;
     public IntakeDemand intakeDemand;
     public FlywheelDemand flywheelDemand;
+    public ClimberDemand climberDemand;
     public boolean manualDemand = false;
 
     private Logger logger_ = Logger.getInstance();
@@ -71,7 +73,12 @@ public class CommandState {
 
     public static class FlywheelDemand {
         public boolean spin = false;
-        public boolean longRange = false;
+    }
+
+    public static class ClimberDemand {
+        public boolean deploy = false;
+        public boolean lock = false;
+        public double winchSpeed = 0.0;
     }
 
     public void setManualControl(boolean manualControl) {
@@ -102,6 +109,10 @@ public class CommandState {
         flywheelDemand = demand;
     }
 
+    public void setClimberDemand(ClimberDemand demand) {
+        climberDemand = demand;
+    }
+
     /**
      * Getter for each subsystem demand
      * @return
@@ -110,6 +121,39 @@ public class CommandState {
         return driveDemand;
     }
 
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake) {
+        maybeUpdateLimelight(limelight);
+        maybeUpdateDrive(drive, limelight);
+        maybeUpdateIntake(intake);
+        if (manualDemand) {
+            maybeUpdateFeeder(feeder);
+            feederDemand = null;
+        } else { // TODO: Remove when superstructure implemented
+            feederDemand = new FeederDemand();
+            maybeUpdateFeeder(feeder);
+        }
+        driveDemand = null;
+        limelightDemand = null;
+        intakeDemand = null;
+    }
+
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, Climber climber) {
+        maybeUpdateLimelight(limelight);
+        maybeUpdateDrive(drive, limelight);
+        maybeUpdateIntake(intake);
+        maybeUpdateClimber(climber);
+        if (manualDemand) {
+            maybeUpdateFeeder(feeder);
+            feederDemand = null;
+        } else { // TODO: Remove when superstructure implemented
+            feederDemand = new FeederDemand();
+            maybeUpdateFeeder(feeder);
+        }
+        driveDemand = null;
+        limelightDemand = null;
+        intakeDemand = null;
+        climberDemand = null;
+    }
     /**
      * Tries to update all the subsystems for the robot
      * from this command state
@@ -142,7 +186,7 @@ public class CommandState {
      */
     private void maybeUpdateDrive(Drive drive, Limelight limelight) {
         if (driveDemand != null) {
-            if ( driveDemand.autoSteer) {
+            if (driveDemand.autoSteer) {
                 double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight()) / 2.0;
                 drive.autoSteer(limelight.getTargetReading().azimuth, average);
             } else if (driveDemand.type == DriveDemand.DemandType.Velocity) {
@@ -198,7 +242,7 @@ public class CommandState {
                 intake.stop();
             }
 
-            if(intakeDemand.deploy) {
+            if (intakeDemand.deploy) {
                 intake.deployIntake();
             } else {
                 intake.stowIntake();
@@ -207,15 +251,31 @@ public class CommandState {
     }
 
     private void maybeUpdateFlywheel(Flywheel flywheel) {
-        if(flywheelDemand != null) {
-            if(flywheelDemand.spin) {
-                if(flywheelDemand.longRange) {
-                    flywheel.spinLongRangeFlywheel();
-                } else {
-                    flywheel.spinFlywheel();
-                }
+        if (flywheelDemand != null) {
+            if (flywheelDemand.spin) {
+                flywheel.spinFlywheel();
             } else {
                 flywheel.stop();
+            }
+        }
+    }
+
+    private void maybeUpdateClimber(Climber climber) {
+        if (climberDemand != null) {
+            climber.controlWinch(climberDemand.winchSpeed);
+            //Note that the winch demand is set first
+            //If we have not yet stowed, super.stop() will override demand
+
+            if (climberDemand.deploy) {
+                climber.deployClimberArm();
+            } else {
+                climber.stowClimberArm();
+            }
+
+            if (climberDemand.lock) {
+                climber.lockWinch();
+            } else {
+                climber.unlockWinch();
             }
         }
     }

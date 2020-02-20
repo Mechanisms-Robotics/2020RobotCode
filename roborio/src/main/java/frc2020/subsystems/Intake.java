@@ -10,8 +10,8 @@ public class Intake extends SingleMotorSubsystem {
 
     private static Intake instance_;
 
-    private final static int FLIPPER_FORWARD_PORT = 1; //TODO: Change for actual robot ports
-    private final static int FLIPPER_REVERSE_PORT = 6;
+    private final static int FLIPPER_FORWARD_PORT = 4;
+    private final static int FLIPPER_REVERSE_PORT = 5;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
     private final static double INTAKE_RPM = 4000;
@@ -21,7 +21,7 @@ public class Intake extends SingleMotorSubsystem {
     static {
         var masterConstants = new MotorConstants();
         masterConstants.id_ = 9;
-        masterConstants.invertMotor_ = false;
+        masterConstants.invertMotor_ = true;
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Intake";
@@ -65,9 +65,11 @@ public class Intake extends SingleMotorSubsystem {
      */
     public void runIntake(boolean reverse) {
         if (reverse) {
-            super.setVelocity(REVERSE_RPM);
+            //super.setVelocity(REVERSE_RPM);
+            super.setOpenLoop(-0.5);
         } else {
-            super.setVelocity(INTAKE_RPM);
+            //super.setVelocity(INTAKE_RPM);
+            super.setOpenLoop(0.5);
         }
     }
 
@@ -136,12 +138,12 @@ public class Intake extends SingleMotorSubsystem {
 
     @Override
     protected boolean atReverseLimit() {
-        return !isDeployed_;
+        return false;
     }
 
     @Override
     protected boolean atForwardLimit() {
-        return !isDeployed_;
+        return false;
     }
 
     @Override
