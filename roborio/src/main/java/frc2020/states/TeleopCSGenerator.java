@@ -33,6 +33,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean spinFlywheelLatch;
     private boolean spinFlywheel = false;
 
+    private LatchedBoolean deployClimberLatch;
+    private boolean deployClimber = false;
+    private LatchedBoolean lockClimberLatch;
+    private boolean lockClimber = false;
+    private double climberSpeed = 0.0;
+
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
@@ -86,6 +92,14 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         //Flywheel
         spinFlywheel = spinFlywheelLatch.update(leftSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
 
+        //Climber
+        boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
+            rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
+        deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
+        lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
+
+        climberSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : rightSecondJoystick_.getY();
+
         // The command state for the robot
         CommandState state = new CommandState();
         state.setManualControl(manualControl);
@@ -102,9 +116,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
-        final double DEADBAND = 0.01;
-        double leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-        double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         
         if (autoSteerBall || autoSteerStation) {
