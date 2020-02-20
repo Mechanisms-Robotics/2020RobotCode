@@ -10,7 +10,7 @@ public class Intake extends SingleMotorSubsystem {
 
     private static Intake instance_;
 
-    private final static int FLIPPER_FORWARD_PORT = 4; //TODO: Change for actual robot ports
+    private final static int FLIPPER_FORWARD_PORT = 4;
     private final static int FLIPPER_REVERSE_PORT = 5;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;

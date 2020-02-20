@@ -71,12 +71,12 @@ public class Feeder extends SingleMotorSubsystem {
         }
 
         logger_.logInfo("Running feeder intake");
-        super.setVelocity(INTAKE_SPEED); //TODO: Adjust velocity once we can test speed
+        super.setVelocity(INTAKE_SPEED);
         Timer.delay(1.5);
         super.stop();
 
         logger_.logInfo("Running feeder outtake");
-        super.setVelocity(OUTTAKE_SPEED); //TODO: Adjust velocity once we can test speed
+        super.setVelocity(OUTTAKE_SPEED);
         Timer.delay(1.5);
         super.stop();
 
