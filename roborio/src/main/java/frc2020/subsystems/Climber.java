@@ -2,6 +2,7 @@ package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 
 public class Climber extends SingleMotorSubsystem {
@@ -82,6 +83,15 @@ public class Climber extends SingleMotorSubsystem {
         super.setOpenLoop(demand);
     }
 
+    /**
+     * Call between teleop runs for safety
+     * Sets hasDeployed_ to false so winch does not run
+     * until deployed
+     */
+    public void resetHasDeployed() {
+        hasDeployed_ = false;
+    }
+
     @Override
     public boolean runActiveTests() {
         // TODO Auto-generated method stub
@@ -135,8 +145,8 @@ public class Climber extends SingleMotorSubsystem {
 
     @Override
     public void outputTelemetry() {
-        // TODO Auto-generated method stub
-
+        SmartDashboard.putBoolean("Climber deployed", isDeployed_);
+        SmartDashboard.putBoolean("Climber LOCKED", isLocked_);
     }
 
     @Override
