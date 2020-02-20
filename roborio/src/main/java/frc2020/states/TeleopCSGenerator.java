@@ -114,8 +114,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else if (drive_.getDriveMode() == DriveMode.Arcade) {
             leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-            leftDrive += Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX());
-            rightDrive -= Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX());
+            leftDrive += Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX())*0.75f;
+            rightDrive -= Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX())*0.75f;
         } else if (drive_.getDriveMode() == DriveMode.Cheesy){
             double throttle = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             double wheel = Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX());
