@@ -15,20 +15,23 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick rightJoystick_;
     private Joystick leftSecondJoystick_;
     private Joystick rightSecondJoystick_;
+    private final double JOYSTICK_DEADBAND = 0.01;
     private LatchedBoolean driveShiftLatch;
+    private double leftDrive = 0.0;
+    private double rightDrive = 0.0;
     private boolean autoSteerBall = false;
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
     private boolean intakeFeeder = false;
     private boolean outtakeFeeder = false;
     private LatchedBoolean manualControlLatch;
-    private boolean manualControl;
+    private boolean manualControl = false;
     private LatchedBoolean deployIntakeLatch;
-    private boolean deployIntake;
-    private boolean intakeIntake;
-    private boolean outtakeIntake;
+    private boolean deployIntake = false;
+    private boolean intakeIntake = false;
+    private boolean outtakeIntake = false;
     private LatchedBoolean spinFlywheelLatch;
-    private boolean spinFlywheel;
+    private boolean spinFlywheel = false;
 
 
     private Logger logger_ = Logger.getInstance();
@@ -55,6 +58,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     @Override
     public CommandState getCommandState() {
+        //Drive
+        leftDrive = Math.abs(leftJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
+        rightDrive = Math.abs(rightJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightJoystick_.getY();
+        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+
         // Whether to track a power cell
         autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         // Whether to auto target to station
@@ -98,7 +106,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
         double rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
-        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+        
         if (autoSteerBall || autoSteerStation) {
             return DriveDemand.autoSteer(signal);
         }
