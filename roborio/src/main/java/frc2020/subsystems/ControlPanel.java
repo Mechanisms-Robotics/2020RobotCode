@@ -62,6 +62,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     }
 
     public void stowPanelArm() {
+        state_ = ControlPanelState.IDLE;
         super.stop();
         wantDeploy_ = false;
     }
