@@ -76,7 +76,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
 
         //Flywheel
-        spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
+        spinFlywheel = spinFlywheelLatch.update(leftSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
 
         // The command state for the robot
         CommandState state = new CommandState();
