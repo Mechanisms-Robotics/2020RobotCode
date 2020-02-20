@@ -55,6 +55,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         driveShiftLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
+        deployClimberLatch = new LatchedBoolean();
+        lockClimberLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
     }
 
@@ -98,7 +100,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
         lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
 
-        climberSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : rightSecondJoystick_.getY();
+        climberSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
 
         // The command state for the robot
         CommandState state = new CommandState();

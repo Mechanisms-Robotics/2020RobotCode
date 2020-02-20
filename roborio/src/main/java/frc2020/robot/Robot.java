@@ -289,6 +289,8 @@ public class Robot extends TimedRobot {
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setHighGear();
+            climber_.resetHasDeployed();
+            climber_.unlockWinch();
             if (autoRunner_ != null) {
                 autoRunner_.stop();
                 autoRunner_ = null;
