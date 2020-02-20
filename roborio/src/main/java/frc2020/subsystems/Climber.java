@@ -71,7 +71,6 @@ public class Climber extends SingleMotorSubsystem {
     }
 
     public void lockWinch() {
-        super.stop();
         wantLock_ = true;
     }
 

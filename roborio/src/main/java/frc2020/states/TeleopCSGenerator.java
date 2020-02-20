@@ -108,6 +108,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setFeederDemand(generateFeederDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFlywheelDemand(generateFlywheelDemand());
+        state.setClimberDemand(generateClimberDemand());
         return state;
     }
 
@@ -169,6 +170,16 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         FlywheelDemand demand = new FlywheelDemand();
 
         demand.spin = spinFlywheel;
+
+        return demand;
+    }
+
+    private ClimberDemand generateClimberDemand() {
+        ClimberDemand demand = new ClimberDemand();
+
+        demand.deploy = deployClimber;
+        demand.lock = lockClimber;
+        demand.winchSpeed = climberSpeed;
 
         return demand;
     }
