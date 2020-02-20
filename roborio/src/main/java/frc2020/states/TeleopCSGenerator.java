@@ -69,8 +69,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
 
         // Intake
-        deployIntake = deployIntakeLatch.update(rightJoystick_.getRawButton(Constants.INTAKE_DEPLOY_TOGGLE)) != deployIntake;
-        intakeIntake = rightJoystick_.getTrigger();
+        deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
+        intakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_INTAKE_BUTTON);
         outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
         // This is so that if they press intake/outake and it is not deployed it will deploy
         deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
