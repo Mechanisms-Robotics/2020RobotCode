@@ -7,9 +7,10 @@ import frc2020.subsystems.Hood;
 import frc2020.subsystems.Turret;
 import frc2020.util.*;
 import frc2020.loops.ILooper;
+import frc2020.loops.Loop;
 
 
-public class Shooter {
+public class Shooter implements Subsystem {
 
     private static Shooter instance_; 
 
@@ -19,6 +20,7 @@ public class Shooter {
     private Turret turret_;
 
     private Logger logger_ = new Logger();
+    private String logName = "Shooter";
 
     public enum ShooterState {
         Manual,
@@ -28,6 +30,7 @@ public class Shooter {
     };
 
     private static ShooterState state_ = ShooterState.Stowed;
+    private static ShooterState wantedState_ = ShooterState.Stowed;
 
     public static Shooter getInstance() {
         return (instance_ == null) ? instance_ = new Shooter() : instance_;
@@ -42,7 +45,7 @@ public class Shooter {
 
     public void setState(ShooterState desiredState) {
         if (isValidTransition(desiredState)) {
-            // Handle logic
+            wantedState_ = desiredState;
         }
     }
 
@@ -58,9 +61,98 @@ public class Shooter {
             case Shooting:
                 return desiredState == ShooterState.Stowed;
             default:
-                logger_.logWarning("Invalid shooter state transition!");
+                logger_.logWarning("Invalid shooter state transition from " +
+                     state_.toString() + " to " + desiredState.toString() + "!", logName);
                 return false;
         }
+    }
+
+    @Override
+    public void writePeriodicOutputs() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void readPeriodicInputs() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public boolean runPassiveTests() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean runActiveTests() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public void zeroSensors() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void stop() {
+        // TODO Auto-generated method stub
+
+    }
+
+
+    @Override
+    public void registerLoops(ILooper enabledLooper) {
+        enabledLooper.register(shooterLoop);
+    }
+
+    private final Loop shooterLoop = new Loop() {
+
+        @Override
+        public void init() {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            if (wantedState_ == state_) {
+                switch (state_) {
+                    case Manual:
+                    case Stowed:
+                    case Aiming:
+                    case Shooting:
+                    default:
+                        logger_.logWarning("Invalid state: " + state_.toString(), logName);
+                }
+            } else {
+                switch (wantedState_) {
+                    case Manual:
+                    case Stowed:
+                    case Aiming:
+                    case Shooting:
+                    default:
+                        logger_.logWarning("Invalid wanted state: " + state_.toString(), logName);
+                }
+            }
+        }
+
+        @Override
+        public void end() {
+            // TODO Auto-generated method stub
+
+        }
+        
+    };
+
+    @Override
+    public void outputTelemetry() {
+        // TODO Auto-generated method stub
+
     }
 
 };
