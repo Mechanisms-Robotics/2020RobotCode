@@ -13,7 +13,7 @@ public class Turret extends SingleMotorSubsystem {
     private static Turret instance_;
 
     // TODO: Measure
-    private final static Rotation2d TURRET_HOME_TO_SENSOR_HOME = Rotation2d.fromDegrees(0.0);
+    private final static Rotation2d TURRET_HOME_TO_SENSOR_HOME = Rotation2d.fromDegrees(115.0);
     private final static double FORWARD_LIMIT_SWITCH_POSITION = 355;
     private final static double REVERSE_LIMIT_SWITCH_POSITION = 0;
 
@@ -29,19 +29,21 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.homePosition_ = 0.0; //degrees
         DEFAULT_CONSTANTS.name_ = "Turret";
-        DEFAULT_CONSTANTS.enableHardLimits_ = false;
+        DEFAULT_CONSTANTS.enableHardLimits_ = true;
 
-        DEFAULT_CONSTANTS.positionConversionFactor_ = 3.3; // degrees / encoder
-        DEFAULT_CONSTANTS.velocityConversionFactor_ = 3.3;
+        DEFAULT_CONSTANTS.positionConversionFactor_ = 3.61969864; // degrees / encoder
+        DEFAULT_CONSTANTS.velocityConversionFactor_ = 3.61969864;
         DEFAULT_CONSTANTS.closedLoopRampRate_ = 0.1;
         DEFAULT_CONSTANTS.cruiseVelocity_ = 0; //deg/min
         DEFAULT_CONSTANTS.acceleration_ = 0; //deg/min^2
         DEFAULT_CONSTANTS.velocityDeadBand_ = 2.5;
 
-        DEFAULT_CONSTANTS.kP_ = 0.0001;
+        DEFAULT_CONSTANTS.kP_ = 0.0;
         DEFAULT_CONSTANTS.kI_ = 0.0;
         DEFAULT_CONSTANTS.kD_ = 0.0;
         DEFAULT_CONSTANTS.kF_ = 0.0;
+
+        DEFAULT_CONSTANTS.useBreakMode = true;
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
@@ -84,7 +86,7 @@ public class Turret extends SingleMotorSubsystem {
     @Override
     protected boolean handleZeroing() {
         // TODO: Enable zeroing once sensor units and limit swich posotion is found
-        final boolean enableZeroing = false;
+        final boolean enableZeroing = true;
         if (enableZeroing) {
             if (atForwardLimit()) {
                 encoder.setPosition(FORWARD_LIMIT_SWITCH_POSITION);
@@ -120,5 +122,10 @@ public class Turret extends SingleMotorSubsystem {
 
     @Override
     public void registerLoops(ILooper enabledLooper) {
+    }
+
+    @Override
+    public synchronized void stop() {
+        // DO NOTHINGs
     }
 }

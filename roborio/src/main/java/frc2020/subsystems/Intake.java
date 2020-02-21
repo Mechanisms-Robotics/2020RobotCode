@@ -31,13 +31,14 @@ public class Intake extends SingleMotorSubsystem {
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
 
+
     public static Intake getInstance() {
-        return instance_ == null ? instance_ = new Intake(DEFAULT_CONSTANTS) : instance_;
+        return null;
+        //return instance_ == null ? instance_ = new Intake(DEFAULT_CONSTANTS) : instance_;
     }
 
     protected Intake(SingleMotorSubsystemConstants constants) {
         super(constants);
-
         flipper_ = new DoubleSolenoid(FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
     }
 

@@ -2,6 +2,7 @@ package frc2020.states;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Limelight;
@@ -79,6 +80,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setFeederDemand(generateFeederDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFlywheelDemand(generateFlywheelDemand());
+        state.setTurretDemand(generateTurretDemand());
         return state;
     }
 
@@ -163,7 +165,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private TurretDemand generateTurretDemand() {
         TurretDemand demand = new TurretDemand();
         demand.useOpenLoop = true;
-        demand.speed = Math.abs(rightJoystick_.getX()) <= JOYSTICK_DEADBAND ? 0 : rightJoystick_.getX();
+        demand.speed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY();
         return demand;
     }
 

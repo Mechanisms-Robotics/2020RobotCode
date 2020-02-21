@@ -126,11 +126,11 @@ public class CommandState {
     public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret /*, Intake intake,*/ /*Flywheel flywheel*/) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
+        maybeUpdateTurret(turret);
         //maybeUpdateIntake(intake)
         if (manualDemand) {
             maybeUpdateFeeder(feeder);
             //maybeUpdateFlywheel(flywheel);
-            maybeUpdateTurret(turret);
         } else {
             return; // TODO: Update automated Control
         }

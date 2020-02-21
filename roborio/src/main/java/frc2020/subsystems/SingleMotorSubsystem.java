@@ -76,6 +76,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double minUnitsLimit_ = Double.NEGATIVE_INFINITY;
 
         public boolean enableHardLimits_ = true;
+        public boolean useBreakMode = false;
     }
     
     protected final SingleMotorSubsystemConstants constants_;
@@ -110,7 +111,12 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         sparkMaster_.setClosedLoopRampRate(constants.closedLoopRampRate_);
         sparkMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
         sparkMaster_.setSmartCurrentLimit(constants_.currentLimitStall_, constants_.currentLimitFree_);
-        sparkMaster_.setIdleMode(IdleMode.kCoast);
+
+        if (constants_.useBreakMode) {
+            sparkMaster_.setIdleMode(IdleMode.kBrake);
+        } else {
+            sparkMaster_.setIdleMode(IdleMode.kCoast);
+        }
 
         if (constants_.useVoltageComp_) {
             sparkMaster_.enableVoltageCompensation(constants_.maxVoltage_);
@@ -156,7 +162,11 @@ public abstract class SingleMotorSubsystem implements Subsystem {
             sparkSlaves_[i] = new CANSparkMax(constants_.slaveConstants_[i].id_, MotorType.kBrushless);
             sparkSlaves_[i].restoreFactoryDefaults();
             sparkSlaves_[i].follow(sparkMaster_, constants_.slaveConstants_[i].invertMotor_);
-            sparkSlaves_[i].setIdleMode(IdleMode.kCoast);
+            if (constants_.useBreakMode) {
+                sparkSlaves_[i].setIdleMode(IdleMode.kBrake);
+            } else {
+                sparkSlaves_[i].setIdleMode(IdleMode.kCoast);
+            }
         }
 
         logName_ = constants_.name_;
