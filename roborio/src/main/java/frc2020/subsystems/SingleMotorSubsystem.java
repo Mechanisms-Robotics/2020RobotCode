@@ -286,6 +286,14 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         setOpenLoop(0.0);
     }
 
+    public synchronized boolean isStopped() {
+        return atVelocity(0.0);
+    }
+
+    public synchronized boolean atVelocity(double velocity) {
+        return Util.epsilonEquals(velocity, getVelocity(), constants_.velocityDeadBand_);
+    }
+
     public synchronized boolean atDemand() {
         switch (state_){
             case POSITION_PID:

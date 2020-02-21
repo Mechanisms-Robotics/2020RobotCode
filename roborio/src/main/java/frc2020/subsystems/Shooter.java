@@ -39,14 +39,6 @@ public class Shooter implements Subsystem {
         return (instance_ == null) ? instance_ = new Shooter() : instance_;
     }
 
-    public Shooter(Limelight ll) {
-        limelight_ = ll;
-        flywheel_ = Flywheel.getInstance();
-        feeder_ = Feeder.getInstance();
-        hood_ = Hood.getInstance();
-        turret_ = Turret.getInstance();
-    }
-
     public Shooter() {
         flywheel_ = Flywheel.getInstance();
         feeder_ = Feeder.getInstance();
@@ -84,38 +76,28 @@ public class Shooter implements Subsystem {
 
     @Override
     public void writePeriodicOutputs() {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void readPeriodicInputs() {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public boolean runPassiveTests() {
-        // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     @Override
     public boolean runActiveTests() {
-        // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     @Override
     public void zeroSensors() {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
-
     }
 
 
@@ -133,14 +115,22 @@ public class Shooter implements Subsystem {
         @Override
         public void run() {
             if (wantedState_ == state_) {
-                // TODO: Implement periodic functions
                 switch (state_) {
                     case Manual:
+                        handleManual();
+                        break;
                     case Stowed:
+                        handleStowed();
+                        break;
                     case Aiming:
+                        handleAiming();
+                        break;
                     case Shooting:
+                        handleShooting();
+                        break;
                     default:
                         logger_.logWarning("Invalid state: " + state_.toString(), logName);
+                        break;
                 }
             } else {
                 switch (wantedState_) {
@@ -164,6 +154,37 @@ public class Shooter implements Subsystem {
         
     };
 
+    private void handleManual() {
+        // Nothing to do for now
+    }
+
+    private void handleStowed() {
+        // TODO: Feeder intaking
+    }
+
+    private void handleAiming() {
+
+        // TODO: If not have target seek target
+
+        double azimuth = limelight_.getTargetReading().azimuth;
+
+        turret_.setRelativePosition(Rotation2d.fromDegrees(azimuth));
+
+        // TODO: Prime feeder
+    }
+
+    private void handleShooting() {
+
+        double azimuth = limelight_.getTargetReading().azimuth;
+
+        turret_.setRelativePosition(Rotation2d.fromDegrees(azimuth));
+
+        //TODO: Set hood angle automatically
+
+        feeder_.runFeeder(false);
+
+    }
+
     private void handleManualTransition() {
         flywheel_.stop();
         feeder_.stop();
@@ -174,16 +195,12 @@ public class Shooter implements Subsystem {
 
     private void handleStowedTransition() {
         flywheel_.stop();
-        if (!flywheel_.atDemand()) {
-            return;
-        }
-
-        // TODO: Set feeder state to intaking
 
         turret_.setAbsolutePosition(Rotation2d.fromDegrees(0.0));
+
         limelight_.setLed(Limelight.LedMode.OFF);
 
-        if (!turret_.atDemand()) {
+        if (!flywheel_.isStopped()) {
             return;
         }
 
@@ -198,19 +215,25 @@ public class Shooter implements Subsystem {
 
     private void handleAimingTransition () {
 
+        flywheel_.stop();
+
+        limelight_.setLed(Limelight.LedMode.ON);
+
+        // TODO: Aim turret in ball park
+
+        // TODO: Prime feeder
+
+        // TODO: Wait feeder to be primed
+
+        if (!flywheel_.isStopped()) {
+            return;
+        }
+
         hood_.stowHood();
 
         if (!hood_.isStowed()) {
             return;
         }
-
-        limelight_.setLed(Limelight.LedMode.ON);
-
-        // TODO: Set turret state to auto
-
-        // TODO: Prime feeder
-
-        // TODO: Wait for those to be complete
 
         state_ = ShooterState.Aiming;
     }
@@ -222,6 +245,8 @@ public class Shooter implements Subsystem {
         if (!hood_.isDeployed()) {
             return;
         }
+
+        // TODO: Set hood angle automatically
 
         flywheel_.spinFlywheel();
 
