@@ -6,6 +6,7 @@ import frc2020.subsystems.Flywheel;
 import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Hood;
 import frc2020.subsystems.Turret;
+import frc2020.subsystems.Feeder.FeederState;
 import frc2020.util.*;
 import frc2020.loops.ILooper;
 import frc2020.loops.Loop;
@@ -159,7 +160,7 @@ public class Shooter implements Subsystem {
     }
 
     private void handleStowed() {
-        // TODO: Feeder intaking
+        feeder_.setState(FeederState.INTAKING);
     }
 
     private void handleAiming() {
@@ -170,7 +171,7 @@ public class Shooter implements Subsystem {
 
         turret_.setRelativePosition(Rotation2d.fromDegrees(azimuth));
 
-        // TODO: Prime feeder
+        feeder_.setState(FeederState.PRIMING);
     }
 
     private void handleShooting() {
@@ -221,9 +222,11 @@ public class Shooter implements Subsystem {
 
         // TODO: Aim turret in ball park
 
-        // TODO: Prime feeder
+        feeder_.setState(FeederState.PRIMING);
 
-        // TODO: Wait feeder to be primed
+        if (!feeder_.isPrimed()) {
+            return;
+        }
 
         if (!flywheel_.isStopped()) {
             return;
@@ -259,8 +262,6 @@ public class Shooter implements Subsystem {
 
     @Override
     public void outputTelemetry() {
-        // TODO Auto-generated method stub
-
     }
 
 }

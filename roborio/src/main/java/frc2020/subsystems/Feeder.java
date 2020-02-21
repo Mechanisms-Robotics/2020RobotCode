@@ -137,6 +137,13 @@ public class Feeder extends SingleMotorSubsystem {
         }
     }
 
+    public boolean isPrimed() {
+        if (state_ == FeederState.PRIMING) {
+            return !turretBreakBeam_.get();
+        }
+        return false;
+    }
+
     private synchronized void intakeFeeder() {
         if (intakeBreakBeam_.get() && !turretBreakBeam_.get()) {
             runFeeder(false);
