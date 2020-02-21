@@ -19,7 +19,7 @@ public class Feeder extends SingleMotorSubsystem {
     private DigitalInput intakeBreakBeam_;
     private DigitalInput turretBreakBeam_;
 
-    private FeederState state_;
+    private FeederState state_ = FeederState.IDLE;
 
     public enum FeederState {
         IDLE,
