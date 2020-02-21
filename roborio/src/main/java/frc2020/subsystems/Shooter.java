@@ -1,5 +1,6 @@
 package frc2020.subsystems;
 
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.subsystems.Subsystem;
 import frc2020.subsystems.Flywheel;
 import frc2020.subsystems.Feeder;
@@ -14,6 +15,8 @@ public class Shooter implements Subsystem {
 
     private static Shooter instance_; 
 
+    private Limelight limelight_ = null;
+
     private Flywheel flywheel_;
     private Feeder feeder_;
     private Hood hood_;
@@ -27,13 +30,21 @@ public class Shooter implements Subsystem {
         Stowed,
         Aiming,
         Shooting
-    };
+    }
 
     private static ShooterState state_ = ShooterState.Stowed;
     private static ShooterState wantedState_ = ShooterState.Stowed;
 
     public static Shooter getInstance() {
         return (instance_ == null) ? instance_ = new Shooter() : instance_;
+    }
+
+    public Shooter(Limelight ll) {
+        limelight_ = ll;
+        flywheel_ = Flywheel.getInstance();
+        feeder_ = Feeder.getInstance();
+        hood_ = Hood.getInstance();
+        turret_ = Turret.getInstance();
     }
 
     public Shooter() {
@@ -47,6 +58,10 @@ public class Shooter implements Subsystem {
         if (isValidTransition(desiredState)) {
             wantedState_ = desiredState;
         }
+    }
+
+    public void setLimelight(Limelight ll) {
+        limelight_ = ll;
     }
 
     private boolean isValidTransition(ShooterState desiredState) {
@@ -113,14 +128,12 @@ public class Shooter implements Subsystem {
 
         @Override
         public void init() {
-            // TODO Auto-generated method stub
-
         }
 
         @Override
         public void run() {
-            // TODO Auto-generated method stub
             if (wantedState_ == state_) {
+                // TODO: Implement periodic functions
                 switch (state_) {
                     case Manual:
                     case Stowed:
@@ -132,9 +145,13 @@ public class Shooter implements Subsystem {
             } else {
                 switch (wantedState_) {
                     case Manual:
+                        handleManualTransition();
                     case Stowed:
+                        handleStowedTransition();
                     case Aiming:
+                        handleAimingTransition();
                     case Shooting:
+                        handleShootingTransition();
                     default:
                         logger_.logWarning("Invalid wanted state: " + state_.toString(), logName);
                 }
@@ -143,11 +160,77 @@ public class Shooter implements Subsystem {
 
         @Override
         public void end() {
-            // TODO Auto-generated method stub
-
         }
         
     };
+
+    private void handleManualTransition() {
+        flywheel_.stop();
+        feeder_.stop();
+        hood_.stop();
+        turret_.stop();
+        state_ = ShooterState.Manual;
+    }
+
+    private void handleStowedTransition() {
+        flywheel_.stop();
+        if (!flywheel_.atDemand()) {
+            return;
+        }
+
+        // TODO: Set feeder state to intaking
+
+        turret_.setAbsolutePosition(Rotation2d.fromDegrees(0.0));
+        limelight_.setLed(Limelight.LedMode.OFF);
+
+        if (!turret_.atDemand()) {
+            return;
+        }
+
+        hood_.stowHood();
+
+        if (!hood_.isStowed()) {
+            return;
+        }
+
+        state_ = ShooterState.Stowed;
+    }
+
+    private void handleAimingTransition () {
+
+        hood_.stowHood();
+
+        if (!hood_.isStowed()) {
+            return;
+        }
+
+        limelight_.setLed(Limelight.LedMode.ON);
+
+        // TODO: Set turret state to auto
+
+        // TODO: Prime feeder
+
+        // TODO: Wait for those to be complete
+
+        state_ = ShooterState.Aiming;
+    }
+
+    private void handleShootingTransition() {
+
+        hood_.deployHood();
+
+        if (!hood_.isDeployed()) {
+            return;
+        }
+
+        flywheel_.spinFlywheel();
+
+        if (!flywheel_.atDemand()) {
+            return;
+        }
+
+        state_ = ShooterState.Shooting;
+    }
 
     @Override
     public void outputTelemetry() {
@@ -155,4 +238,4 @@ public class Shooter implements Subsystem {
 
     }
 
-};
+}

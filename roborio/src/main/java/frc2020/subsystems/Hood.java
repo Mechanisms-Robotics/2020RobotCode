@@ -61,6 +61,14 @@ public class Hood extends SingleMotorSubsystem {
         }
     }
 
+    public boolean isStowed() {
+        return (io_.reverseLimit && !isDeployed_);
+    }
+
+    public boolean isDeployed() {
+        return isDeployed_;
+    }
+
 	@Override
     public void zeroSensors() { //TODO: Figure out when to call
         if (!hasBeenZeroed && atReverseLimit()) {
