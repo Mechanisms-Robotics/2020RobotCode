@@ -1,5 +1,7 @@
 package frc2020.states;
 
+import java.lang.invoke.LambdaConversionException;
+
 import edu.wpi.first.wpilibj.Joystick;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
@@ -29,6 +31,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean outtakeIntake;
     private LatchedBoolean spinFlywheelLatch;
     private boolean spinFlywheel;
+    private LatchedBoolean deployControlPanelLatch;
+    private boolean deployControlPanel;
+    private boolean counterClockwiseControlPanel;
+    private boolean clockwiseControlPanel;
 
 
     private Logger logger_ = Logger.getInstance();
@@ -47,6 +53,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
+        deployControlPanelLatch = new LatchedBoolean();
     }
 
     /**
@@ -78,6 +85,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         //Flywheel
         spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
 
+        //Control Panel
+        deployControlPanel = deployControlPanelLatch.update(leftSecondJoystick_.getTrigger()) != deployControlPanel;
+        counterClockwiseControlPanel = leftSecondJoystick_.getPOV() != Constants.MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT;
+        clockwiseControlPanel = leftSecondJoystick_.getPOV() != Constants.MANUAL_CONTROL_PANEL_CLOCKWISE_HAT;
+
         // The command state for the robot
         CommandState state = new CommandState();
         state.setManualControl(manualControl);
@@ -86,6 +98,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setFeederDemand(generateFeederDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFlywheelDemand(generateFlywheelDemand());
+        state.setControlPanelDemand(generateControlPanelDemand());
         return state;
     }
 
@@ -151,6 +164,21 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         demand.spin = spinFlywheel;
 
+        return demand;
+    }
+
+    private ControlPanelDemand generateControlPanelDemand() {
+        ControlPanelDemand demand = new ControlPanelDemand();
+
+        if (clockwiseControlPanel && counterClockwiseControlPanel) {
+            logger_.logInfo("Counterclockwise and clockwise control panel buttons pressed at same time", logName);
+        } else if (clockwiseControlPanel) {
+        demand.clockwise = true;
+        } else if (counterClockwiseControlPanel) {
+        demand.counterclockwise = counterClockwiseControlPanel;
+        }
+
+        demand.deploy = deployControlPanel;
         return demand;
     }
 

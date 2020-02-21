@@ -1,6 +1,7 @@
 package frc2020.states;
 
 import frc2020.util.Logger;
+import frc2020.subsystems.ControlPanel;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Flywheel;
@@ -19,6 +20,7 @@ public class CommandState {
     public FeederDemand feederDemand;
     public IntakeDemand intakeDemand;
     public FlywheelDemand flywheelDemand;
+    public ControlPanelDemand controlPanelDemand;
     public boolean manualDemand = false;
 
     private Logger logger_ = Logger.getInstance();
@@ -73,6 +75,12 @@ public class CommandState {
         public boolean spin = false;
     }
 
+    public static class ControlPanelDemand {
+        public boolean clockwise = false;
+        public boolean counterclockwise = false;
+        public boolean deploy = false;
+    }
+
     public void setManualControl(boolean manualControl) {
         manualDemand = manualControl;
     }
@@ -101,6 +109,10 @@ public class CommandState {
         flywheelDemand = demand;
     }
 
+    public void setControlPanelDemand(ControlPanelDemand demand) {
+        controlPanelDemand = demand;
+    }
+
     /**
      * Getter for each subsystem demand
      * @return
@@ -119,6 +131,26 @@ public class CommandState {
         } else { // TODO: Remove when superstructure implemented
             feederDemand = new FeederDemand();
             maybeUpdateFeeder(feeder);
+        }
+        driveDemand = null;
+        limelightDemand = null;
+        intakeDemand = null;
+    }
+
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, ControlPanel controlPanel) {
+        maybeUpdateLimelight(limelight);
+        maybeUpdateDrive(drive, limelight);
+        maybeUpdateIntake(intake);
+        if (manualDemand) {
+            maybeUpdateFeeder(feeder);
+            maybeUpdateControlPanel(controlPanel);
+            controlPanelDemand = null;
+            feederDemand = null;
+        } else { // TODO: Remove when superstructure implemented
+            feederDemand = new FeederDemand();
+            controlPanelDemand = new ControlPanelDemand();
+            maybeUpdateFeeder(feeder);
+            maybeUpdateControlPanel(controlPanel);
         }
         driveDemand = null;
         limelightDemand = null;
@@ -227,6 +259,27 @@ public class CommandState {
                 flywheel.spinFlywheel();
             } else {
                 flywheel.stop();
+            }
+        }
+    }
+
+    private void maybeUpdateControlPanel(ControlPanel controlPanel) {
+        if (controlPanelDemand != null) {
+            if (controlPanelDemand.clockwise && controlPanelDemand.counterclockwise) {
+                logger_.logInfo("Both control panel forward and reverse buttons pressed");
+                controlPanel.stop();
+            } else if (controlPanelDemand.clockwise) {
+                controlPanel.runPanelWheel(true);
+            } else if (controlPanelDemand.counterclockwise) {
+                controlPanel.runPanelWheel(false);
+            } else {
+                controlPanel.stop();
+            }
+
+            if(controlPanelDemand.deploy) {
+                controlPanel.deployPanelArm();
+            } else {
+                controlPanel.stowPanelArm();
             }
         }
     }

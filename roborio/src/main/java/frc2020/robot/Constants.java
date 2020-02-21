@@ -76,6 +76,8 @@ public class Constants {
     public final static int MANUAL_CONTROL_BUTTON_2 = 13; //right second
     public final static int MANUAL_FEEDER_INTAKE_HAT = 0; //right second
     public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180; //right second
+    public final static int MANUAL_CONTROL_PANEL_CLOCKWISE_HAT = 0; //left second
+    public final static int MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT = 180; //left second
     public final static int INTAKE_DEPLOY_TOGGLE = 3; //right driver
     public final static int INTAKE_OUTTAKE_BUTTON = 2; // right driver
     public final static int INTAKE_INTAKE_BUTTON = 1; // right driver trigger
