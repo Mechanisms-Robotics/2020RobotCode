@@ -22,6 +22,7 @@ public class Feeder extends SingleMotorSubsystem {
     private FeederState state_ = FeederState.IDLE;
 
     public enum FeederState {
+        MANUAL,
         IDLE,
         INTAKING,
         PRIMING,
@@ -117,6 +118,8 @@ public class Feeder extends SingleMotorSubsystem {
         super.writePeriodicOutputs();
 
         switch (state_) {
+            case MANUAL:
+                break;
             case IDLE:
                 super.stop();
                 break;
