@@ -1,7 +1,6 @@
 package frc2020.states;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Timer;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Limelight;
@@ -17,7 +16,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftSecondJoystick_;
     private Joystick rightSecondJoystick_;
 
-    // ONLY PRESCIENT VALUES SHOULD BE STORED HERE
+    // ONLY PERSISTENT VALUES SHOULD BE STORED HERE
     private final double JOYSTICK_DEADBAND = 0.01;
     private LatchedBoolean driveShiftLatch;
     private boolean autoSteerBall = false;
@@ -64,8 +63,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     @Override
     public CommandState getCommandState() {
-        double now = Timer.getFPGATimestamp();
-
         // Whether to track a power cell
         autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         // Whether to auto target to station
@@ -136,10 +133,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     private IntakeDemand generateIntakeDemand() {
-        // Intake
         deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
         boolean intakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_INTAKE_BUTTON);
         boolean outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
+
         // This is so that if they press intake/outake and it is not deployed it will deploy
         deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
 
@@ -157,11 +154,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     private FlywheelDemand generateFlywheelDemand() {
-        //Flywheel
-        spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
-
         FlywheelDemand demand = new FlywheelDemand();
-        demand.spin = spinFlywheel;
+        demand.spin = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
         return demand;
     }
 
@@ -177,16 +171,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private ClimberDemand generateClimberDemand() {
         boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
                 rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
-        deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
-        lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
-
-        double climberSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
 
         ClimberDemand demand = new ClimberDemand();
-
-        demand.deploy = deployClimber;
-        demand.lock = lockClimber;
-        demand.winchSpeed = climberSpeed;
+        demand.deploy = deployClimberLatch.update(deployButtonsPressed) != deployClimber;;
+        demand.lock = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;;
+        demand.winchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
 
         return demand;
     }

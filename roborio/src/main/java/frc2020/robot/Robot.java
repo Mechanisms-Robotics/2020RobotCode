@@ -319,7 +319,14 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, turret_, intake_, flywheel_, climber_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(
+                    drive_,
+                    limelight_low_,
+                    feeder_,
+                    turret_,
+                    intake_,
+                    flywheel_,
+                    climber_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

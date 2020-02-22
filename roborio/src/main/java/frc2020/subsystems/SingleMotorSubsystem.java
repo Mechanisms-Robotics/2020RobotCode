@@ -123,8 +123,6 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         sparkMaster_.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, constants_.reverseSoftLimit);
         sparkMaster_.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, constants_.enableSoftLimits);
 
-        sparkMaster_.setIdleMode(IdleMode.kCoast);
-
         if (constants_.useVoltageComp_) {
             sparkMaster_.enableVoltageCompensation(constants_.maxVoltage_);
         } else {
@@ -169,12 +167,8 @@ public abstract class SingleMotorSubsystem implements Subsystem {
             sparkSlaves_[i] = new CANSparkMax(constants_.slaveConstants_[i].id_, MotorType.kBrushless);
             sparkSlaves_[i].restoreFactoryDefaults();
             sparkSlaves_[i].follow(sparkMaster_, constants_.slaveConstants_[i].invertMotor_);
-            if (constants_.useBreakMode) {
-                sparkSlaves_[i].setIdleMode(IdleMode.kBrake);
-            } else {
-                sparkSlaves_[i].setIdleMode(IdleMode.kCoast);
-            }
         }
+        setBreakMode(false);
 
         logName_ = constants_.name_;
     }
@@ -328,28 +322,39 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         SmartDashboard.putBoolean(constants_.name_ + " : Zeroed", hasBeenZeroed);
     }
 
+    private void setBreakMode(boolean breakMode) {
+        if (breakMode) {
+            sparkMaster_.setIdleMode(IdleMode.kBrake);
+        } else {
+            sparkMaster_.setIdleMode(IdleMode.kCoast);
+        }
+        for (int i = 0; i < sparkSlaves_.length; ++i) {
+            if (breakMode) {
+                sparkSlaves_[i].setIdleMode(IdleMode.kBrake);
+            } else {
+                sparkSlaves_[i].setIdleMode(IdleMode.kCoast);
+            }
+        }
+    }
+
     private Loop breakModeLoop = new Loop() {
 
         @Override
         public void init() {
             synchronized (SingleMotorSubsystem.this) {
-                if (constants_.useBreakMode) {
-                    sparkMaster_.setIdleMode(IdleMode.kBrake);
-                } else {
-                    sparkMaster_.setIdleMode(IdleMode.kCoast);
-                }
+                setBreakMode(constants_.useBreakMode);
             }
         }
 
         @Override
         public void run() {
-            ;
+            // Nothing to do
         }
 
         @Override
         public void end() {
             synchronized (SingleMotorSubsystem.this) {
-                sparkMaster_.setIdleMode(IdleMode.kCoast);
+                setBreakMode(false);
             }
         }
     };
