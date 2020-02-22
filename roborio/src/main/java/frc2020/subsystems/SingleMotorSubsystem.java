@@ -299,6 +299,10 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         setOpenLoop(0.0);
     }
 
+    public synchronized boolean atPosition(double position) {
+        return Util.epsilonEquals(position, getPosition(), constants_.deadband_);
+    }
+
     public synchronized boolean atDemand() {
         switch (state_){
             case POSITION_PID:

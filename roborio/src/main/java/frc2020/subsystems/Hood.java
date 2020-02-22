@@ -1,8 +1,9 @@
 package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import frc2020.loops.ILooper;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Hood extends SingleMotorSubsystem {
 
@@ -16,11 +17,12 @@ public class Hood extends SingleMotorSubsystem {
     /*TODO: when we have the robot, set this value to halfway between all the way back
             and at the forward position of the reverse limit switch
     */
-    private final static int STOW_POSITION = 10; // encoder units
+    private final static int STOW_POSITION = 1; // encoder units
 
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
+    private final static DriverStation DS = DriverStation.getInstance();
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
@@ -33,6 +35,19 @@ public class Hood extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Hood";
         DEFAULT_CONSTANTS.enableHardLimits_ = true; //TODO: verify limit switch plugs are correct
+        DEFAULT_CONSTANTS.useBreakMode = true;
+        DEFAULT_CONSTANTS.enableSoftLimits = false; //TODO: Enabled once soft limits verified
+
+        DEFAULT_CONSTANTS.forwardSoftLimit = 100; //TODO: Verify soft limits
+        DEFAULT_CONSTANTS.reverseSoftLimit = 0;
+        DEFAULT_CONSTANTS.homePosition_ = 0.0;
+
+        DEFAULT_CONSTANTS.kP_ = 0.0;
+        DEFAULT_CONSTANTS.kI_ = 0.0;
+        DEFAULT_CONSTANTS.kD_ = 0.0;
+        DEFAULT_CONSTANTS.kF_ = 0.0;
+        DEFAULT_CONSTANTS.cruiseVelocity_ = 0;
+        DEFAULT_CONSTANTS.acceleration_ = 0;
     }
 
     protected Hood(SingleMotorSubsystemConstants constants) {
@@ -62,11 +77,8 @@ public class Hood extends SingleMotorSubsystem {
     }
 
 	@Override
-    public void zeroSensors() { //TODO: Figure out when to call
-        if (!hasBeenZeroed && atReverseLimit()) {
-            encoder.setPosition(0.0);
-            hasBeenZeroed = true;
-        }
+    public void zeroSensors() {
+
 	}
     
     @Override
@@ -77,7 +89,7 @@ public class Hood extends SingleMotorSubsystem {
             if (wantDeploy_) {
                 flipper_.set(DEPLOYED_VALUE);
             } else {
-                if (super.io_.reverseLimit) { //Don't stow hood until hood is retracted
+                if (super.atPosition(STOW_POSITION)) { //Don't stow hood until hood is retracted
                     flipper_.set(STOWED_VALUE);
                 }
             }
@@ -93,22 +105,31 @@ public class Hood extends SingleMotorSubsystem {
 
 	@Override
 	public void outputTelemetry() {
-		// Nothing to output for now		
+        super.outputTelemetry();
+
+		SmartDashboard.putBoolean("Hood Deployed", isDeployed_);		
 	}
 
 	@Override
 	protected boolean atReverseLimit() {
-        return !hasBeenZeroed;
+        return !hasBeenZeroed || !isDeployed_;
 	}
 
 	@Override
 	protected boolean atForwardLimit() {
-		return !hasBeenZeroed;
+		return !hasBeenZeroed || !isDeployed_;
 	}
 
 	@Override
 	protected boolean handleZeroing() { 
-		return false; // Hood should be zeroed at specific times so this  is not constantly called
+		final boolean enableZeroing = true;
+        if (enableZeroing) {
+            if (DS.isEnabled()) {
+                encoder.setPosition(constants_.homePosition_);
+                return true;
+            }
+        }
+        return false;
 	}
 
     @Override
