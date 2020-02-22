@@ -1,6 +1,7 @@
 package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -20,6 +21,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     private final static double FORWARD_RPM = 3000;
     private final static double REVERSE_RPM = -3000;
     private final static double GOAL_EDGE_COUNT = 3.0*8.0; // Three rotations | Eight edge counts per rotation
+    private final static String gameData = null;
 
     private WheelWatcher wheelWatcher_ = new WheelWatcher();
 
@@ -183,15 +185,29 @@ public class ControlPanel extends SingleMotorSubsystem {
     };
 
 
-    public synchronized void startPositionControl(WheelColor color) {
+    public synchronized void startPositionControl() {
         wheelWatcher_.reset();
-        goalColor_ = color;
+        goalColor_ = getFMSColor(gameData);
         state_ = ControlPanelState.POSITION;
     }
 
     public synchronized void startRotationControl() {
         wheelWatcher_.reset();
         state_ = ControlPanelState.ROTATION;
+    }
+
+    public static WheelColor getFMSColor(String gameData) {
+        gameData = DriverStation.getInstance().getGameSpecificMessage();
+        gameData = gameData.toUpperCase();
+        if (gameData.length() > 0) {
+           switch (gameData.charAt(0)) {
+               case 'R': return WheelColor.RED;
+               case 'B': return WheelColor.BLUE;
+               case 'G': return WheelColor.GREEN;
+               case 'Y': return WheelColor.YELLOW;
+           }
+        }
+        return WheelColor.UNKNOWN;
     }
 
     @Override
