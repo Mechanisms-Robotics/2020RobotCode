@@ -32,8 +32,8 @@ public class Constants {
     public final static int RIGHT_SLAVE_PORT = 4; // Spark Max
 
     // Motor Controller Properties
-    public final static double OPEN_LOOP_RAMP = 0.25; // seconds
-    public final static double CLOSED_LOOP_RAMP = 0.25; // seconds
+    public final static double OPEN_LOOP_RAMP = 0.15; // seconds
+    public final static double CLOSED_LOOP_RAMP = 0.10; // seconds
     public final static int STALL_LIMIT = 45; // Amps DC
     public final static int FREE_LIMIT = 40; // Amps DC
 
@@ -74,8 +74,8 @@ public class Constants {
     public final static int AUTO_ALIGN_BUTTON = 3; // left driver
     public final static int MANUAL_CONTROL_BUTTON_1 = 7; //right second
     public final static int MANUAL_CONTROL_BUTTON_2 = 13; //right second
-    public final static int MANUAL_FEEDER_INTAKE_HAT = 0; //right second
-    public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180; //right second
+    public final static int MANUAL_FEEDER_INTAKE_HAT = 180; //right second
+    public final static int MANUAL_FEEDER_OUTTAKE_HAT = 0; //right second
     public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
     public final static int INTAKE_OUTTAKE_BUTTON = 3; // right driver
     public final static int INTAKE_INTAKE_BUTTON = 2; // right driver

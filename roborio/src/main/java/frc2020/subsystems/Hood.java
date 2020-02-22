@@ -11,8 +11,8 @@ public class Hood extends SingleMotorSubsystem {
 
     private final static int FLIPPER_FORWARD_PORT = 2;
     private final static int FLIPPER_REVERSE_PORT = 3;
-    private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
-    private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
+    private final static DoubleSolenoid.Value STOWED_VALUE = Value.kForward;
+    private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kReverse;
 
     /*TODO: when we have the robot, set this value to halfway between all the way back
             and at the forward position of the reverse limit switch
@@ -42,12 +42,24 @@ public class Hood extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.reverseSoftLimit = 0.20F;
         DEFAULT_CONSTANTS.homePosition_ = 0.0;
 
-        DEFAULT_CONSTANTS.kP_ = 0.0;
+        DEFAULT_CONSTANTS.positionKp_ = 0.032;
+        DEFAULT_CONSTANTS.positionKi_ = 0.0;
+
+
+        DEFAULT_CONSTANTS.positionKd_ = 0.0;
+        DEFAULT_CONSTANTS.positionKf_ = 0.01;
+        DEFAULT_CONSTANTS.positionIZone_ = 0.5;
+        DEFAULT_CONSTANTS.deadband_ = 0.10;
+
+        DEFAULT_CONSTANTS.kP_ = 0.0005;
         DEFAULT_CONSTANTS.kI_ = 0.0;
         DEFAULT_CONSTANTS.kD_ = 0.0;
-        DEFAULT_CONSTANTS.kF_ = 0.0;
-        DEFAULT_CONSTANTS.cruiseVelocity_ = 0;
-        DEFAULT_CONSTANTS.acceleration_ = 0;
+        DEFAULT_CONSTANTS.kF_ = 0.0010;
+        DEFAULT_CONSTANTS.cruiseVelocity_ = 500.0;
+        DEFAULT_CONSTANTS.acceleration_ = 500.0;
+
+        DEFAULT_CONSTANTS.minOutput = -0.3;
+        DEFAULT_CONSTANTS.maxOutput = 0.3;
     }
 
     protected Hood(SingleMotorSubsystemConstants constants) {
@@ -89,7 +101,7 @@ public class Hood extends SingleMotorSubsystem {
             if (wantDeploy_) {
                 flipper_.set(DEPLOYED_VALUE);
             } else {
-                if (super.atPosition(STOW_POSITION) || io_.reverseLimit) { //Don't stow hood until hood is retracted
+                if (super.atPosition(STOW_POSITION)) { //Don't stow hood until hood is retracted
                     flipper_.set(STOWED_VALUE);
                 }
             }

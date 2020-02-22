@@ -100,6 +100,20 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double leftDrive = Math.abs(leftJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
         double rightDrive = Math.abs(rightJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightJoystick_.getY();
 
+        int lSign = 1;
+        int rSign = 1;
+
+        if (leftDrive < 0) {
+            lSign = -1;
+        }
+
+        if (rightDrive < 0) {
+            rSign = -1;
+        }
+
+        leftDrive *= leftDrive * lSign;
+        rightDrive *= rightDrive * rSign;
+
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         if (autoSteerBall || autoSteerStation) {
             return DriveDemand.autoSteer(signal);
@@ -187,7 +201,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private HoodDemand generateHoodDemand() {
         HoodDemand demand = new HoodDemand();
-        double hoodSpeed = 0.15;
+        double hoodSpeed = 0.10;
         boolean positiveHood = rightSecondJoystick_.getPOV() == Constants.POSITIVE_HOOD_HAT;
         boolean negativeHood = rightSecondJoystick_.getPOV() == Constants.NEGATIVE_HOOD_HAT;
         deployHood = deployHoodLatch.update(rightSecondJoystick_.getTrigger()) != deployHood;
