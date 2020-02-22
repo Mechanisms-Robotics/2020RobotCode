@@ -26,6 +26,7 @@ public class CommandState {
     public ClimberDemand climberDemand;
     public boolean manualDemand = false;
     private TurretDemand turretDemand;
+    private HoodDemand hoodDemand;
 
     private Logger logger_ = Logger.getInstance();
 
@@ -91,6 +92,11 @@ public class CommandState {
         public boolean useOpenLoop = true;
     }
 
+    public static class HoodDemand {
+        public double speed = 0.0;
+        public boolean deploy = false;
+    }
+
     public void setManualControl(boolean manualControl) {
         manualDemand = manualControl;
     }
@@ -126,6 +132,10 @@ public class CommandState {
     public void setTurretDemand(TurretDemand demand) {
         turretDemand = demand;
     }
+
+    public void setHoodDemand(HoodDemand demand) {
+        hoodDemand = demand;
+    }
     /**
      * Getter for each subsystem demand
      * @return
@@ -139,7 +149,8 @@ public class CommandState {
      * from this command state
      * @param drive An instance of the drive train subsystem
      */
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret, Intake intake, Flywheel flywheel, Climber climber) {
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret,
+                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
@@ -147,9 +158,17 @@ public class CommandState {
         if (manualDemand) {
             maybeUpdateFeeder(feeder);
             maybeUpdateTurret(turret);
+            maybeUpdateHood(hood);
             //maybeUpdateFlywheel(flywheel);
         } else {
-            return; // TODO: Update automated Control
+            feederDemand = new FeederDemand();
+            turretDemand = new TurretDemand();
+            hoodDemand = new HoodDemand();
+            //flywheelDemand = new FlywheelDemand();
+            maybeUpdateFeeder(feeder);
+            maybeUpdateTurret(turret);
+            maybeUpdateHood(hood);
+            //maybeUpdateFlywheel(flywheel);
         }
     }
 
@@ -268,6 +287,18 @@ public class CommandState {
                 turret.setRelativeRotation(new Rotation2d(turretDemand.speed));
             }
             turretDemand = null;
+        }
+    }
+
+    private void maybeUpdateHood(Hood hood) {
+        if (hoodDemand != null) {
+            if (hoodDemand.deploy) {
+                hood.deployHood();
+                hood.setOpenLoop(hoodDemand.speed);
+            } else {
+                hood.stowHood();
+            }
+            hoodDemand = null;
         }
     }
 }

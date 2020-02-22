@@ -47,6 +47,7 @@ public class Robot extends TimedRobot {
     private Flywheel flywheel_;
     private Climber climber_;
     private Turret turret_;
+    private Hood hood_;
 
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
@@ -104,7 +105,8 @@ public class Robot extends TimedRobot {
                   Feeder.getInstance(),
                   Intake.getInstance(),
                   Climber.getInstance(),
-                  Turret.getInstance()
+                  Turret.getInstance(),
+                  Hood.getInstance()
                   //Flywheel.getInstance()
                 )
         );
@@ -115,6 +117,7 @@ public class Robot extends TimedRobot {
         turret_ = Turret.getInstance();
         //flywheel_ = Flywheel.getInstance();
         climber_ = Climber.getInstance();
+        hood_ = Hood.getInstance();
 
         compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
@@ -326,7 +329,8 @@ public class Robot extends TimedRobot {
                     turret_,
                     intake_,
                     flywheel_,
-                    climber_);
+                    climber_,
+                    hood_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

@@ -52,8 +52,8 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public int iZone_ = 0;
         public double deadband_ = 0;
 
-        public int cruiseVelocity_ = 0;
-        public int acceleration_ = 0;
+        public double cruiseVelocity_ = 0;
+        public double acceleration_ = 0;
         public double closedLoopRampRate_ = 0.0;
         public double openLoopRampRate_ = 0.0;
         public int currentLimitStall_ = 30; // Amps
@@ -65,13 +65,13 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double positionKi_ = 0.0;
         public double positionKd_ = 0.0;
         public double positionKf_ = 0.0;
-        public int positionIZone_ = 0;
+        public double positionIZone_ = 0;
 
         public double velocityKp_ = 0.0;
         public double velocityKi_ = 0.0;
         public double velocityKd_ = 0.0;
         public double velocityKf_ = 0.0;
-        public int velocityIZone_ = 0;
+        public double velocityIZone_ = 0;
         public double velocityDeadBand_ = 0.0;
 
         public double maxUnitsLimit_ = Double.POSITIVE_INFINITY;
@@ -83,6 +83,9 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public boolean enableSoftLimits = false;
         public float forwardSoftLimit = 1;
         public float reverseSoftLimit = -1;
+
+        public double minOutput = -1.0;
+        public double maxOutput = 1.0;
     }
     
     protected final SingleMotorSubsystemConstants constants_;
@@ -158,9 +161,13 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         masterPid_.setD(constants_.kD_, MOTION_PROFILE_SLOT);
         masterPid_.setFF(constants_.kF_, MOTION_PROFILE_SLOT);
         masterPid_.setIZone(constants_.iZone_, MOTION_PROFILE_SLOT);
-        masterPid_.setSmartMotionAllowedClosedLoopError(constants_.velocityDeadBand_, MOTION_PROFILE_SLOT);
+        masterPid_.setSmartMotionAllowedClosedLoopError(constants_.deadband_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxAccel(constants_.acceleration_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxVelocity(constants_.cruiseVelocity_, MOTION_PROFILE_SLOT);
+
+        masterPid_.setOutputRange(constants_.minOutput, constants_.maxOutput, POSITION_PID_SLOT);
+        masterPid_.setOutputRange(constants_.minOutput, constants_.maxOutput, VELOCITY_PID_SLOT);
+        masterPid_.setOutputRange(constants_.minOutput, constants_.maxOutput, MOTION_PROFILE_SLOT);
 
 
         for (int i = 0; i < sparkSlaves_.length; ++i) {
@@ -183,6 +190,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double masterCurrent;
         public boolean forwardLimit;
         public boolean reverseLimit;
+        public double dutyCycle;
 
         // Outputs
         public double feedforward;
@@ -207,6 +215,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         io_.velocity = encoder.getVelocity();
         io_.forwardLimit = forwardSwitch_.get();
         io_.reverseLimit = reverseSwitch_.get();
+        io_.dutyCycle = sparkMaster_.getAppliedOutput();
     }
 
     // TODO: Add error checking on CAN Bus calls
@@ -299,6 +308,10 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         setOpenLoop(0.0);
     }
 
+    public synchronized boolean atPosition(double position) {
+        return Util.epsilonEquals(position, getPosition(), constants_.deadband_);
+    }
+
     public synchronized boolean atDemand() {
         switch (state_){
             case POSITION_PID:
@@ -320,6 +333,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         SmartDashboard.putBoolean(constants_.name_ + " : Forward Limit", io_.forwardLimit);
         SmartDashboard.putBoolean(constants_.name_ + " : Reverse Limit", io_.reverseLimit);
         SmartDashboard.putBoolean(constants_.name_ + " : Zeroed", hasBeenZeroed);
+        SmartDashboard.putNumber(constants_.name_ + " : Duty Cycle", io_.dutyCycle);
     }
 
     private void setBreakMode(boolean breakMode) {

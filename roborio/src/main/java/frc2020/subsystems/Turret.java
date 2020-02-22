@@ -52,8 +52,8 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.useBreakMode = true;
 
         DEFAULT_CONSTANTS.enableSoftLimits = true;
-        DEFAULT_CONSTANTS.forwardSoftLimit = 350.0F;
-        DEFAULT_CONSTANTS.reverseSoftLimit = 5.0F;
+        DEFAULT_CONSTANTS.forwardSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() + 10.0); // 350.0F
+        DEFAULT_CONSTANTS.reverseSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() - 10.0); // 5.0F
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
