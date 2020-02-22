@@ -34,21 +34,14 @@ public class Hood extends SingleMotorSubsystem {
 
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Hood";
-        DEFAULT_CONSTANTS.enableHardLimits_ = true; //TODO: verify limit switch plugs are correct
+        DEFAULT_CONSTANTS.enableHardLimits_ = true;
         DEFAULT_CONSTANTS.useBreakMode = true;
         DEFAULT_CONSTANTS.enableSoftLimits = true;
 
-        DEFAULT_CONSTANTS.forwardSoftLimit = 2.99F; //TODO: Verify soft limits
+        DEFAULT_CONSTANTS.forwardSoftLimit = 2.99F;
         DEFAULT_CONSTANTS.reverseSoftLimit = 0.20F;
         DEFAULT_CONSTANTS.homePosition_ = 0.0;
 
-        DEFAULT_CONSTANTS.positionKp_ = 0.032;
-        DEFAULT_CONSTANTS.positionKi_ = 0.0;
-
-
-        DEFAULT_CONSTANTS.positionKd_ = 0.0;
-        DEFAULT_CONSTANTS.positionKf_ = 0.01;
-        DEFAULT_CONSTANTS.positionIZone_ = 0.5;
         DEFAULT_CONSTANTS.deadband_ = 0.10;
 
         DEFAULT_CONSTANTS.kP_ = 0.0005;
