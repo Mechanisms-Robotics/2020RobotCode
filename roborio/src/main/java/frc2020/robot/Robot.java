@@ -99,7 +99,8 @@ public class Robot extends TimedRobot {
                   limelight_turret_,
                   limelight_low_,
                   // TODO: Put subystems here once tuned
-                  Feeder.getInstance()//,
+                  Feeder.getInstance(),
+                  Intake.getInstance()
                   //Flywheel.getInstance()
                 )
         );
@@ -279,7 +280,7 @@ public class Robot extends TimedRobot {
             logger_.logRobotTeleopInit();
             CrashTracker.logTeleopInit();
             disabledIterator_.stop();
-            compressor_.setClosedLoopControl(false); //TODO: Change back once we're done
+            compressor_.setClosedLoopControl(true);
             enabledIterator_.start();
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));

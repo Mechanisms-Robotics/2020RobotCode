@@ -46,7 +46,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     private WheelColor goalColor_ = WheelColor.UNKNOWN;
 
     private static enum ControlPanelState {
-        IDLE, POSITION, ROTATION
+        IDLE, POSITION, ROTATION, MANUAL
     };
 
     public static ControlPanel getInstance() {
@@ -64,6 +64,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     }
 
     public void stowPanelArm() {
+        state_ = ControlPanelState.IDLE;
         super.stop();
         wantDeploy_ = false;
     }
@@ -168,6 +169,8 @@ public class ControlPanel extends SingleMotorSubsystem {
 
                         runPanelWheel(true);
                         break;
+                    case MANUAL:
+                        break;
                     default:
                         logger_.logWarning("Control Panel unexpected state "+state_.toString(), logName_);
                         break;
@@ -194,6 +197,12 @@ public class ControlPanel extends SingleMotorSubsystem {
     public synchronized void startRotationControl() {
         wheelWatcher_.reset();
         state_ = ControlPanelState.ROTATION;
+    }
+
+    public synchronized void startManualControl() {
+        if (state_ != ControlPanelState.MANUAL) {
+            state_ = ControlPanelState.MANUAL;
+        }
     }
 
     public static WheelColor getFMSColor(String gameData) {
