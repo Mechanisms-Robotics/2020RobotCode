@@ -35,6 +35,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean lockClimberLatch;
     private boolean lockClimber = false;
 
+    private LatchedBoolean deployHoodLatch;
+    private boolean deployHood = false;
+
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
 
@@ -55,6 +58,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         spinFlywheelLatch = new LatchedBoolean();
         deployClimberLatch = new LatchedBoolean();
         lockClimberLatch = new LatchedBoolean();
+        deployHoodLatch = new LatchedBoolean();
     }
 
     /**
@@ -82,6 +86,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setFlywheelDemand(generateFlywheelDemand());
         state.setTurretDemand(generateTurretDemand());
         state.setClimberDemand(generateClimberDemand());
+        state.setHoodDemand(generateHoodDemand());
         return state;
     }
 
@@ -94,6 +99,20 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
         double leftDrive = Math.abs(leftJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
         double rightDrive = Math.abs(rightJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightJoystick_.getY();
+
+        int lSign = 1;
+        int rSign = 1;
+
+        if (leftDrive < 0) {
+            lSign = -1;
+        }
+
+        if (rightDrive < 0) {
+            rSign = -1;
+        }
+
+        leftDrive *= leftDrive * lSign;
+        rightDrive *= rightDrive * rSign;
 
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         if (autoSteerBall || autoSteerStation) {
@@ -178,6 +197,25 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         demand.winchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
 
         return demand;
+    }
+
+    private HoodDemand generateHoodDemand() {
+        HoodDemand demand = new HoodDemand();
+        double hoodSpeed = 0.10;
+        boolean positiveHood = rightSecondJoystick_.getPOV() == Constants.POSITIVE_HOOD_HAT;
+        boolean negativeHood = rightSecondJoystick_.getPOV() == Constants.NEGATIVE_HOOD_HAT;
+        deployHood = deployHoodLatch.update(rightSecondJoystick_.getTrigger()) != deployHood;
+
+        if (positiveHood && negativeHood) {
+            logger_.logInfo("Positive and negative hood hats pressed at same time", logName);
+        } else if (positiveHood) {
+            demand.speed = hoodSpeed;
+        } else if (negativeHood) {
+            demand.speed = -hoodSpeed;
+        }
+        demand.deploy = deployHood;
+        return demand;
+        
     }
 
     public synchronized void disableManualControl() {

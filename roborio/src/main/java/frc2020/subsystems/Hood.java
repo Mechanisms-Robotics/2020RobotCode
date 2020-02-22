@@ -1,26 +1,28 @@
 package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import frc2020.loops.ILooper;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Hood extends SingleMotorSubsystem {
 
     private static Hood instance_;
 
     private final static int FLIPPER_FORWARD_PORT = 2;
-    private final static int FLIPPER_REVERSE_PORT = 5;
-    private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
-    private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
+    private final static int FLIPPER_REVERSE_PORT = 3;
+    private final static DoubleSolenoid.Value STOWED_VALUE = Value.kForward;
+    private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kReverse;
 
     /*TODO: when we have the robot, set this value to halfway between all the way back
             and at the forward position of the reverse limit switch
     */
-    private final static int STOW_POSITION = 10; // encoder units
+    private final static double STOW_POSITION = 0.19; // encoder units
 
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
+    private final static DriverStation DS = DriverStation.getInstance();
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
@@ -28,11 +30,29 @@ public class Hood extends SingleMotorSubsystem {
     static {
         var masterConstants = new MotorConstants();
         masterConstants.id_ = 8;
-        masterConstants.invertMotor_ = false;
+        masterConstants.invertMotor_ = true;
 
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Hood";
-        DEFAULT_CONSTANTS.enableHardLimits_ = true; //TODO: verify limit switch plugs are correct
+        DEFAULT_CONSTANTS.enableHardLimits_ = true;
+        DEFAULT_CONSTANTS.useBreakMode = true;
+        DEFAULT_CONSTANTS.enableSoftLimits = true;
+
+        DEFAULT_CONSTANTS.forwardSoftLimit = 2.99F;
+        DEFAULT_CONSTANTS.reverseSoftLimit = 0.20F;
+        DEFAULT_CONSTANTS.homePosition_ = 0.0;
+
+        DEFAULT_CONSTANTS.deadband_ = 0.10;
+
+        DEFAULT_CONSTANTS.kP_ = 0.0005;
+        DEFAULT_CONSTANTS.kI_ = 0.0;
+        DEFAULT_CONSTANTS.kD_ = 0.0;
+        DEFAULT_CONSTANTS.kF_ = 0.0010;
+        DEFAULT_CONSTANTS.cruiseVelocity_ = 500.0;
+        DEFAULT_CONSTANTS.acceleration_ = 500.0;
+
+        DEFAULT_CONSTANTS.minOutput = -0.3;
+        DEFAULT_CONSTANTS.maxOutput = 0.3;
     }
 
     protected Hood(SingleMotorSubsystemConstants constants) {
@@ -70,11 +90,8 @@ public class Hood extends SingleMotorSubsystem {
     }
 
 	@Override
-    public void zeroSensors() { //TODO: Figure out when to call
-        if (!hasBeenZeroed && atReverseLimit()) {
-            encoder.setPosition(0.0);
-            hasBeenZeroed = true;
-        }
+    public void zeroSensors() {
+
 	}
     
     @Override
@@ -85,7 +102,7 @@ public class Hood extends SingleMotorSubsystem {
             if (wantDeploy_) {
                 flipper_.set(DEPLOYED_VALUE);
             } else {
-                if (super.io_.reverseLimit) { //Don't stow hood until hood is retracted
+                if (super.atPosition(STOW_POSITION)) { //Don't stow hood until hood is retracted
                     flipper_.set(STOWED_VALUE);
                 }
             }
@@ -101,22 +118,31 @@ public class Hood extends SingleMotorSubsystem {
 
 	@Override
 	public void outputTelemetry() {
-		// Nothing to output for now		
+        super.outputTelemetry();
+
+		SmartDashboard.putBoolean("Hood Deployed", isDeployed_);		
 	}
 
 	@Override
 	protected boolean atReverseLimit() {
-        return !hasBeenZeroed;
+        return !hasBeenZeroed || !isDeployed_;
 	}
 
 	@Override
 	protected boolean atForwardLimit() {
-		return !hasBeenZeroed;
+        return !hasBeenZeroed || !isDeployed_;
 	}
 
 	@Override
 	protected boolean handleZeroing() { 
-		return false; // Hood should be zeroed at specific times so this  is not constantly called
+		final boolean enableZeroing = true;
+        if (enableZeroing) {
+            if (DS.isEnabled()) {
+                encoder.setPosition(constants_.homePosition_);
+                return true;
+            }
+        }
+        return false;
 	}
 
     @Override
