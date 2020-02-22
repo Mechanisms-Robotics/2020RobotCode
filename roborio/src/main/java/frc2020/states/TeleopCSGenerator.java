@@ -82,6 +82,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setFlywheelDemand(generateFlywheelDemand());
         state.setTurretDemand(generateTurretDemand());
         state.setClimberDemand(generateClimberDemand());
+        state.setHoodDemand(generateHoodDemand());
         return state;
     }
 
@@ -178,6 +179,23 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         demand.winchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
 
         return demand;
+    }
+
+    private HoodDemand generateHoodDemand() {
+        HoodDemand demand = new HoodDemand();
+        double hoodSpeed = 0.1;
+        boolean positiveHood = rightSecondJoystick_.getPOV() == Constants.POSITIVE_HOOD_HAT;
+        boolean negativeHood = rightSecondJoystick_.getPOV() == Constants.NEGATIVE_HOOD_HAT;
+
+        if (positiveHood && negativeHood) {
+            logger_.logInfo("Positive and negative hood hats pressed at same time", logName);
+        } else if (positiveHood) {
+            demand.speed = hoodSpeed;
+        } else if (negativeHood) {
+            demand.speed = -hoodSpeed;
+        }
+        return demand;
+        
     }
 
     public synchronized void disableManualControl() {

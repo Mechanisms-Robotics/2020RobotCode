@@ -84,6 +84,8 @@ public class Constants {
     public final static int DEPLOY_CLIMBER_TOGGLE_2 = 4; //right second
     public final static int LOCK_CLIMBER_TOGGLE = 2; //right second
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
+    public final static int POSITIVE_HOOD_HAT = 90; //right second
+    public final static int NEGATIVE_HOOD_HAT = 270; //right second
 
     //CANcoder IDs
     public final static int LEFT_CAN_CODER_ID = 1;
