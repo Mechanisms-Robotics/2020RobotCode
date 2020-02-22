@@ -1,5 +1,6 @@
 package frc2020.subsystems;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.loops.ILooper;
 
@@ -12,10 +13,10 @@ public class Turret extends SingleMotorSubsystem {
 
     private static Turret instance_;
 
-    // TODO: Measure
     private final static Rotation2d TURRET_HOME_TO_SENSOR_HOME = Rotation2d.fromDegrees(115.0);
     private final static double FORWARD_LIMIT_SWITCH_POSITION = 355;
     private final static double REVERSE_LIMIT_SWITCH_POSITION = 0;
+    private final static DriverStation DS = DriverStation.getInstance();
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
             new SingleMotorSubsystemConstants();
@@ -94,15 +95,10 @@ public class Turret extends SingleMotorSubsystem {
 
     @Override
     protected boolean handleZeroing() {
-        // TODO: Enable zeroing once sensor units and limit swich posotion is found
         final boolean enableZeroing = true;
         if (enableZeroing) {
-            if (atForwardLimit()) {
-                encoder.setPosition(FORWARD_LIMIT_SWITCH_POSITION);
-                return true;
-            }
-            if (atReverseLimit()) {
-                encoder.setPosition(REVERSE_LIMIT_SWITCH_POSITION);
+            if (DS.isEnabled()) {
+                encoder.setPosition(TURRET_HOME_TO_SENSOR_HOME.getDegrees());
                 return true;
             }
         }
