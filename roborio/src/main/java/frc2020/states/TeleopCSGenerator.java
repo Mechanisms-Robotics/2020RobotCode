@@ -27,6 +27,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean manualControl = false;
     private LatchedBoolean deployIntakeLatch;
     private boolean deployIntake = false;
+
     private LatchedBoolean spinFlywheelLatch;
     private boolean spinFlywheel = false;
 
@@ -174,7 +175,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private FlywheelDemand generateFlywheelDemand() {
         FlywheelDemand demand = new FlywheelDemand();
-        demand.spin = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
+        spinFlywheel = spinFlywheelLatch.update(leftSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
+        demand.spin = spinFlywheel;
         return demand;
     }
 

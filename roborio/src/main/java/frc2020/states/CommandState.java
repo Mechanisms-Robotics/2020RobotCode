@@ -159,16 +159,16 @@ public class CommandState {
             maybeUpdateFeeder(feeder);
             maybeUpdateTurret(turret);
             maybeUpdateHood(hood);
-            //maybeUpdateFlywheel(flywheel);
+            maybeUpdateFlywheel(flywheel);
         } else {
             feederDemand = new FeederDemand();
             turretDemand = new TurretDemand();
             hoodDemand = new HoodDemand();
-            //flywheelDemand = new FlywheelDemand();
+            flywheelDemand = new FlywheelDemand();
             maybeUpdateFeeder(feeder);
             maybeUpdateTurret(turret);
             maybeUpdateHood(hood);
-            //maybeUpdateFlywheel(flywheel);
+            maybeUpdateFlywheel(flywheel);
         }
     }
 
@@ -252,7 +252,7 @@ public class CommandState {
             if (flywheelDemand.spin) {
                 flywheel.spinFlywheel();
             } else {
-                flywheel.stop();
+                flywheel.setOpenLoop(0.0);
             }
             flywheelDemand = null;
         }

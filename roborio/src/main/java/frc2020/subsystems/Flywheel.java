@@ -44,6 +44,10 @@ public class Flywheel extends SingleMotorSubsystem {
         return instance_ == null ? instance_ = new Flywheel(DEFAULT_CONSTANTS) : instance_;
     }
 
+    @Override
+    public void stop() {
+        //Do nothing
+    }
     /**
      * Spins flywheel at set speed
      */
@@ -73,12 +77,6 @@ public class Flywheel extends SingleMotorSubsystem {
     @Override
     public void zeroSensors() {
         //No sensors to zero
-    }
-
-    @Override
-    public void outputTelemetry() {
-        // No telemetry to output for flywheel
-        SmartDashboard.putNumber("Master Flywheel Speed", super.io_.velocity);
     }
 
     @Override
