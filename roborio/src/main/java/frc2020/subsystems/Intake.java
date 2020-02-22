@@ -106,11 +106,6 @@ public class Intake extends SingleMotorSubsystem {
     }
 
     @Override
-    public void registerLoops(ILooper enabledLooper) {
-        // No loops to register
-    }
-
-    @Override
     public void outputTelemetry() {
         SmartDashboard.putBoolean("Intake Deployed", isDeployed_);
     }

@@ -7,6 +7,8 @@ import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.loops.ILooper;
+import frc2020.loops.Loop;
 import frc2020.util.Logger;
 import frc2020.util.Util;
 
@@ -77,6 +79,10 @@ public abstract class SingleMotorSubsystem implements Subsystem {
 
         public boolean enableHardLimits_ = true;
         public boolean useBreakMode = false;
+
+        public boolean enableSoftLimits = false;
+        public float forwardSoftLimit = 1;
+        public float reverseSoftLimit = -1;
     }
     
     protected final SingleMotorSubsystemConstants constants_;
@@ -108,15 +114,16 @@ public abstract class SingleMotorSubsystem implements Subsystem {
 
         sparkMaster_.setInverted(constants_.masterConstants_.invertMotor_);
         sparkMaster_.setOpenLoopRampRate(constants_.openLoopRampRate_);
-        sparkMaster_.setClosedLoopRampRate(constants.closedLoopRampRate_);
+        sparkMaster_.setClosedLoopRampRate(constants_.closedLoopRampRate_);
         sparkMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
         sparkMaster_.setSmartCurrentLimit(constants_.currentLimitStall_, constants_.currentLimitFree_);
 
-        if (constants_.useBreakMode) {
-            sparkMaster_.setIdleMode(IdleMode.kBrake);
-        } else {
-            sparkMaster_.setIdleMode(IdleMode.kCoast);
-        }
+        sparkMaster_.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, constants_.forwardSoftLimit);
+        sparkMaster_.enableSoftLimit(CANSparkMax.SoftLimitDirection.kForward, constants_.enableSoftLimits);
+        sparkMaster_.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, constants_.reverseSoftLimit);
+        sparkMaster_.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, constants_.enableSoftLimits);
+
+        sparkMaster_.setIdleMode(IdleMode.kCoast);
 
         if (constants_.useVoltageComp_) {
             sparkMaster_.enableVoltageCompensation(constants_.maxVoltage_);
@@ -320,6 +327,37 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         SmartDashboard.putBoolean(constants_.name_ + " : Reverse Limit", io_.reverseLimit);
         SmartDashboard.putBoolean(constants_.name_ + " : Zeroed", hasBeenZeroed);
     }
+
+    @Override
+    public void registerLoops(ILooper enabledLooper) {
+        enabledLooper.register(breakModeLoop);
+    }
+
+    private Loop breakModeLoop = new Loop() {
+
+        @Override
+        public void init() {
+            synchronized (SingleMotorSubsystem.this) {
+                if (constants_.useBreakMode) {
+                    sparkMaster_.setIdleMode(IdleMode.kBrake);
+                } else {
+                    sparkMaster_.setIdleMode(IdleMode.kCoast);
+                }
+            }
+        }
+
+        @Override
+        public void run() {
+
+        }
+
+        @Override
+        public void end() {
+            synchronized (SingleMotorSubsystem.this) {
+                sparkMaster_.setIdleMode(IdleMode.kCoast);
+            }
+        }
+    };
 
     /**
      * Get whether or not the reverse software limit is met

@@ -32,6 +32,7 @@ public class Flywheel extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         DEFAULT_CONSTANTS.velocityKd_ = 0.0;
         DEFAULT_CONSTANTS.velocityKf_ = 0.00019;
+        DEFAULT_CONSTANTS.useBreakMode = true;
 
     }
 
@@ -72,11 +73,6 @@ public class Flywheel extends SingleMotorSubsystem {
     @Override
     public void zeroSensors() {
         //No sensors to zero
-    }
-
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
-        //Not registering any loops
     }
 
     @Override

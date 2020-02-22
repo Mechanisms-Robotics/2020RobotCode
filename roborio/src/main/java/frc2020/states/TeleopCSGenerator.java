@@ -164,8 +164,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private TurretDemand generateTurretDemand() {
         TurretDemand demand = new TurretDemand();
+        double turrentDeadband = 0.12;
+        double maxSpeed = 0.25;
         demand.useOpenLoop = true;
-        demand.speed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY();
+        demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= turrentDeadband ? 0 : leftSecondJoystick_.getY(), -maxSpeed, maxSpeed);
         return demand;
     }
 

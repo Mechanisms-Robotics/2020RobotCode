@@ -107,7 +107,7 @@ public class Robot extends TimedRobot {
         );
 
         drive_ = Drive.getInstance();
-        //intake_ = Intake.getInstance();
+        intake_ = Intake.getInstance();
         feeder_ = Feeder.getInstance();
         turret_ = Turret.getInstance();
         //flywheel_ = Flywheel.getInstance();

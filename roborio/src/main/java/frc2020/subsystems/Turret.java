@@ -34,16 +34,25 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.positionConversionFactor_ = 3.61969864; // degrees / encoder
         DEFAULT_CONSTANTS.velocityConversionFactor_ = 3.61969864;
         DEFAULT_CONSTANTS.closedLoopRampRate_ = 0.1;
-        DEFAULT_CONSTANTS.cruiseVelocity_ = 0; //deg/min
-        DEFAULT_CONSTANTS.acceleration_ = 0; //deg/min^2
+        DEFAULT_CONSTANTS.cruiseVelocity_ = 360*120; //deg/min
+        DEFAULT_CONSTANTS.acceleration_ = 360*120*8; //deg/min^2
         DEFAULT_CONSTANTS.velocityDeadBand_ = 2.5;
 
-        DEFAULT_CONSTANTS.kP_ = 0.0;
+        DEFAULT_CONSTANTS.kP_ = 0.00002;
         DEFAULT_CONSTANTS.kI_ = 0.0;
         DEFAULT_CONSTANTS.kD_ = 0.0;
-        DEFAULT_CONSTANTS.kF_ = 0.0;
+        DEFAULT_CONSTANTS.kF_ = 0.000001;
+
+        DEFAULT_CONSTANTS.positionKp_ = 0.01;
+        DEFAULT_CONSTANTS.positionKi_ = 0.0;
+        DEFAULT_CONSTANTS.positionKd_ = 0.0;
+        DEFAULT_CONSTANTS.positionKf_ = 0.0001;
 
         DEFAULT_CONSTANTS.useBreakMode = true;
+
+        DEFAULT_CONSTANTS.enableSoftLimits = true;
+        DEFAULT_CONSTANTS.forwardSoftLimit = 350.0F;
+        DEFAULT_CONSTANTS.reverseSoftLimit = 5.0F;
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
@@ -62,7 +71,7 @@ public class Turret extends SingleMotorSubsystem {
      *                      positive counter-clockwise
      */
     public synchronized void setRelativeRotation(Rotation2d deltaRotation) {
-        setSmartPosition(getPosition() + deltaRotation.getDegrees());
+        setPosition(getPosition() + deltaRotation.getDegrees());
     }
 
     /**
@@ -118,10 +127,6 @@ public class Turret extends SingleMotorSubsystem {
     @Override
     public void zeroSensors() {
         encoder.setPosition(0.0);
-    }
-
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
     }
 
     @Override
