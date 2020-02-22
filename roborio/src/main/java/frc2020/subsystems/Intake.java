@@ -31,13 +31,13 @@ public class Intake extends SingleMotorSubsystem {
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
 
+
     public static Intake getInstance() {
         return instance_ == null ? instance_ = new Intake(DEFAULT_CONSTANTS) : instance_;
     }
 
     protected Intake(SingleMotorSubsystemConstants constants) {
         super(constants);
-
         flipper_ = new DoubleSolenoid(FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
     }
 
@@ -104,11 +104,6 @@ public class Intake extends SingleMotorSubsystem {
     @Override
     public void zeroSensors() {
         // No sensors to implement
-    }
-
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
-        // No loops to register
     }
 
     @Override

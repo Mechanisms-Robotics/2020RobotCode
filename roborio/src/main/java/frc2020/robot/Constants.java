@@ -78,12 +78,11 @@ public class Constants {
     public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180; //right second
     public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
     public final static int INTAKE_OUTTAKE_BUTTON = 3; // right driver
-    public final static int INTAKE_INTAKE_BUTTON = 2; // right driver 
+    public final static int INTAKE_INTAKE_BUTTON = 2; // right driver
     public final static int FLYWHEEL_SPIN_TOGGLE = 2; // left second
     public final static int DEPLOY_CLIMBER_TOGGLE_1 = 3; //right second
     public final static int DEPLOY_CLIMBER_TOGGLE_2 = 4; //right second
     public final static int LOCK_CLIMBER_TOGGLE = 2; //right second
-
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
 
     //CANcoder IDs

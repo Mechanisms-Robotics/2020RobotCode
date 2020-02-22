@@ -76,11 +76,6 @@ public class Hood extends SingleMotorSubsystem {
             hasBeenZeroed = true;
         }
 	}
-
-	@Override
-	public void registerLoops(ILooper enabledLooper) {
-		// No loops to enable
-    }
     
     @Override
     public synchronized void writePeriodicOutputs() {

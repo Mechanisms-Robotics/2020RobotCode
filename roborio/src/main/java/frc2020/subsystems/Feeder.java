@@ -3,7 +3,6 @@ package frc2020.subsystems;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc2020.loops.ILooper;
 
 public class Feeder extends SingleMotorSubsystem {
 
@@ -167,11 +166,6 @@ public class Feeder extends SingleMotorSubsystem {
     @Override
     public void zeroSensors() {
         // Break beams are digital so no sensors to zero
-    }
-
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
-        // No loops to register for the time being
     }
 
     @Override

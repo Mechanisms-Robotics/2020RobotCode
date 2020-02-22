@@ -169,7 +169,7 @@ public class Shooter implements Subsystem {
 
         double azimuth = limelight_.getTargetReading().azimuth;
 
-        turret_.setRelativePosition(Rotation2d.fromDegrees(azimuth));
+        turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));
 
         feeder_.setState(FeederState.PRIMING);
     }
@@ -178,7 +178,7 @@ public class Shooter implements Subsystem {
 
         double azimuth = limelight_.getTargetReading().azimuth;
 
-        turret_.setRelativePosition(Rotation2d.fromDegrees(azimuth));
+        turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));
 
         //TODO: Set hood angle automatically
 
@@ -197,7 +197,7 @@ public class Shooter implements Subsystem {
     private void handleStowedTransition() {
         flywheel_.stop();
 
-        turret_.setAbsolutePosition(Rotation2d.fromDegrees(0.0));
+        turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
 
         limelight_.setLed(Limelight.LedMode.OFF);
 

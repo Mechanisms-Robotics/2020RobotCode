@@ -102,11 +102,6 @@ public class Climber extends SingleMotorSubsystem {
     }
 
     @Override
-    public void registerLoops(ILooper enabledLooper) {
-
-    }
-
-    @Override
     public synchronized void writePeriodicOutputs() {
         super.writePeriodicOutputs();
 
