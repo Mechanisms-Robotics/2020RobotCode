@@ -86,6 +86,7 @@ public class Constants {
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
     public final static int POSITIVE_HOOD_HAT = 90; //right second
     public final static int NEGATIVE_HOOD_HAT = 270; //right second
+    public final static int TOGGLE_HOOD_DEPLOY = 1; //right second trigger
 
     //CANcoder IDs
     public final static int LEFT_CAN_CODER_ID = 1;

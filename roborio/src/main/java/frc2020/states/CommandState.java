@@ -94,6 +94,7 @@ public class CommandState {
 
     public static class HoodDemand {
         public double speed = 0.0;
+        public boolean deploy = false;
     }
 
     public void setManualControl(boolean manualControl) {
@@ -290,8 +291,13 @@ public class CommandState {
     }
 
     private void maybeUpdateHood(Hood hood) {
-        if(hoodDemand != null) {
-            hood.setOpenLoop(hoodDemand.speed);
+        if (hoodDemand != null) {
+            if (hoodDemand.deploy) {
+                hood.deployHood();
+                hood.setOpenLoop(hoodDemand.speed);
+            } else {
+                hood.stowHood();
+            }
             hoodDemand = null;
         }
     }

@@ -35,6 +35,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean lockClimberLatch;
     private boolean lockClimber = false;
 
+    private LatchedBoolean deployHoodLatch;
+    private boolean deployHood = false;
+
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
 
@@ -55,6 +58,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         spinFlywheelLatch = new LatchedBoolean();
         deployClimberLatch = new LatchedBoolean();
         lockClimberLatch = new LatchedBoolean();
+        deployHoodLatch = new LatchedBoolean();
     }
 
     /**
@@ -183,9 +187,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private HoodDemand generateHoodDemand() {
         HoodDemand demand = new HoodDemand();
-        double hoodSpeed = 0.1;
+        double hoodSpeed = 0.15;
         boolean positiveHood = rightSecondJoystick_.getPOV() == Constants.POSITIVE_HOOD_HAT;
         boolean negativeHood = rightSecondJoystick_.getPOV() == Constants.NEGATIVE_HOOD_HAT;
+        deployHood = deployHoodLatch.update(rightSecondJoystick_.getTrigger()) != deployHood;
 
         if (positiveHood && negativeHood) {
             logger_.logInfo("Positive and negative hood hats pressed at same time", logName);
@@ -194,6 +199,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else if (negativeHood) {
             demand.speed = -hoodSpeed;
         }
+        demand.deploy = deployHood;
         return demand;
         
     }

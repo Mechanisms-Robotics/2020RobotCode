@@ -10,14 +10,14 @@ public class Hood extends SingleMotorSubsystem {
     private static Hood instance_;
 
     private final static int FLIPPER_FORWARD_PORT = 2;
-    private final static int FLIPPER_REVERSE_PORT = 5;
+    private final static int FLIPPER_REVERSE_PORT = 3;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
 
     /*TODO: when we have the robot, set this value to halfway between all the way back
             and at the forward position of the reverse limit switch
     */
-    private final static int STOW_POSITION = 1; // encoder units
+    private final static double STOW_POSITION = 0.19; // encoder units
 
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
@@ -30,16 +30,16 @@ public class Hood extends SingleMotorSubsystem {
     static {
         var masterConstants = new MotorConstants();
         masterConstants.id_ = 8;
-        masterConstants.invertMotor_ = false;
+        masterConstants.invertMotor_ = true;
 
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Hood";
         DEFAULT_CONSTANTS.enableHardLimits_ = true; //TODO: verify limit switch plugs are correct
         DEFAULT_CONSTANTS.useBreakMode = true;
-        DEFAULT_CONSTANTS.enableSoftLimits = false; //TODO: Enabled once soft limits verified
+        DEFAULT_CONSTANTS.enableSoftLimits = true;
 
-        DEFAULT_CONSTANTS.forwardSoftLimit = 100; //TODO: Verify soft limits
-        DEFAULT_CONSTANTS.reverseSoftLimit = 0;
+        DEFAULT_CONSTANTS.forwardSoftLimit = 2.99F; //TODO: Verify soft limits
+        DEFAULT_CONSTANTS.reverseSoftLimit = 0.20F;
         DEFAULT_CONSTANTS.homePosition_ = 0.0;
 
         DEFAULT_CONSTANTS.kP_ = 0.0;
@@ -89,7 +89,7 @@ public class Hood extends SingleMotorSubsystem {
             if (wantDeploy_) {
                 flipper_.set(DEPLOYED_VALUE);
             } else {
-                if (super.atPosition(STOW_POSITION)) { //Don't stow hood until hood is retracted
+                if (super.atPosition(STOW_POSITION) || io_.reverseLimit) { //Don't stow hood until hood is retracted
                     flipper_.set(STOWED_VALUE);
                 }
             }
@@ -117,7 +117,7 @@ public class Hood extends SingleMotorSubsystem {
 
 	@Override
 	protected boolean atForwardLimit() {
-		return !hasBeenZeroed || !isDeployed_;
+        return !hasBeenZeroed || !isDeployed_;
 	}
 
 	@Override
