@@ -62,6 +62,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     }
 
     public void stowPanelArm() {
+        state_ = ControlPanelState.IDLE;
         super.stop();
         wantDeploy_ = false;
     }
@@ -111,6 +112,7 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     @Override
     public void registerLoops(ILooper enabledLooper) {
+        super.registerLoops(enabledLooper);
         enabledLooper.register(controlPanelLoop);
     }
 

@@ -2,7 +2,6 @@ package frc2020.states;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Limelight;
@@ -17,24 +16,25 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick rightJoystick_;
     private Joystick leftSecondJoystick_;
     private Joystick rightSecondJoystick_;
-    private final double JOYSTICK_DEADBAND = 0.01;
 
     // ONLY PRESCIENT VALUES SHOULD BE STORED HERE
+    private final double JOYSTICK_DEADBAND = 0.01;
     private LatchedBoolean driveShiftLatch;
     private boolean autoSteerBall = false;
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
 
     private LatchedBoolean manualControlLatch;
-    private boolean manualControl;
-
+    private boolean manualControl = false;
     private LatchedBoolean deployIntakeLatch;
-    private boolean deployIntake;
-
+    private boolean deployIntake = false;
     private LatchedBoolean spinFlywheelLatch;
-    private boolean spinFlywheel;
-    private LatchedBoolean toggleLongRangeLatch;
-    private boolean toggleLongRange;
+    private boolean spinFlywheel = false;
+
+    private LatchedBoolean deployClimberLatch;
+    private boolean deployClimber = false;
+    private LatchedBoolean lockClimberLatch;
+    private boolean lockClimber = false;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
@@ -51,8 +51,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         driveShiftLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
+        deployClimberLatch = new LatchedBoolean();
+        lockClimberLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
-        toggleLongRangeLatch = new LatchedBoolean();
+        deployClimberLatch = new LatchedBoolean();
+        lockClimberLatch = new LatchedBoolean();
     }
 
     /**
@@ -81,6 +84,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setIntakeDemand(generateIntakeDemand());
         state.setFlywheelDemand(generateFlywheelDemand());
         state.setTurretDemand(generateTurretDemand());
+        state.setClimberDemand(generateClimberDemand());
         return state;
     }
 
@@ -132,8 +136,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     private IntakeDemand generateIntakeDemand() {
-        deployIntake = deployIntakeLatch.update(rightJoystick_.getRawButton(Constants.INTAKE_DEPLOY_TOGGLE)) != deployIntake;
-        boolean intakeIntake = rightJoystick_.getTrigger();
+        // Intake
+        deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
+        boolean intakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_INTAKE_BUTTON);
         boolean outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
         // This is so that if they press intake/outake and it is not deployed it will deploy
         deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
@@ -154,20 +159,35 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private FlywheelDemand generateFlywheelDemand() {
         //Flywheel
         spinFlywheel = spinFlywheelLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_SPIN_TOGGLE)) != spinFlywheel;
-        toggleLongRange = toggleLongRangeLatch.update(rightSecondJoystick_.getRawButton(Constants.FLYWHEEL_RANGE_TOGGLE)) != toggleLongRange;
 
         FlywheelDemand demand = new FlywheelDemand();
         demand.spin = spinFlywheel;
-        demand.longRange = toggleLongRange;
         return demand;
     }
 
     private TurretDemand generateTurretDemand() {
         TurretDemand demand = new TurretDemand();
-        double turrentDeadband = 0.12;
+        double turretDeadband = 0.12;
         double maxSpeed = 0.25;
         demand.useOpenLoop = true;
-        demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= turrentDeadband ? 0 : leftSecondJoystick_.getY(), -maxSpeed, maxSpeed);
+        demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= turretDeadband ? 0 : leftSecondJoystick_.getY(), -maxSpeed, maxSpeed);
+        return demand;
+    }
+
+    private ClimberDemand generateClimberDemand() {
+        boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
+                rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
+        deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
+        lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
+
+        double climberSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
+
+        ClimberDemand demand = new ClimberDemand();
+
+        demand.deploy = deployClimber;
+        demand.lock = lockClimber;
+        demand.winchSpeed = climberSpeed;
+
         return demand;
     }
 

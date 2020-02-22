@@ -3,6 +3,12 @@ package frc2020.states;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.subsystems.*;
 import frc2020.util.Logger;
+import frc2020.subsystems.Climber;
+import frc2020.subsystems.Drive;
+import frc2020.subsystems.Feeder;
+import frc2020.subsystems.Flywheel;
+import frc2020.subsystems.Intake;
+import frc2020.subsystems.Limelight;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.util.DriveSignal;
 
@@ -12,16 +18,16 @@ import frc2020.util.DriveSignal;
  */
 public class CommandState {
     //Demand variables, these are modified in the CSGenerators
-    private DriveDemand driveDemand;
-    private LimelightDemand limelightDemand;
-    private FeederDemand feederDemand;
-    private IntakeDemand intakeDemand;
-    private FlywheelDemand flywheelDemand;
+    public DriveDemand driveDemand;
+    public LimelightDemand limelightDemand;
+    public FeederDemand feederDemand;
+    public IntakeDemand intakeDemand;
+    public FlywheelDemand flywheelDemand;
+    public ClimberDemand climberDemand;
+    public boolean manualDemand = false;
     private TurretDemand turretDemand;
 
     private Logger logger_ = Logger.getInstance();
-
-    private boolean manualDemand = false;
 
     //Subsystem demands are defined as mini classes
     public static class DriveDemand {
@@ -74,6 +80,12 @@ public class CommandState {
         public boolean longRange = false;
     }
 
+    public static class ClimberDemand {
+        public boolean deploy = false;
+        public boolean lock = false;
+        public double winchSpeed = 0.0;
+    }
+
     public static class TurretDemand {
         public double speed = 0.0;
         public boolean useOpenLoop = true;
@@ -107,6 +119,10 @@ public class CommandState {
         flywheelDemand = demand;
     }
 
+    public void setClimberDemand(ClimberDemand demand) {
+        climberDemand = demand;
+    }
+
     public void setTurretDemand(TurretDemand demand) {
         turretDemand = demand;
     }
@@ -123,13 +139,14 @@ public class CommandState {
      * from this command state
      * @param drive An instance of the drive train subsystem
      */
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret /*, Intake intake,*/ /*Flywheel flywheel*/) {
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret, Intake intake, Flywheel flywheel, Climber climber) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
-        maybeUpdateTurret(turret);
-        //maybeUpdateIntake(intake)
+        maybeUpdateIntake(intake);
+        maybeUpdateClimber(climber);
         if (manualDemand) {
             maybeUpdateFeeder(feeder);
+            maybeUpdateTurret(turret);
             //maybeUpdateFlywheel(flywheel);
         } else {
             return; // TODO: Update automated Control
@@ -143,7 +160,7 @@ public class CommandState {
      */
     private void maybeUpdateDrive(Drive drive, Limelight limelight) {
         if (driveDemand != null) {
-            if ( driveDemand.autoSteer) {
+            if (driveDemand.autoSteer) {
                 double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight()) / 2.0;
                 drive.autoSteer(limelight.getTargetReading().azimuth, average);
             } else if (driveDemand.type == DriveDemand.DemandType.Velocity) {
@@ -214,16 +231,33 @@ public class CommandState {
     private void maybeUpdateFlywheel(Flywheel flywheel) {
         if (flywheelDemand != null) {
             if (flywheelDemand.spin) {
-                if (flywheelDemand.longRange) {
-                    flywheel.spinLongRangeFlywheel();
-                } else {
-                    flywheel.spinFlywheel();
-                }
+                flywheel.spinFlywheel();
             } else {
                 flywheel.stop();
             }
             flywheelDemand = null;
         }
+    }
+
+    private void maybeUpdateClimber(Climber climber) {
+        if (climberDemand != null) {
+            climber.controlWinch(climberDemand.winchSpeed);
+            //Note that the winch demand is set first
+            //If we have not yet stowed, super.stop() will override demand
+
+            if (climberDemand.deploy) {
+                climber.deployClimberArm();
+            } else {
+                climber.stowClimberArm();
+            }
+
+            if (climberDemand.lock) {
+                climber.lockWinch();
+            } else {
+                climber.unlockWinch();
+            }
+        }
+        climberDemand = null;
     }
 
     private void maybeUpdateTurret(Turret turret) {

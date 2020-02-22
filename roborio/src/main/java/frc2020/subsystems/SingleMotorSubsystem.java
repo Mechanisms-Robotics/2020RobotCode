@@ -328,11 +328,6 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         SmartDashboard.putBoolean(constants_.name_ + " : Zeroed", hasBeenZeroed);
     }
 
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
-        enabledLooper.register(breakModeLoop);
-    }
-
     private Loop breakModeLoop = new Loop() {
 
         @Override
@@ -348,7 +343,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
 
         @Override
         public void run() {
-
+            ;
         }
 
         @Override
@@ -358,6 +353,11 @@ public abstract class SingleMotorSubsystem implements Subsystem {
             }
         }
     };
+
+    @Override
+    public void registerLoops(ILooper enabledLooper) {
+        enabledLooper.register(breakModeLoop);
+    }
 
     /**
      * Get whether or not the reverse software limit is met
