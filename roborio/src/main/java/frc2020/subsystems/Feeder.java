@@ -89,11 +89,6 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     @Override
-    public void registerLoops(ILooper enabledLooper) {
-        // No loops to register for the time being
-    }
-
-    @Override
     public void outputTelemetry() {
         SmartDashboard.putBoolean("Intake Break Beam Broken", getIntakeBreakBeamBroken());
         SmartDashboard.putBoolean("Shooter Break Beam Broken", getShooterBreakBeamBroken());

@@ -9,6 +9,7 @@ public class Flywheel extends SingleMotorSubsystem {
 
     // TODO: Set speed for actual robot
     private static int FLYWHEEL_SPEED = 5000;
+    private static int LONG_RANGE_SPEED = 6000;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
@@ -31,6 +32,7 @@ public class Flywheel extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         DEFAULT_CONSTANTS.velocityKd_ = 0.0;
         DEFAULT_CONSTANTS.velocityKf_ = 0.00019;
+        DEFAULT_CONSTANTS.useBreakMode = true;
 
     }
 
@@ -47,6 +49,10 @@ public class Flywheel extends SingleMotorSubsystem {
      */
     public synchronized void spinFlywheel() {
         super.setVelocity(FLYWHEEL_SPEED);
+    }
+
+    public synchronized void spinLongRangeFlywheel() {
+        super.setVelocity(LONG_RANGE_SPEED);
     }
 
     /**
@@ -67,11 +73,6 @@ public class Flywheel extends SingleMotorSubsystem {
     @Override
     public void zeroSensors() {
         //No sensors to zero
-    }
-
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
-        //Not registering any loops
     }
 
     @Override

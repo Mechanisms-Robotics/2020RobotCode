@@ -1,5 +1,7 @@
 package frc2020.states;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.subsystems.*;
 import frc2020.util.Logger;
 import frc2020.subsystems.Climber;
 import frc2020.subsystems.Drive;
@@ -7,6 +9,7 @@ import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Flywheel;
 import frc2020.subsystems.Intake;
 import frc2020.subsystems.Limelight;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.util.DriveSignal;
 
 /**
@@ -22,6 +25,7 @@ public class CommandState {
     public FlywheelDemand flywheelDemand;
     public ClimberDemand climberDemand;
     public boolean manualDemand = false;
+    private TurretDemand turretDemand;
 
     private Logger logger_ = Logger.getInstance();
 
@@ -73,12 +77,18 @@ public class CommandState {
 
     public static class FlywheelDemand {
         public boolean spin = false;
+        public boolean longRange = false;
     }
 
     public static class ClimberDemand {
         public boolean deploy = false;
         public boolean lock = false;
         public double winchSpeed = 0.0;
+    }
+
+    public static class TurretDemand {
+        public double speed = 0.0;
+        public boolean useOpenLoop = true;
     }
 
     public void setManualControl(boolean manualControl) {
@@ -113,6 +123,9 @@ public class CommandState {
         climberDemand = demand;
     }
 
+    public void setTurretDemand(TurretDemand demand) {
+        turretDemand = demand;
+    }
     /**
      * Getter for each subsystem demand
      * @return
@@ -121,62 +134,23 @@ public class CommandState {
         return driveDemand;
     }
 
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake) {
-        maybeUpdateLimelight(limelight);
-        maybeUpdateDrive(drive, limelight);
-        maybeUpdateIntake(intake);
-        if (manualDemand) {
-            maybeUpdateFeeder(feeder);
-            feederDemand = null;
-        } else { // TODO: Remove when superstructure implemented
-            feederDemand = new FeederDemand();
-            maybeUpdateFeeder(feeder);
-        }
-        driveDemand = null;
-        limelightDemand = null;
-        intakeDemand = null;
-    }
-
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, Climber climber) {
+    /**
+     * Tries to update all the subsystems for the robot
+     * from this command state
+     * @param drive An instance of the drive train subsystem
+     */
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret, Intake intake, Flywheel flywheel, Climber climber) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
         maybeUpdateClimber(climber);
         if (manualDemand) {
             maybeUpdateFeeder(feeder);
-            feederDemand = null;
-        } else { // TODO: Remove when superstructure implemented
-            feederDemand = new FeederDemand();
-            maybeUpdateFeeder(feeder);
+            maybeUpdateTurret(turret);
+            //maybeUpdateFlywheel(flywheel);
+        } else {
+            return; // TODO: Update automated Control
         }
-        driveDemand = null;
-        limelightDemand = null;
-        intakeDemand = null;
-        climberDemand = null;
-    }
-    /**
-     * Tries to update all the subsystems for the robot
-     * from this command state
-     * @param drive An instance of the drive train subsystem
-     */
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, Flywheel flywheel) { 
-        maybeUpdateLimelight(limelight);
-        maybeUpdateDrive(drive, limelight);
-        maybeUpdateIntake(intake);
-        if (manualDemand) {
-            maybeUpdateFeeder(feeder);
-            maybeUpdateFlywheel(flywheel);
-            feederDemand = null;
-            flywheelDemand = null;
-        } else { // TODO: Remove when superstructure implemented
-            feederDemand = new FeederDemand();
-            flywheelDemand = new FlywheelDemand();
-            maybeUpdateFeeder(feeder);
-            maybeUpdateFlywheel(flywheel);
-        }
-        driveDemand = null;
-        limelightDemand = null;
-        intakeDemand = null;
     }
 
     /**
@@ -200,6 +174,7 @@ public class CommandState {
                 drive.setHighGear();
             }
         }
+        driveDemand = null;
     }
 
     /**
@@ -211,6 +186,7 @@ public class CommandState {
         if (limelightDemand != null) {
             limelight.setPipeline(limelightDemand.pipeline);
             limelight.setLed(limelightDemand.ledMode);
+            limelightDemand = null;
         }
     }
 
@@ -226,11 +202,12 @@ public class CommandState {
             } else {
                 feeder.stop();
             }
+            feederDemand = null;
         }
     }
 
     private void maybeUpdateIntake(Intake intake) {
-        if(intakeDemand != null) {
+        if (intakeDemand != null) {
             if (intakeDemand.outtake && intakeDemand.intake) {
                 logger_.logInfo("Both intake intake and outake buttons pressed");
                 intake.stop();
@@ -247,6 +224,7 @@ public class CommandState {
             } else {
                 intake.stowIntake();
             }
+            intakeDemand = null;
         }
     }
 
@@ -257,6 +235,7 @@ public class CommandState {
             } else {
                 flywheel.stop();
             }
+            flywheelDemand = null;
         }
     }
 
@@ -277,6 +256,18 @@ public class CommandState {
             } else {
                 climber.unlockWinch();
             }
+        }
+        climberDemand = null;
+    }
+
+    private void maybeUpdateTurret(Turret turret) {
+        if (turretDemand != null) {
+            if (turretDemand.useOpenLoop) {
+                turret.setOpenLoop(turretDemand.speed);
+            } else {
+                turret.setRelativeRotation(new Rotation2d(turretDemand.speed));
+            }
+            turretDemand = null;
         }
     }
 }

@@ -46,6 +46,7 @@ public class Robot extends TimedRobot {
     private Feeder feeder_;
     private Flywheel flywheel_;
     private Climber climber_;
+    private Turret turret_;
 
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
@@ -102,7 +103,8 @@ public class Robot extends TimedRobot {
                   // TODO: Put subystems here once tuned
                   Feeder.getInstance(),
                   Intake.getInstance(),
-                  Climber.getInstance()
+                  Climber.getInstance(),
+                  Turret.getInstance()
                   //Flywheel.getInstance()
                 )
         );
@@ -110,6 +112,7 @@ public class Robot extends TimedRobot {
         drive_ = Drive.getInstance();
         intake_ = Intake.getInstance();
         feeder_ = Feeder.getInstance();
+        turret_ = Turret.getInstance();
         //flywheel_ = Flywheel.getInstance();
         climber_ = Climber.getInstance();
 
@@ -189,6 +192,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         try {
+
             periodicEventManager_.run();
             manager_.outputToSmartDashboard();
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
@@ -315,7 +319,14 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(drive_, limelight_low_, feeder_, intake_, climber_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(
+                    drive_,
+                    limelight_low_,
+                    feeder_,
+                    turret_,
+                    intake_,
+                    flywheel_,
+                    climber_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
