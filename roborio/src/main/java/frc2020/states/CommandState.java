@@ -162,7 +162,7 @@ public class CommandState {
         maybeUpdateIntake(intake);
         maybeUpdateClimber(climber);
         maybeUpdateShooter(shooter);
-        if (shooter.getState() == Shooter.ShooterState.Manual) {
+        if (shooter.getWantedState() == Shooter.ShooterState.Manual) {
             maybeUpdateFeeder(feeder);
             maybeUpdateTurret(turret);
             maybeUpdateHood(hood);

@@ -83,13 +83,19 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setManualControl(manualControl);
         state.setLimelightDemand(generateLimelightDemand());
         state.setDriveDemand(generateDriveDemand());
-        state.setFeederDemand(generateFeederDemand());
-        state.setIntakeDemand(generateIntakeDemand());
-        state.setFlywheelDemand(generateFlywheelDemand());
-        state.setTurretDemand(generateTurretDemand());
-        state.setClimberDemand(generateClimberDemand());
-        state.setHoodDemand(generateHoodDemand());
         state.setShooterDemand(generateShooterDemand());
+        state.setClimberDemand(generateClimberDemand());
+        state.setIntakeDemand(generateIntakeDemand());
+
+        if (manualControl) {
+            state.setFlywheelDemand(generateFlywheelDemand());
+            state.setTurretDemand(generateTurretDemand());
+            state.setHoodDemand(generateHoodDemand());
+            state.setFeederDemand(generateFeederDemand());
+        } else {
+            resetManualControl();
+        }
+
         return state;
     }
 
@@ -235,7 +241,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         return demand;
     }
 
-    public synchronized void disableManualControl() {
+    public synchronized void resetManualControl() {
         manualControl = false;
+        deployHood = false;
+        spinFlywheel = false;
     }
 }

@@ -64,16 +64,24 @@ public class Hood extends SingleMotorSubsystem {
         return instance_ == null ? instance_ = new Hood(DEFAULT_CONSTANTS) : instance_;
     }
 
+    public double getStowPosition() {
+        return STOW_POSITION;
+    }
+
     public void deployHood() {
         wantDeploy_ = true;
     }
 
-    public void stowHood() {
+    public void setStowPosition() {
         if (getPosition() >= (STOW_POSITION  + constants_.deadband_)) {
             setSmartPosition(STOW_POSITION);
         } else {
             setOpenLoop(0.0);
         }
+    }
+
+    public void stowHood() {
+        setStowPosition();
         wantDeploy_ = false;
     }
 
@@ -86,7 +94,7 @@ public class Hood extends SingleMotorSubsystem {
     }
 
     public boolean isStowed() {
-        return (io_.reverseLimit && !isDeployed_);
+        return (io_.reverseLimit || !isDeployed_);
     }
 
     public boolean isDeployed() {

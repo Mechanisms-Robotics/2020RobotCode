@@ -37,7 +37,7 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.closedLoopRampRate_ = 0.1;
         DEFAULT_CONSTANTS.cruiseVelocity_ = 360*120; //deg/min
         DEFAULT_CONSTANTS.acceleration_ = 360*120*8; //deg/min^2
-        DEFAULT_CONSTANTS.velocityDeadBand_ = 2.5;
+        DEFAULT_CONSTANTS.deadband_ = 2.5;
 
         DEFAULT_CONSTANTS.kP_ = 0.00002;
         DEFAULT_CONSTANTS.kI_ = 0.0;

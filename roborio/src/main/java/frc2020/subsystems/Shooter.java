@@ -55,6 +55,8 @@ public class Shooter implements Subsystem {
         return state_;
     }
 
+    public synchronized ShooterState getWantedState() { return wantedState_; }
+
     public synchronized void setState(ShooterState desiredState) {
         if (isValidTransition(desiredState)) {
             wantedState_ = desiredState;
@@ -231,6 +233,8 @@ public class Shooter implements Subsystem {
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
 
         limelight_.setLed(Limelight.LedMode.OFF);
+
+        hood_.setStowPosition();
 
         if (!flywheel_.isStopped()) {
             logger_.logDebug("Waiting for flywheel to stop!", logName);

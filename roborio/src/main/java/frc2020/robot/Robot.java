@@ -231,7 +231,7 @@ public class Robot extends TimedRobot {
             disabledIterator_.start();
             drive_.openLoop(new DriveSignal(0, 0, false));
             limelight_turret_.setLed(LedMode.OFF);
-            teleopCSGenerator_.disableManualControl();
+            teleopCSGenerator_.resetManualControl();
             climber_.resetHasDeployed();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
@@ -263,7 +263,7 @@ public class Robot extends TimedRobot {
             }
             drive_.zeroSensors();
             drive_.setHighGear();
-            teleopCSGenerator_.disableManualControl();
+            teleopCSGenerator_.resetManualControl();
             enabledIterator_.start();
             autoRunner_ = new AutoModeRunner();
             autoRunner_.setAutoMode(new RightToTrench8());
@@ -306,7 +306,7 @@ public class Robot extends TimedRobot {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
-            teleopCSGenerator_.disableManualControl();
+            teleopCSGenerator_.resetManualControl();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -351,7 +351,7 @@ public class Robot extends TimedRobot {
             logger_.logRobotTestInit();
             disabledIterator_.stop();
             enabledIterator_.start();
-            teleopCSGenerator_.disableManualControl();
+            teleopCSGenerator_.resetManualControl();
             manager_.runActiveTests();
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
