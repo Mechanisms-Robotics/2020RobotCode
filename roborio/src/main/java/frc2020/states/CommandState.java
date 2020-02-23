@@ -163,11 +163,9 @@ public class CommandState {
         } else {
             feederDemand = new FeederDemand();
             turretDemand = new TurretDemand();
-            hoodDemand = new HoodDemand();
             flywheelDemand = new FlywheelDemand();
             maybeUpdateFeeder(feeder);
             maybeUpdateTurret(turret);
-            maybeUpdateHood(hood);
             maybeUpdateFlywheel(flywheel);
         }
     }
