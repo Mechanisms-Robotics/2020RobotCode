@@ -48,6 +48,7 @@ public class Robot extends TimedRobot {
     private Climber climber_;
     private Turret turret_;
     private Hood hood_;
+    private Shooter shooter_;
 
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
@@ -71,7 +72,6 @@ public class Robot extends TimedRobot {
         runUUID_ = UUID.randomUUID();
         logger_.start(runUUID_,
          "RobotLog", Logger.Level.Debug);
-
         enabledIterator_ = new Looper();
         disabledIterator_ = new Looper();
         autoRunner_ = null;
@@ -107,7 +107,8 @@ public class Robot extends TimedRobot {
                   Climber.getInstance(),
                   Turret.getInstance(),
                   Hood.getInstance(),
-                  Flywheel.getInstance()
+                  Flywheel.getInstance(),
+                  Shooter.getInstance()
                 )
         );
 
@@ -118,6 +119,8 @@ public class Robot extends TimedRobot {
         flywheel_ = Flywheel.getInstance();
         climber_ = Climber.getInstance();
         hood_ = Hood.getInstance();
+        shooter_ = Shooter.getInstance();
+        shooter_.setLimelight(limelight_turret_);
 
         compressor_ = new Compressor();
         //PDP = new PowerDistributionPanel();
@@ -227,6 +230,7 @@ public class Robot extends TimedRobot {
             currentAutoMode_ = null;
             disabledIterator_.start();
             drive_.openLoop(new DriveSignal(0, 0, false));
+            limelight_turret_.setLed(LedMode.OFF);
             teleopCSGenerator_.disableManualControl();
             climber_.resetHasDeployed();
         } catch(LoggerNotStartedException e) {
@@ -330,7 +334,8 @@ public class Robot extends TimedRobot {
                     intake_,
                     flywheel_,
                     climber_,
-                    hood_);
+                    hood_,
+                    shooter_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

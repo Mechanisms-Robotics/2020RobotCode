@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Limelight;
+import frc2020.subsystems.Shooter;
 import frc2020.util.*;
 
 /**
@@ -88,6 +89,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setTurretDemand(generateTurretDemand());
         state.setClimberDemand(generateClimberDemand());
         state.setHoodDemand(generateHoodDemand());
+        state.setShooterDemand(generateShooterDemand());
         return state;
     }
 
@@ -218,6 +220,19 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         demand.deploy = deployHood;
         return demand;
         
+    }
+
+    private ShooterDemand generateShooterDemand() {
+
+        ShooterDemand demand = new ShooterDemand();
+
+        if (manualControl) {
+            demand.state = Shooter.ShooterState.Manual;
+        } else {
+            demand.state = Shooter.ShooterState.Stowed;
+        }
+
+        return demand;
     }
 
     public synchronized void disableManualControl() {

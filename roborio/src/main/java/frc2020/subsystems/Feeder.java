@@ -78,12 +78,14 @@ public class Feeder extends SingleMotorSubsystem {
 
     //TODO: Check what boolean is when broken
     public synchronized boolean getIntakeBreakBeamBroken() {
-        return super.io_.forwardLimit;
+        return false;
+        //return super.io_.forwardLimit;
     }
     
     //TODO: Check what boolean is when broken
     public synchronized boolean getShooterBreakBeamBroken() {
-        return super.io_.reverseLimit;
+        return false;
+        //return super.io_.reverseLimit;
     }
 
     @Override
@@ -137,26 +139,31 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     public boolean isPrimed() {
+        return true;
+        /*
         if (state_ == FeederState.PRIMING) {
             return !turretBreakBeam_.get();
         }
-        return false;
+        return false;*/
     }
 
     private synchronized void intakeFeeder() {
-        if (intakeBreakBeam_.get() && !turretBreakBeam_.get()) {
+        super.stop();
+        /*if (intakeBreakBeam_.get() && !turretBreakBeam_.get()) {
             runFeeder(false);
         } else {
             super.stop();
-        }
+        }*/
     }
 
     private synchronized void primeFeeder() {
+        super.stop();
+        /*
         if (turretBreakBeam_.get() && !intakeBreakBeam_.get()) {
             runFeeder(PRIME_SPEED);
         } else {
             super.stop();
-        }
+        }*/
     }
 
     private synchronized void shootFeeder() {

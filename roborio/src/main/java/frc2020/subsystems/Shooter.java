@@ -1,6 +1,7 @@
 package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.subsystems.Subsystem;
 import frc2020.subsystems.Flywheel;
 import frc2020.subsystems.Feeder;
@@ -23,7 +24,7 @@ public class Shooter implements Subsystem {
     private Hood hood_;
     private Turret turret_;
 
-    private Logger logger_ = new Logger();
+    private Logger logger_ = Logger.getInstance();
     private String logName = "Shooter";
 
     private double turretSeekAngle_ = 10.0; // deg / sec
@@ -50,9 +51,15 @@ public class Shooter implements Subsystem {
         turret_ = Turret.getInstance();
     }
 
-    public void setState(ShooterState desiredState) {
+    public synchronized ShooterState getState() {
+        return state_;
+    }
+
+    public synchronized void setState(ShooterState desiredState) {
         if (isValidTransition(desiredState)) {
             wantedState_ = desiredState;
+        } else {
+            wantedState_ = state_;
         }
     }
 
@@ -140,14 +147,19 @@ public class Shooter implements Subsystem {
                 switch (wantedState_) {
                     case Manual:
                         handleManualTransition();
+                        break;
                     case Stowed:
                         handleStowedTransition();
+                        break;
                     case Aiming:
                         handleAimingTransition();
+                        break;
                     case Shooting:
                         handleShootingTransition();
+                        break;
                     default:
                         logger_.logWarning("Invalid wanted state: " + state_.toString(), logName);
+                        break;
                 }
             }
         }
@@ -221,8 +233,11 @@ public class Shooter implements Subsystem {
         limelight_.setLed(Limelight.LedMode.OFF);
 
         if (!flywheel_.isStopped()) {
+            logger_.logDebug("Waiting for flywheel to stop!", logName);
             return;
         }
+
+        logger_.logDebug("Flywheel stopped!", logName);
 
         hood_.stowHood();
 
@@ -230,7 +245,11 @@ public class Shooter implements Subsystem {
             return;
         }
 
+        logger_.logDebug("Hood stowed!", logName);
+
         state_ = ShooterState.Stowed;
+
+        logger_.logDebug("Transition successful!", logName);
     }
 
     private void handleAimingTransition () {
@@ -283,6 +302,8 @@ public class Shooter implements Subsystem {
 
     @Override
     public void outputTelemetry() {
+        SmartDashboard.putString("Shooter state: ", state_.toString());
+        SmartDashboard.putString("Wanted state: ", wantedState_.toString());
     }
 
 }
