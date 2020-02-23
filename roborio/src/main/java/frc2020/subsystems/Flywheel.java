@@ -44,10 +44,6 @@ public class Flywheel extends SingleMotorSubsystem {
         return instance_ == null ? instance_ = new Flywheel(DEFAULT_CONSTANTS) : instance_;
     }
 
-    @Override
-    public void stop() {
-        //Do nothing
-    }
     /**
      * Spins flywheel at set speed
      */

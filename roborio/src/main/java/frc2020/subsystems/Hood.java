@@ -69,7 +69,7 @@ public class Hood extends SingleMotorSubsystem {
     }
 
     public void stowHood() {
-        if (getPosition() > (STOW_POSITION  + constants_.deadband_)) {
+        if (getPosition() >= (STOW_POSITION  + constants_.deadband_)) {
             setSmartPosition(STOW_POSITION);
         } else {
             setOpenLoop(0.0);
@@ -98,7 +98,7 @@ public class Hood extends SingleMotorSubsystem {
             if (wantDeploy_) {
                 flipper_.set(DEPLOYED_VALUE);
             } else {
-                if (getPosition() < (STOW_POSITION  + constants_.deadband_)) { //Don't stow hood until hood is retracted
+                if (getPosition() <= (STOW_POSITION  + constants_.deadband_)) { //Don't stow hood until hood is retracted
                     flipper_.set(STOWED_VALUE);
                 }
             }
