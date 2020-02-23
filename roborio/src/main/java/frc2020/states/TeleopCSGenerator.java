@@ -40,6 +40,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean deployHoodLatch;
     private boolean deployHood = false;
 
+    private LatchedBoolean getStowAimingLatch;
+    private LatchedBoolean getShooterLatch;
+
+    private Shooter shooter_ = Shooter.getInstance();
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
 
@@ -61,6 +65,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployClimberLatch = new LatchedBoolean();
         lockClimberLatch = new LatchedBoolean();
         deployHoodLatch = new LatchedBoolean();
+        getStowAimingLatch = new LatchedBoolean();
+        getShooterLatch = new LatchedBoolean();
     }
 
     /**
@@ -202,8 +208,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
 
         ClimberDemand demand = new ClimberDemand();
-        demand.deploy = deployClimberLatch.update(deployButtonsPressed) != deployClimber;;
-        demand.lock = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;;
+        deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
+        demand.deploy = deployClimber;
+        lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
+        demand.lock = lockClimber;
         demand.winchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
 
         return demand;
@@ -232,10 +240,23 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         ShooterDemand demand = new ShooterDemand();
 
+        boolean getStowAiming = getStowAimingLatch.update(leftJoystick_.getRawButton(Constants.SHOOTER_SET_STOWED_AIMING));
+        boolean getShooter = getShooterLatch.update(leftJoystick_.getTrigger());
+
         if (manualControl) {
             demand.state = Shooter.ShooterState.Manual;
         } else {
-            demand.state = Shooter.ShooterState.Stowed;
+            if (shooter_.getWantedState() == Shooter.ShooterState.Aiming || shooter_.getWantedState() == Shooter.ShooterState.Shooting) {
+                if (getStowAiming) {
+                    demand.state = Shooter.ShooterState.Stowed;
+                } else if (getShooter) {
+                    demand.state = Shooter.ShooterState.Shooting;
+                }
+            } else {
+                if (getStowAiming) {
+                    demand.state = Shooter.ShooterState.Aiming;
+                }
+            }
         }
 
         return demand;

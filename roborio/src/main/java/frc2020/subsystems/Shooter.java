@@ -2,11 +2,6 @@ package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc2020.subsystems.Subsystem;
-import frc2020.subsystems.Flywheel;
-import frc2020.subsystems.Feeder;
-import frc2020.subsystems.Hood;
-import frc2020.subsystems.Turret;
 import frc2020.subsystems.Feeder.FeederState;
 import frc2020.util.*;
 import frc2020.loops.ILooper;
@@ -27,7 +22,12 @@ public class Shooter implements Subsystem {
     private Logger logger_ = Logger.getInstance();
     private String logName = "Shooter";
 
-    private double turretSeekAngle_ = 10.0; // deg / sec
+
+    private final static double TURRET_SEEKING_DUTY_CYCLE = 0.1; // duty cycle
+    private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
+
+    private double startingPosition = 0.0;
+    private double turretSeekPower_ = TURRET_SEEKING_DUTY_CYCLE;
     private boolean hasStartedSeeking_ = false;
 
     public enum ShooterState {
@@ -173,16 +173,15 @@ public class Shooter implements Subsystem {
     };
 
     private void seekTurret() {
-        if (!turret_.atDemand() && !(turret_.atForwardLimit() || turret_.atReverseLimit())) {
-            return;
+        if (!hasStartedSeeking_) {
+            startingPosition = turret_.getPosition();
+            hasStartedSeeking_ = true;
         }
 
-        if (!hasStartedSeeking_) {
-            turret_.setRelativeRotation(Rotation2d.fromDegrees(turretSeekAngle_ / 2.0));
-            hasStartedSeeking_ = true;
-        } else {
-            turretSeekAngle_ *= -1.0;
-            turret_.setRelativeRotation(Rotation2d.fromDegrees(turretSeekAngle_));
+        turret_.setOpenLoop(turretSeekPower_);
+
+        if (Math.abs(turret_.getPosition()-startingPosition) >= TURRET_SEEKING_DELTA_ANGLE || (turret_.atForwardLimit() || turret_.atReverseLimit())) {
+            turretSeekPower_ *= -1.0;
         }
     }
 
@@ -197,11 +196,12 @@ public class Shooter implements Subsystem {
     private void handleAiming() {
 
         if (limelight_.hasTarget()) {
-            double azimuth = limelight_.getTargetReading().azimuth;
+            /*double azimuth = limelight_.getTargetReading().azimuth;
+            turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));*/
 
-            turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));
+            hasStartedSeeking_ = false;
         } else {
-            seekTurret();
+            //seekTurret();
         }
 
         feeder_.setState(FeederState.PRIMING);
@@ -234,7 +234,7 @@ public class Shooter implements Subsystem {
 
         limelight_.setLed(Limelight.LedMode.OFF);
 
-        hood_.setStowPosition();
+        hood_.setToStowPosition();
 
         if (!flywheel_.isStopped()) {
             logger_.logDebug("Waiting for flywheel to stop!", logName);
@@ -263,6 +263,8 @@ public class Shooter implements Subsystem {
         flywheel_.stop();
 
         limelight_.setLed(Limelight.LedMode.ON);
+
+        hood_.setToStowPosition();
 
         // TODO: Aim turret in ball park
 

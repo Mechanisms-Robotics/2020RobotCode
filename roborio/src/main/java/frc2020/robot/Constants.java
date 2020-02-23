@@ -88,6 +88,9 @@ public class Constants {
     public final static int NEGATIVE_HOOD_HAT = 270; //right second
     public final static int TOGGLE_HOOD_DEPLOY = 1; //right second trigger
 
+    public final static int SHOOTER_SET_STOWED_AIMING = 4; //left driver
+    public final static int SHOOTER_SET_SHOOTING = 1; //left driver trigger
+
     //CANcoder IDs
     public final static int LEFT_CAN_CODER_ID = 1;
     public final static int RIGHT_CAN_CODER_ID = 2;

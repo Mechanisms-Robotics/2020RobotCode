@@ -64,15 +64,11 @@ public class Hood extends SingleMotorSubsystem {
         return instance_ == null ? instance_ = new Hood(DEFAULT_CONSTANTS) : instance_;
     }
 
-    public double getStowPosition() {
-        return STOW_POSITION;
-    }
-
     public void deployHood() {
         wantDeploy_ = true;
     }
 
-    public void setStowPosition() {
+    public void setToStowPosition() {
         if (getPosition() >= (STOW_POSITION  + constants_.deadband_)) {
             setSmartPosition(STOW_POSITION);
         } else {
@@ -81,7 +77,7 @@ public class Hood extends SingleMotorSubsystem {
     }
 
     public void stowHood() {
-        setStowPosition();
+        setToStowPosition();
         wantDeploy_ = false;
     }
 
