@@ -76,12 +76,6 @@ public class Flywheel extends SingleMotorSubsystem {
     }
 
     @Override
-    public void outputTelemetry() {
-        // No telemetry to output for flywheel
-        SmartDashboard.putNumber("Master Flywheel Speed", super.io_.velocity);
-    }
-
-    @Override
     protected boolean atReverseLimit() {
         // Not necessary for flywheel
         return false;

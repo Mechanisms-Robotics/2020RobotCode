@@ -17,7 +17,7 @@ public class Hood extends SingleMotorSubsystem {
     /*TODO: when we have the robot, set this value to halfway between all the way back
             and at the forward position of the reverse limit switch
     */
-    private final static double STOW_POSITION = 0.19; // encoder units
+    private final static double STOW_POSITION = 0.2; // encoder units
 
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
@@ -39,7 +39,7 @@ public class Hood extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.enableSoftLimits = true;
 
         DEFAULT_CONSTANTS.forwardSoftLimit = 2.99F;
-        DEFAULT_CONSTANTS.reverseSoftLimit = 0.20F;
+        DEFAULT_CONSTANTS.reverseSoftLimit = 0.15F;
         DEFAULT_CONSTANTS.homePosition_ = 0.0;
 
         DEFAULT_CONSTANTS.deadband_ = 0.10;
@@ -69,7 +69,11 @@ public class Hood extends SingleMotorSubsystem {
     }
 
     public void stowHood() {
-        setSmartPosition(STOW_POSITION);
+        if (getPosition() >= (STOW_POSITION  + constants_.deadband_)) {
+            setSmartPosition(STOW_POSITION);
+        } else {
+            setOpenLoop(0.0);
+        }
         wantDeploy_ = false;
     }
 
@@ -94,7 +98,7 @@ public class Hood extends SingleMotorSubsystem {
             if (wantDeploy_) {
                 flipper_.set(DEPLOYED_VALUE);
             } else {
-                if (super.atPosition(STOW_POSITION)) { //Don't stow hood until hood is retracted
+                if (getPosition() <= (STOW_POSITION  + constants_.deadband_)) { //Don't stow hood until hood is retracted
                     flipper_.set(STOWED_VALUE);
                 }
             }
@@ -112,7 +116,8 @@ public class Hood extends SingleMotorSubsystem {
 	public void outputTelemetry() {
         super.outputTelemetry();
 
-		SmartDashboard.putBoolean("Hood Deployed", isDeployed_);		
+		SmartDashboard.putBoolean("Hood Deployed", isDeployed_);
+		SmartDashboard.putString("Hood Repoted PCM state", flipper_.get().toString());
 	}
 
 	@Override

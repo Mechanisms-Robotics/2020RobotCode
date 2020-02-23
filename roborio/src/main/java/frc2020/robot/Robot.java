@@ -106,8 +106,8 @@ public class Robot extends TimedRobot {
                   Intake.getInstance(),
                   Climber.getInstance(),
                   Turret.getInstance(),
-                  Hood.getInstance()
-                  //Flywheel.getInstance()
+                  Hood.getInstance(),
+                  Flywheel.getInstance()
                 )
         );
 
@@ -115,7 +115,7 @@ public class Robot extends TimedRobot {
         intake_ = Intake.getInstance();
         feeder_ = Feeder.getInstance();
         turret_ = Turret.getInstance();
-        //flywheel_ = Flywheel.getInstance();
+        flywheel_ = Flywheel.getInstance();
         climber_ = Climber.getInstance();
         hood_ = Hood.getInstance();
 
