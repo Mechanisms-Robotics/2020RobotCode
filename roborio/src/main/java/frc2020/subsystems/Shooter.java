@@ -26,6 +26,9 @@ public class Shooter implements Subsystem {
     private Logger logger_ = new Logger();
     private String logName = "Shooter";
 
+    private double turretSeekAngle_ = 10.0; // deg / sec
+    private boolean hasStartedSeeking_ = false;
+
     public enum ShooterState {
         Manual,
         Stowed,
@@ -155,8 +158,22 @@ public class Shooter implements Subsystem {
         
     };
 
+    private void seekTurret() {
+        if (!turret_.atDemand() && !(turret_.atForwardLimit() || turret_.atReverseLimit())) {
+            return;
+        }
+
+        if (!hasStartedSeeking_) {
+            turret_.setRelativeRotation(Rotation2d.fromDegrees(turretSeekAngle_ / 2.0));
+            hasStartedSeeking_ = true;
+        } else {
+            turretSeekAngle_ *= -1.0;
+            turret_.setRelativeRotation(Rotation2d.fromDegrees(turretSeekAngle_));
+        }
+    }
+
     private void handleManual() {
-        // Nothing to do for now
+        feeder_.setState(FeederState.MANUAL);
     }
 
     private void handleStowed() {
@@ -165,11 +182,13 @@ public class Shooter implements Subsystem {
 
     private void handleAiming() {
 
-        // TODO: If not have target seek target
+        if (limelight_.hasTarget()) {
+            double azimuth = limelight_.getTargetReading().azimuth;
 
-        double azimuth = limelight_.getTargetReading().azimuth;
-
-        turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));
+            turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));
+        } else {
+            seekTurret();
+        }
 
         feeder_.setState(FeederState.PRIMING);
     }
@@ -215,6 +234,8 @@ public class Shooter implements Subsystem {
     }
 
     private void handleAimingTransition () {
+
+        hasStartedSeeking_ = false;
 
         flywheel_.stop();
 
