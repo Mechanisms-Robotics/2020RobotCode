@@ -1,6 +1,7 @@
 package frc2020.states;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Limelight;
@@ -195,11 +196,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     private TurretDemand generateTurretDemand() {
+        final double TURRET_DEADBAND = 0.12;
+        final double MAX_SPEED = 0.25;
         TurretDemand demand = new TurretDemand();
-        double turretDeadband = 0.12;
-        double maxSpeed = 0.25;
         demand.useOpenLoop = true;
-        demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= turretDeadband ? 0 : leftSecondJoystick_.getY(), -maxSpeed, maxSpeed);
+        demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= TURRET_DEADBAND ? 0 : leftSecondJoystick_.getY(),
+                                  -MAX_SPEED, MAX_SPEED);
         return demand;
     }
 
@@ -242,7 +244,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         boolean getStowAiming = getStowAimingLatch.update(leftJoystick_.getRawButton(Constants.SHOOTER_SET_STOWED_AIMING));
         boolean getShooter = getShooterLatch.update(leftJoystick_.getTrigger());
-
         if (manualControl) {
             demand.state = Shooter.ShooterState.Manual;
         } else {
@@ -251,6 +252,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                     demand.state = Shooter.ShooterState.Stowed;
                 } else if (getShooter) {
                     demand.state = Shooter.ShooterState.Shooting;
+                } else {
+                    demand.state = shooter_.getWantedState();
                 }
             } else {
                 if (getStowAiming) {

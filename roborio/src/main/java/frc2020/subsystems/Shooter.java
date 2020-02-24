@@ -30,6 +30,8 @@ public class Shooter implements Subsystem {
     private double turretSeekPower_ = TURRET_SEEKING_DUTY_CYCLE;
     private boolean hasStartedSeeking_ = false;
 
+    private LatchedBoolean seekTurretLatch_;
+
     public enum ShooterState {
         Manual,
         Stowed,
@@ -49,6 +51,7 @@ public class Shooter implements Subsystem {
         feeder_ = Feeder.getInstance();
         hood_ = Hood.getInstance();
         turret_ = Turret.getInstance();
+        seekTurretLatch_ = new LatchedBoolean();
     }
 
     public synchronized ShooterState getState() {
@@ -58,9 +61,15 @@ public class Shooter implements Subsystem {
     public synchronized ShooterState getWantedState() { return wantedState_; }
 
     public synchronized void setState(ShooterState desiredState) {
+        if (state_ == desiredState) {
+            // logger_.logDebug("Already in " + desiredState, logName);
+            return;
+        }
         if (isValidTransition(desiredState)) {
+            logger_.logInfo("Transitioning from " + state_ + " to " + desiredState, logName);
             wantedState_ = desiredState;
-        } else {
+         } else {
+            logger_.logWarning("Transitioning from " + state_ + " to " + desiredState + " IS INVALID", logName);
             wantedState_ = state_;
         }
     }
@@ -180,7 +189,10 @@ public class Shooter implements Subsystem {
 
         turret_.setOpenLoop(turretSeekPower_);
 
-        if (Math.abs(turret_.getPosition()-startingPosition) >= TURRET_SEEKING_DELTA_ANGLE || (turret_.atForwardLimit() || turret_.atReverseLimit())) {
+        boolean outsideOfDelta = seekTurretLatch_.update(Math.abs(turret_.getPosition()-startingPosition) >= TURRET_SEEKING_DELTA_ANGLE 
+                                                         || (turret_.atForwardLimit() || turret_.atReverseLimit()));
+
+        if (outsideOfDelta) {
             turretSeekPower_ *= -1.0;
         }
     }
@@ -194,8 +206,7 @@ public class Shooter implements Subsystem {
     }
 
     private void handleAiming() {
-
-        if (limelight_.hasTarget()) {
+        if (limelight_.getTargetReading().hasConfidentTarget()) {
             /*double azimuth = limelight_.getTargetReading().azimuth;
             turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));*/
 
@@ -203,8 +214,6 @@ public class Shooter implements Subsystem {
         } else {
             //seekTurret();
         }
-
-        feeder_.setState(FeederState.PRIMING);
     }
 
     private void handleShooting() {
