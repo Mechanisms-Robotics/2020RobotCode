@@ -1,11 +1,15 @@
 package frc2020.subsystems;
 
+import com.revrobotics.*;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
+import frc2020.robot.Constants;
+import frc2020.util.DriveSignal;
 
-public class Climber extends SingleMotorSubsystem {
+public class Climber implements Subsystem {
 
     private static Climber instance_;
 
@@ -25,36 +29,53 @@ public class Climber extends SingleMotorSubsystem {
     private boolean wantLock_ = false;
     private boolean isLocked_ = false;
 
+    private CANSparkMax leftClimb_;
+    private CANSparkMax rightClimb_;
+
+    private CANPIDController leftClimbPID;
+    private CANPIDController rightClimbPID;
+
+    private CANEncoder rightEncoder;
+    private CANEncoder leftEncoder;
+
+    private static final int STALL_LIMIT = 30; // amps
+    private static final int FREE_LIMIT = 30; // amps
+
+    private PeriodicIO io_ = new PeriodicIO();
+
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
     private final static DoubleSolenoid.Value UNLOCKED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value LOCKED_VALUE = Value.kForward;
 
-    private static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
-        new SingleMotorSubsystemConstants();
-    static {
-        MotorConstants masterConstants = new MotorConstants();
-        masterConstants.id_ = 12;
-        masterConstants.invertMotor_ = false;
+    private String logName_ = "Climber";
 
-        MotorConstants[] slaveConstantsArray = new MotorConstants[1];
-        var slaveConstants = new MotorConstants();
-        slaveConstants.id_ = 13;
-        slaveConstants.invertMotor_ = true;
-        slaveConstantsArray[0] = slaveConstants;
+    private void configSparkMaxs() {
+        leftClimb_ = new CANSparkMax(Constants.LEFT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        rightClimb_ = new CANSparkMax(Constants.RIGHT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
 
-        DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
-        DEFAULT_CONSTANTS.slaveConstants_ = slaveConstantsArray;
-        DEFAULT_CONSTANTS.name_ = "Climber";
+        leftClimb_.restoreFactoryDefaults();
+        rightClimb_.restoreFactoryDefaults();
+
+        leftClimb_.setInverted(false);
+        rightClimb_.setInverted(true);
+
+        leftClimb_.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 10);
+        rightClimb_.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 10);
+        leftClimb_.setSmartCurrentLimit(STALL_LIMIT, FREE_LIMIT);
+        rightClimb_.setSmartCurrentLimit(STALL_LIMIT, FREE_LIMIT);
     }
 
     public static Climber getInstance() {
-        return instance_ == null ? instance_ = new Climber(DEFAULT_CONSTANTS) : instance_;
+        return instance_ == null ? instance_ = new Climber() : instance_;
     }
 
-    protected Climber(SingleMotorSubsystemConstants constants) {
-        super(constants);
-
+    protected Climber() {
+        configSparkMaxs();
+        leftClimbPID = leftClimb_.getPIDController();
+        rightClimbPID = rightClimb_.getPIDController();
+        leftEncoder = leftClimb_.getEncoder();
+        rightEncoder = rightClimb_.getEncoder();
         armFlipper_ = new DoubleSolenoid(ARM_FLIPPER_PCM_ID, ARM_FLIPPER_FORWARD_PORT, ARM_FLIPPER_REVERSE_PORT);
         winchLock_ = new DoubleSolenoid(WINCH_LOCK_PCM_ID, WINCH_LOCK_FORWARD_PORT, WINCH_LOCK_REVERSE_PORT);
     }
@@ -65,7 +86,7 @@ public class Climber extends SingleMotorSubsystem {
 
     public void stowClimberArm() {
         if(!hasDeployed_) {
-            super.stop();
+            setOpenLoop(new DriveSignal(0.0, 0.0));
         }
         wantDeploy_ = false;
     }
@@ -78,8 +99,8 @@ public class Climber extends SingleMotorSubsystem {
         wantLock_ = false;
     }
 
-    public void controlWinch(double demand) {
-        super.setOpenLoop(demand);
+    public void controlWinch(DriveSignal demand) {
+        setOpenLoop(demand);
     }
 
     /**
@@ -89,6 +110,11 @@ public class Climber extends SingleMotorSubsystem {
      */
     public void resetHasDeployed() {
         hasDeployed_ = false;
+    }
+
+    private void setOpenLoop(DriveSignal signal) {
+        io_.leftDemand = signal.getLeft();
+        io_.rightDemand = signal.getRight();
     }
 
     @Override
@@ -102,9 +128,48 @@ public class Climber extends SingleMotorSubsystem {
     }
 
     @Override
-    public synchronized void writePeriodicOutputs() {
-        super.writePeriodicOutputs();
+    public void stop() {
 
+    }
+
+    @Override
+    public void registerLoops(ILooper enabledLooper) {
+
+    }
+
+    public static class PeriodicIO {
+        // Inputs
+        public double timestamp;
+        public double rightVelocity;
+        public double leftVelocity;
+        public double rightOutputPercent;
+        public double leftOutputPercent;
+        public double rightOutputVoltage;
+        public double leftOutputVoltage;
+        public double rightMasterCurrent;
+        public double leftMasterCurrent;
+        public double leftDemand;
+        public double rightDemand;
+    }
+
+    @Override
+    public synchronized void readPeriodicInputs() {
+        io_.timestamp = Timer.getFPGATimestamp();
+        io_.rightVelocity = rightEncoder.getVelocity();
+        io_.leftVelocity = leftEncoder.getVelocity();
+        io_.rightMasterCurrent = rightClimb_.getOutputCurrent();
+        io_.leftMasterCurrent = leftClimb_.getOutputCurrent();
+        io_.rightOutputPercent = rightClimb_.getAppliedOutput();
+        io_.leftOutputPercent = leftClimb_.getAppliedOutput();
+        io_.rightOutputVoltage = io_.rightOutputPercent * rightClimb_.getBusVoltage();
+        io_.leftOutputVoltage = io_.leftOutputPercent * leftClimb_.getBusVoltage();
+
+        isDeployed_ = armFlipper_.get() == DEPLOYED_VALUE;
+        isLocked_ = winchLock_.get() == LOCKED_VALUE;
+    }
+
+    @Override
+    public synchronized void writePeriodicOutputs() {
         if (wantDeploy_ != isDeployed_) {
             if (wantDeploy_) {
                 armFlipper_.set(DEPLOYED_VALUE);
@@ -124,14 +189,15 @@ public class Climber extends SingleMotorSubsystem {
                 winchLock_.set(UNLOCKED_VALUE);
             }
         }
+
+        rightClimbPID.setReference(io_.rightDemand, ControlType.kDutyCycle);
+        leftClimbPID.setReference(io_.leftDemand, ControlType.kDutyCycle);
     }
 
-    @Override
-    public synchronized void readPeriodicInputs() {
-        super.readPeriodicInputs();
 
-        isDeployed_ = armFlipper_.get() == DEPLOYED_VALUE;
-        isLocked_ = winchLock_.get() == LOCKED_VALUE;
+    @Override
+    public boolean runPassiveTests() {
+        return true;
     }
 
     @Override
@@ -139,20 +205,4 @@ public class Climber extends SingleMotorSubsystem {
         SmartDashboard.putBoolean("Climber deployed", isDeployed_);
         SmartDashboard.putBoolean("Climber LOCKED", isLocked_);
     }
-
-    @Override
-    protected boolean atReverseLimit() {
-        return false;
-    }
-
-    @Override
-    protected boolean atForwardLimit() {
-        return false;
-    }
-
-    @Override
-    protected boolean handleZeroing() {
-        return false;
-    }
-
 }

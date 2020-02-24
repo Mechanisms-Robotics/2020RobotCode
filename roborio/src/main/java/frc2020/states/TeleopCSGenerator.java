@@ -35,6 +35,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean deployClimber = false;
     private LatchedBoolean lockClimberLatch;
     private boolean lockClimber = false;
+    boolean deployButtonsPressed = false;
 
     private LatchedBoolean deployHoodLatch;
     private boolean deployHood = false;
@@ -72,6 +73,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         // Whether to auto target to station
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
+
+        // Whether or not climbers have been deployed
+        deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
+                rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
 
         // Whether to use manual control or not
         manualControl = manualControlLatch.update(rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) &&
@@ -185,19 +190,21 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double turretDeadband = 0.12;
         double maxSpeed = 0.25;
         demand.useOpenLoop = true;
-        demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= turretDeadband ? 0 : leftSecondJoystick_.getY(), -maxSpeed, maxSpeed);
+        if (!deployButtonsPressed) {
+            demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= turretDeadband ? 0 : leftSecondJoystick_.getY(), -maxSpeed, maxSpeed);
+        }
         return demand;
     }
 
     private ClimberDemand generateClimberDemand() {
-        boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
-                rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
 
         ClimberDemand demand = new ClimberDemand();
         demand.deploy = deployClimberLatch.update(deployButtonsPressed) != deployClimber;;
-        demand.lock = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;;
-        demand.winchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
-
+        demand.lock = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
+        if (deployButtonsPressed) {
+            demand.leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
+            demand.rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
+        }
         return demand;
     }
 

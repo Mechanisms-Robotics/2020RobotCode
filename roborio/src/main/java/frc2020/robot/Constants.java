@@ -31,6 +31,10 @@ public class Constants {
     public final static int RIGHT_MASTER_PORT = 3; // Spark Max
     public final static int RIGHT_SLAVE_PORT = 4; // Spark Max
 
+    // Climber Ports
+    public final static int LEFT_CLIMB_PORT = 12;
+    public final static int RIGHT_CLIMB_PORT = 13;
+
     // Motor Controller Properties
     public final static double OPEN_LOOP_RAMP = 0.15; // seconds
     public final static double CLOSED_LOOP_RAMP = 0.10; // seconds
