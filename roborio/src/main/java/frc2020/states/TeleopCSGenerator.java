@@ -200,8 +200,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         final double MAX_SPEED = 0.25;
         TurretDemand demand = new TurretDemand();
         demand.useOpenLoop = true;
-        demand.speed = Util.limit(Math.abs(rightSecondJoystick_.getTwist()) <= TURRET_DEADBAND ? 0 : rightSecondJoystick_.getTwist(),
-                                  -MAX_SPEED, MAX_SPEED);
+        demand.speed = Math.abs(rightSecondJoystick_.getTwist()) <= TURRET_DEADBAND ? 0 : -rightSecondJoystick_.getTwist()*MAX_SPEED;
         return demand;
     }
 
@@ -226,7 +225,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployHood = deployHoodLatch.update(leftSecondJoystick_.getTrigger()) != deployHood;
 
         demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY(),
-                                  -MAX_SPEED, MAX_SPEED);
+                                    -MAX_SPEED, MAX_SPEED);
         demand.deploy = deployHood;
         return demand;   
     }
