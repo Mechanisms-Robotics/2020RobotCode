@@ -66,7 +66,7 @@ public class Shooter implements Subsystem {
             return;
         }
         if (isValidTransition(desiredState)) {
-            logger_.logInfo("Transitioning from " + state_ + " to " + desiredState, logName);
+            logger_.logDebug("Transitioning from " + state_ + " to " + desiredState, logName);
             wantedState_ = desiredState;
          } else {
             logger_.logWarning("Transitioning from " + state_ + " to " + desiredState + " IS INVALID", logName);
@@ -79,12 +79,15 @@ public class Shooter implements Subsystem {
     }
 
     private boolean isValidTransition(ShooterState desiredState) {
-
+        if (desiredState == ShooterState.Manual) {
+            return true;
+        }
+        
         switch (state_) {
             case Manual:
                 return desiredState == ShooterState.Stowed;
             case Stowed:
-                return (desiredState == ShooterState.Manual) || (desiredState == ShooterState.Aiming);
+                return desiredState == ShooterState.Aiming;
             case Aiming:
                 return (desiredState == ShooterState.Shooting) || (desiredState == ShooterState.Stowed);
             case Shooting:

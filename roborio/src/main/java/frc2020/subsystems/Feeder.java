@@ -139,7 +139,7 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     public boolean isPrimed() {
-        return false;
+        return true;
         /*
         if (state_ == FeederState.PRIMING) {
             return !turretBreakBeam_.get();
