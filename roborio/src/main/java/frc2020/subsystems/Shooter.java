@@ -82,7 +82,7 @@ public class Shooter implements Subsystem {
         if (desiredState == ShooterState.Manual) {
             return true;
         }
-        
+
         switch (state_) {
             case Manual:
                 return desiredState == ShooterState.Stowed;
@@ -210,12 +210,12 @@ public class Shooter implements Subsystem {
 
     private void handleAiming() {
         if (limelight_.getTargetReading().hasConfidentTarget()) {
-            /*double azimuth = limelight_.getTargetReading().azimuth;
-            turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));*/
+            double azimuth = -limelight_.getTargetReading().azimuth;
+            turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));
 
             hasStartedSeeking_ = false;
         } else {
-            //seekTurret();
+            seekTurret();
         }
     }
 
