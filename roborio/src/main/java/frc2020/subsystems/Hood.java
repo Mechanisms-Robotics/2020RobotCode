@@ -38,7 +38,7 @@ public class Hood extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.useBreakMode = true;
         DEFAULT_CONSTANTS.enableSoftLimits = true;
 
-        DEFAULT_CONSTANTS.forwardSoftLimit = 2.99F;
+        DEFAULT_CONSTANTS.forwardSoftLimit = 3.5F;
         DEFAULT_CONSTANTS.reverseSoftLimit = 0.15F;
         DEFAULT_CONSTANTS.homePosition_ = 0.0;
 
