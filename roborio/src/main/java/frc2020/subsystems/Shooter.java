@@ -23,7 +23,7 @@ public class Shooter implements Subsystem {
     private String logName = "Shooter";
 
 
-    private final static double TURRET_SEEKING_DUTY_CYCLE = 0.1; // duty cycle
+    private final static double TURRET_SEEKING_DUTY_CYCLE = 0.07; // duty cycle
     private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
 
     private double startingPosition = 0.0;
@@ -185,7 +185,7 @@ public class Shooter implements Subsystem {
     };
 
     private void seekTurret() {
-        if (!hasStartedSeeking_) {
+        if (!hasStartedSeeking_) { 
             startingPosition = turret_.getPosition();
             hasStartedSeeking_ = true;
         }
@@ -236,6 +236,7 @@ public class Shooter implements Subsystem {
         feeder_.stop();
         hood_.stop();
         turret_.stop();
+        limelight_.setLed(Limelight.LedMode.OFF);
         state_ = ShooterState.Manual;
     }
 
@@ -316,6 +317,28 @@ public class Shooter implements Subsystem {
         }
 
         state_ = ShooterState.Shooting;
+    }
+
+    public synchronized void handleReenable() {
+        switch (state_) {
+            case Manual:
+                wantedState_ = ShooterState.Stowed;
+                return;
+            case Stowed:
+                state_ = ShooterState.Manual; // To force transition
+                wantedState_ = ShooterState.Stowed;
+                return;
+            case Aiming:
+                state_ = ShooterState.Stowed; // To force transition
+                wantedState_ = ShooterState.Aiming;
+                return;
+            case Shooting:
+                state_ = ShooterState.Stowed; // To force transition
+                wantedState_ = ShooterState.Aiming; // For safety precautions
+                return;
+            default:
+                logger_.logWarning("Invalid state on re-enable", logName);
+        }
     }
 
     @Override

@@ -1,6 +1,5 @@
 package frc2020.subsystems;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -12,11 +11,6 @@ public class Feeder extends SingleMotorSubsystem {
     private final static int OUTTAKE_SPEED = -3500; // rpm
     private final static int PRIME_SPEED = -2000; // rpm TODO: Tune value
     private final static int SHOOTING_SPEED = 3500; // rpm TODO: Tune value
-    private final static int INTAKE_BREAK_BEAM_CHANNEL = 0; // TODO: Change for robot
-    private final static int TURRET_BREAK_BEAM_CHANNEL = 1; // TODO: Change for robot
-
-    private DigitalInput intakeBreakBeam_;
-    private DigitalInput turretBreakBeam_;
 
     private FeederState state_ = FeederState.IDLE;
 
@@ -71,21 +65,16 @@ public class Feeder extends SingleMotorSubsystem {
 
     protected Feeder(SingleMotorSubsystemConstants constants) {
         super(constants);
-
-        intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM_CHANNEL);
-        turretBreakBeam_ = new DigitalInput(TURRET_BREAK_BEAM_CHANNEL);
     }
 
     //TODO: Check what boolean is when broken
     public synchronized boolean getIntakeBreakBeamBroken() {
-        return false;
-        //return super.io_.forwardLimit;
+        return super.io_.forwardLimit;
     }
     
     //TODO: Check what boolean is when broken
     public synchronized boolean getShooterBreakBeamBroken() {
-        return false;
-        //return super.io_.reverseLimit;
+        return super.io_.reverseLimit;
     }
 
     @Override
@@ -148,12 +137,11 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     private synchronized void intakeFeeder() {
-        super.stop();
-        /*if (intakeBreakBeam_.get() && !turretBreakBeam_.get()) {
+        if (getIntakeBreakBeamBroken()) {//} && !getShooterBreakBeamBroken()) {
             runFeeder(false);
         } else {
             super.stop();
-        }*/
+        }
     }
 
     private synchronized void primeFeeder() {
@@ -177,8 +165,9 @@ public class Feeder extends SingleMotorSubsystem {
 
     @Override
     public void outputTelemetry() {
-        SmartDashboard.putBoolean("Intake Break Beam Broken", getIntakeBreakBeamBroken());
-        SmartDashboard.putBoolean("Shooter Break Beam Broken", getShooterBreakBeamBroken());
+        super.outputTelemetry();
+        // SmartDashboard.putBoolean("Intake Break Beam Broken", getIntakeBreakBeamBroken());
+        // SmartDashboard.putBoolean("Shooter Break Beam Broken", getShooterBreakBeamBroken());
     }
 
     /**
