@@ -32,6 +32,7 @@ import frc2020.util.Util;
 public class TargetTracker {
     private final static double MIN_INITIAL_CONFIDENCE = 0.3;
     private final static double MIN_CONFIDENCE = 0.3;
+    private final static double MIN_FINAL_CONFIDENCE = 0.3;
     private final static double DEPRECIATION_FACTOR = 0.9;
 
     // Since readings will be called every 10 ms or so, we should never have more
@@ -74,6 +75,10 @@ public class TargetTracker {
             this.rangeArea = rangeArea;
             this.rangeCorner = rangeCorner;
             this.confidence = confidence;
+        }
+
+        public boolean hasConfidentTarget() {
+            return confidence > MIN_FINAL_CONFIDENCE;
         }
     }
 

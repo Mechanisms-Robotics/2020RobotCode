@@ -93,19 +93,11 @@ public class Climber extends SingleMotorSubsystem {
 
     @Override
     public boolean runActiveTests() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public void zeroSensors() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
-        // TODO Auto-generated method stub
 
     }
 
@@ -150,19 +142,16 @@ public class Climber extends SingleMotorSubsystem {
 
     @Override
     protected boolean atReverseLimit() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     protected boolean atForwardLimit() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     protected boolean handleZeroing() {
-        // TODO Auto-generated method stub
         return false;
     }
 

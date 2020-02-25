@@ -6,6 +6,9 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.loops.ILooper;
+import frc2020.loops.Loop;
 import frc2020.util.Logger;
 import frc2020.util.Util;
 
@@ -49,8 +52,8 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public int iZone_ = 0;
         public double deadband_ = 0;
 
-        public int cruiseVelocity_ = 0;
-        public int acceleration_ = 0;
+        public double cruiseVelocity_ = 0;
+        public double acceleration_ = 0;
         public double closedLoopRampRate_ = 0.0;
         public double openLoopRampRate_ = 0.0;
         public int currentLimitStall_ = 30; // Amps
@@ -62,19 +65,27 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double positionKi_ = 0.0;
         public double positionKd_ = 0.0;
         public double positionKf_ = 0.0;
-        public int positionIZone_ = 0;
+        public double positionIZone_ = 0;
 
         public double velocityKp_ = 0.0;
         public double velocityKi_ = 0.0;
         public double velocityKd_ = 0.0;
         public double velocityKf_ = 0.0;
-        public int velocityIZone_ = 0;
+        public double velocityIZone_ = 0;
         public double velocityDeadBand_ = 0.0;
 
         public double maxUnitsLimit_ = Double.POSITIVE_INFINITY;
         public double minUnitsLimit_ = Double.NEGATIVE_INFINITY;
 
         public boolean enableHardLimits_ = true;
+        public boolean useBreakMode = false;
+
+        public boolean enableSoftLimits = false;
+        public float forwardSoftLimit = 1;
+        public float reverseSoftLimit = -1;
+
+        public double minOutput = -1.0;
+        public double maxOutput = 1.0;
     }
     
     protected final SingleMotorSubsystemConstants constants_;
@@ -106,10 +117,14 @@ public abstract class SingleMotorSubsystem implements Subsystem {
 
         sparkMaster_.setInverted(constants_.masterConstants_.invertMotor_);
         sparkMaster_.setOpenLoopRampRate(constants_.openLoopRampRate_);
-        sparkMaster_.setClosedLoopRampRate(constants.closedLoopRampRate_);
+        sparkMaster_.setClosedLoopRampRate(constants_.closedLoopRampRate_);
         sparkMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
         sparkMaster_.setSmartCurrentLimit(constants_.currentLimitStall_, constants_.currentLimitFree_);
-        sparkMaster_.setIdleMode(IdleMode.kCoast);
+
+        sparkMaster_.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, constants_.forwardSoftLimit);
+        sparkMaster_.enableSoftLimit(CANSparkMax.SoftLimitDirection.kForward, constants_.enableSoftLimits);
+        sparkMaster_.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, constants_.reverseSoftLimit);
+        sparkMaster_.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, constants_.enableSoftLimits);
 
         if (constants_.useVoltageComp_) {
             sparkMaster_.enableVoltageCompensation(constants_.maxVoltage_);
@@ -150,13 +165,17 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         masterPid_.setSmartMotionMaxAccel(constants_.acceleration_, MOTION_PROFILE_SLOT);
         masterPid_.setSmartMotionMaxVelocity(constants_.cruiseVelocity_, MOTION_PROFILE_SLOT);
 
+        masterPid_.setOutputRange(constants_.minOutput, constants_.maxOutput, POSITION_PID_SLOT);
+        masterPid_.setOutputRange(constants_.minOutput, constants_.maxOutput, VELOCITY_PID_SLOT);
+        masterPid_.setOutputRange(constants_.minOutput, constants_.maxOutput, MOTION_PROFILE_SLOT);
+
 
         for (int i = 0; i < sparkSlaves_.length; ++i) {
             sparkSlaves_[i] = new CANSparkMax(constants_.slaveConstants_[i].id_, MotorType.kBrushless);
             sparkSlaves_[i].restoreFactoryDefaults();
             sparkSlaves_[i].follow(sparkMaster_, constants_.slaveConstants_[i].invertMotor_);
-            sparkSlaves_[i].setIdleMode(IdleMode.kCoast);
         }
+        setBreakMode(false);
 
         logName_ = constants_.name_;
     }
@@ -171,6 +190,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         public double masterCurrent;
         public boolean forwardLimit;
         public boolean reverseLimit;
+        public double dutyCycle;
 
         // Outputs
         public double feedforward;
@@ -195,6 +215,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         io_.velocity = encoder.getVelocity();
         io_.forwardLimit = forwardSwitch_.get();
         io_.reverseLimit = reverseSwitch_.get();
+        io_.dutyCycle = sparkMaster_.getAppliedOutput();
     }
 
     // TODO: Add error checking on CAN Bus calls
@@ -274,6 +295,7 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     }
 
     public synchronized void setOpenLoop(double units, double feedforward) {
+        //logger_.logDebug("Set open loop units: " + units, logName_);
         io_.demand = units;
         io_.feedforward = feedforward;
         if (state_ != ControlState.OPEN_LOOP) {
@@ -286,6 +308,18 @@ public abstract class SingleMotorSubsystem implements Subsystem {
         setOpenLoop(0.0);
     }
 
+    public synchronized boolean isStopped() {
+        return atVelocity(0.0);
+    }
+
+    public synchronized boolean atVelocity(double velocity) {
+        return Util.epsilonEquals(velocity, getVelocity(), constants_.velocityDeadBand_);
+    }
+    
+    public synchronized boolean atPosition(double position) {
+        return Util.epsilonEquals(position, getPosition(), constants_.deadband_);
+    }
+
     public synchronized boolean atDemand() {
         switch (state_){
             case POSITION_PID:
@@ -296,6 +330,60 @@ public abstract class SingleMotorSubsystem implements Subsystem {
             default:
                 return true;
         }
+    }
+
+    @Override
+    public void outputTelemetry() {
+        SmartDashboard.putNumber(constants_.name_ + " : Position", io_.position);
+        SmartDashboard.putNumber(constants_.name_ + " : Velocity", io_.velocity);
+        SmartDashboard.putNumber(constants_.name_ + " : Demand", io_.velocity);
+        SmartDashboard.putString(constants_.name_ + " : Control State", state_.toString());
+        SmartDashboard.putBoolean(constants_.name_ + " : Forward Limit", io_.forwardLimit);
+        SmartDashboard.putBoolean(constants_.name_ + " : Reverse Limit", io_.reverseLimit);
+        SmartDashboard.putBoolean(constants_.name_ + " : Zeroed", hasBeenZeroed);
+        SmartDashboard.putNumber(constants_.name_ + " : Duty Cycle", io_.dutyCycle);
+    }
+
+    private void setBreakMode(boolean breakMode) {
+        if (breakMode) {
+            sparkMaster_.setIdleMode(IdleMode.kBrake);
+        } else {
+            sparkMaster_.setIdleMode(IdleMode.kCoast);
+        }
+        for (int i = 0; i < sparkSlaves_.length; ++i) {
+            if (breakMode) {
+                sparkSlaves_[i].setIdleMode(IdleMode.kBrake);
+            } else {
+                sparkSlaves_[i].setIdleMode(IdleMode.kCoast);
+            }
+        }
+    }
+
+    private Loop breakModeLoop = new Loop() {
+
+        @Override
+        public void init() {
+            synchronized (SingleMotorSubsystem.this) {
+                setBreakMode(constants_.useBreakMode);
+            }
+        }
+
+        @Override
+        public void run() {
+            // Nothing to do
+        }
+
+        @Override
+        public void end() {
+            synchronized (SingleMotorSubsystem.this) {
+                setBreakMode(false);
+            }
+        }
+    };
+
+    @Override
+    public void registerLoops(ILooper enabledLooper) {
+        enabledLooper.register(breakModeLoop);
     }
 
     /**
