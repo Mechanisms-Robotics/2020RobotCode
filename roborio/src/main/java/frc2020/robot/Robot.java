@@ -79,8 +79,8 @@ public class Robot extends TimedRobot {
         var limelight_turret_config = new Limelight.LimelightConfig();
         var limelight_low_config = new Limelight.LimelightConfig();
 
-        limelight_turret_config.height = 1.12;
-        limelight_turret_config.horizontalPlaneToLens = Rotation2d.fromDegrees(15.0);
+        limelight_turret_config.height = 0.592;
+        limelight_turret_config.horizontalPlaneToLens = Rotation2d.fromDegrees(20.0);
         limelight_turret_config.tableName = "limelight-turret";
         limelight_turret_config.name = "Limelight Turret";
         limelight_turret_config.azimuthOnly = false;
