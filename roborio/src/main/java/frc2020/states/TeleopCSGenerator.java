@@ -2,6 +2,7 @@ package frc2020.states;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Drive;
@@ -88,6 +89,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         driveChooser.setDefaultOption(DriveMode.Tank.toString(), DriveMode.Tank);
         driveChooser.addOption(DriveMode.Arcade.toString(), DriveMode.Arcade);
         driveChooser.addOption(DriveMode.Cheesy.toString(), DriveMode.Cheesy);
+        SmartDashboard.putData("Drive Chooser", driveChooser);
     }
 
     /**
@@ -137,6 +139,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double rightDrive = 0.0;
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
         var driveMode = driveChooser.getSelected();
+        var povDir = rightJoystick_.getPOV();
+        var quickTurn = povDir == 0 || povDir == 45 || povDir == 315;
 
         if (driveMode == DriveMode.Tank) {
             leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
@@ -154,12 +158,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else if (driveMode == DriveMode.Arcade) {
             leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-            leftDrive += Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX())*0.75f;
-            rightDrive -= Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX())*0.75f;
+            leftDrive += Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
+            rightDrive -= Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
         } else if (driveMode == DriveMode.Cheesy){
             double throttle = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-            double wheel = Math.abs(rightJoystick_.getX() <= DEADBAND ? 0 : rightJoystick_.getX());
-            DriveSignal dSignal = cheesyHelper_.cheesyDrive(throttle, wheel, false, !driveLowGear);
+            double wheel = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX();
+            DriveSignal dSignal = cheesyHelper_.cheesyDrive(throttle, wheel, quickTurn, !driveLowGear);
             leftDrive = dSignal.getLeft();
             rightDrive = dSignal.getRight();
         } else {
