@@ -333,8 +333,9 @@ public class Shooter implements Subsystem {
         // TODO: Set hood angle automatically
 
         flywheel_.spinFlywheel();
+        autoHood();
 
-        if (!flywheel_.atDemand()) {
+        if (!flywheel_.atDemand() || !hood_.atDemand()) {
             return;
         }
 
