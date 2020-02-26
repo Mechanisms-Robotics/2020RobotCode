@@ -44,6 +44,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean getStowAimingLatch;
     private LatchedBoolean getShooterLatch;
 
+    private boolean isFeederDemand = false;
+
     private Shooter shooter_ = Shooter.getInstance();
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
@@ -164,6 +166,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else if (outtakeFeeder) {
             demand.outtake = true;
         }
+
+        isFeederDemand = intakeFeeder || outtakeFeeder;
         return demand;
     }
 
@@ -253,6 +257,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 }
             }
         }
+
+        demand.overrideFeeder = isFeederDemand;
 
         return demand;
     }

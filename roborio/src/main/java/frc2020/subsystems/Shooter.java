@@ -29,6 +29,7 @@ public class Shooter implements Subsystem {
     private double startingPosition = 0.0;
     private double turretSeekPower_ = TURRET_SEEKING_DUTY_CYCLE;
     private boolean hasStartedSeeking_ = false;
+    private boolean overrideFeeder_ = false;
 
     private LatchedBoolean seekTurretLatch_;
 
@@ -81,6 +82,10 @@ public class Shooter implements Subsystem {
 
     public void setLimelight(Limelight ll) {
         limelight_ = ll;
+    }
+
+    public synchronized void setOverrideFeeder(boolean overrideFeeder) {
+        overrideFeeder_ = overrideFeeder;
     }
 
     private boolean isValidTransition(ShooterState desiredState) {
@@ -216,6 +221,14 @@ public class Shooter implements Subsystem {
         hood_.setSmartPosition(setpoint);
     }
 
+    private boolean handleOverrideFeeder() {
+        if (!overrideFeeder_) {
+            return true;
+        }
+        feeder_.setState(FeederState.MANUAL);
+        return false;
+    }
+
     private void loadHoodRangeAngleValues() {
         // (range, angle)
         hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
@@ -224,11 +237,15 @@ public class Shooter implements Subsystem {
     }
 
     private void handleManual() {
-        feeder_.setState(FeederState.MANUAL);
+        if (handleOverrideFeeder()) {
+            feeder_.setState(FeederState.MANUAL);
+        }
     }
 
     private void handleStowed() {
-        feeder_.setState(FeederState.INTAKING);
+        if (handleOverrideFeeder()) {
+            feeder_.setState(FeederState.INTAKING);
+        }
     }
 
     private void handleAiming() {
@@ -238,6 +255,10 @@ public class Shooter implements Subsystem {
             hasStartedSeeking_ = false;
         } else {
             seekTurret();
+        }
+
+        if (handleOverrideFeeder()) {
+            feeder_.setState(FeederState.PRIMING);
         }
     }
 
@@ -250,7 +271,9 @@ public class Shooter implements Subsystem {
 
         //TODO: Set hood angle automatically
 
-        feeder_.runFeeder(false);
+        if (handleOverrideFeeder()) {
+            feeder_.runFeeder(false);
+        }
     }
 
     private void handleManualTransition() {
