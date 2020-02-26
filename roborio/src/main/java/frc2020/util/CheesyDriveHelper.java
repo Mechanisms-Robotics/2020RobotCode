@@ -12,7 +12,7 @@ public class CheesyDriveHelper {
     private static final double kWheelDeadband = 0.1;
 
     // These factor determine how fast the wheel traverses the "non linear" sine curve.
-    private static final double kHighWheelNonLinearity = 0.65;
+    private static final double kHighWheelNonLinearity = 0.75;
     private static final double kLowWheelNonLinearity = 0.5;
 
     private static final double kHighNegInertiaScalar = 4.0;
