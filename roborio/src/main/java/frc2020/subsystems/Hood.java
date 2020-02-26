@@ -64,6 +64,14 @@ public class Hood extends SingleMotorSubsystem {
         return instance_ == null ? instance_ = new Hood(DEFAULT_CONSTANTS) : instance_;
     }
 
+    public float getReverseSoftLimitValue() {
+        return super.constants_.reverseSoftLimit;
+    }
+
+    public float getForwardSoftLimitValue() {
+        return super.constants_.forwardSoftLimit;
+    }
+
     public void deployHood() {
         wantDeploy_ = true;
     }

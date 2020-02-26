@@ -32,6 +32,8 @@ public class Shooter implements Subsystem {
 
     private LatchedBoolean seekTurretLatch_;
 
+    private InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> hoodAngleRangeInterpolator;
+
     public enum ShooterState {
         Manual,
         Stowed,
@@ -51,7 +53,10 @@ public class Shooter implements Subsystem {
         feeder_ = Feeder.getInstance();
         hood_ = Hood.getInstance();
         turret_ = Turret.getInstance();
+
         seekTurretLatch_ = new LatchedBoolean();
+        hoodAngleRangeInterpolator = new InterpolatingTreeMap<>(100);
+        loadHoodRangeAngleValues();
     }
 
     public synchronized ShooterState getState() {
@@ -200,6 +205,24 @@ public class Shooter implements Subsystem {
         }
     }
 
+    private void autoTurret() {
+        double azimuth = -limelight_.getTargetReading().azimuth;
+        turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));
+    }
+
+    private void autoHood() {
+        double range = limelight_.getTargetReading().range;
+        double setpoint = hoodAngleRangeInterpolator.getInterpolated(new InterpolatingDouble(range)).value;
+        hood_.setSmartPosition(setpoint);
+    }
+
+    private void loadHoodRangeAngleValues() {
+        // (range, angle)
+        hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
+        hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.98), new InterpolatingDouble(3.476));
+        hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.31), new InterpolatingDouble(3.476));
+    }
+
     private void handleManual() {
         feeder_.setState(FeederState.MANUAL);
     }
@@ -210,8 +233,7 @@ public class Shooter implements Subsystem {
 
     private void handleAiming() {
         if (limelight_.getTargetReading().hasConfidentTarget()) {
-            double azimuth = -limelight_.getTargetReading().azimuth;
-            turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth));
+            autoTurret();
 
             hasStartedSeeking_ = false;
         } else {
@@ -222,14 +244,13 @@ public class Shooter implements Subsystem {
     private void handleShooting() {
 
         if (limelight_.getTargetReading().hasConfidentTarget()) {
-            double azimuth = -limelight_.getTargetReading().azimuth;
-            turret_.setRelativeRotation(Rotation2d.fromDegrees(azimuth)); 
+            autoTurret();
+            autoHood();
         }
 
         //TODO: Set hood angle automatically
 
         feeder_.runFeeder(false);
-
     }
 
     private void handleManualTransition() {
@@ -308,8 +329,6 @@ public class Shooter implements Subsystem {
         if (!hood_.isDeployed()) {
             return;
         }
-
-        hood_.setSmartPosition(3.2);
 
         // TODO: Set hood angle automatically
 

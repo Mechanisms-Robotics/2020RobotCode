@@ -102,8 +102,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
 
         // Whether to use manual control or not
-        manualControl = manualControlLatch.update(rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) &&
-                rightSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
+        manualControl = manualControlLatch.update(leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) &&
+                leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
 
         // The command state for the robot
         CommandState state = new CommandState();
@@ -189,8 +189,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     private FeederDemand generateFeederDemand() {
-        boolean intakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_INTAKE_HAT;
-        boolean outtakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
+        boolean intakeFeeder = leftSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_INTAKE_HAT;
+        boolean outtakeFeeder = leftSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
 
         FeederDemand demand = new FeederDemand();
         if (intakeFeeder && outtakeFeeder) {
@@ -236,8 +236,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         final double MAX_SPEED = 0.25;
         TurretDemand demand = new TurretDemand();
         demand.useOpenLoop = true;
-        demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= TURRET_DEADBAND ? 0 : leftSecondJoystick_.getY(),
-                                  -MAX_SPEED, MAX_SPEED);
+        demand.speed = Math.abs(rightSecondJoystick_.getTwist()) <= TURRET_DEADBAND ? 0 : -rightSecondJoystick_.getTwist()*MAX_SPEED;
         return demand;
     }
 
@@ -257,21 +256,14 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private HoodDemand generateHoodDemand() {
         HoodDemand demand = new HoodDemand();
-        double hoodSpeed = 0.10;
-        boolean positiveHood = rightSecondJoystick_.getPOV() == Constants.POSITIVE_HOOD_HAT;
-        boolean negativeHood = rightSecondJoystick_.getPOV() == Constants.NEGATIVE_HOOD_HAT;
-        deployHood = deployHoodLatch.update(rightSecondJoystick_.getTrigger()) != deployHood;
-
-        if (positiveHood && negativeHood) {
-            logger_.logInfo("Positive and negative hood hats pressed at same time", logName);
-        } else if (positiveHood) {
-            demand.speed = hoodSpeed;
-        } else if (negativeHood) {
-            demand.speed = -hoodSpeed;
-        }
-        demand.deploy = deployHood;
-        return demand;
+        final double MAX_SPEED = 0.1;
         
+        deployHood = deployHoodLatch.update(leftSecondJoystick_.getTrigger()) != deployHood;
+
+        demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY(),
+                                    -MAX_SPEED, MAX_SPEED);
+        demand.deploy = deployHood;
+        return demand;   
     }
 
     private ShooterDemand generateShooterDemand() {
