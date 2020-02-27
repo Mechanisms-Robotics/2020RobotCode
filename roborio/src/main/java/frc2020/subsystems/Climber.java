@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
 import frc2020.util.DriveSignal;
+import frc2020.util.Logger;
 
 public class Climber implements Subsystem {
 
@@ -48,7 +49,8 @@ public class Climber implements Subsystem {
     private final static DoubleSolenoid.Value UNLOCKED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value LOCKED_VALUE = Value.kForward;
 
-    private String logName_ = "Climber";
+    private Logger logger_ = Logger.getInstance();
+    private String logName = "Climber";
 
     private void configSparkMaxs() {
         leftClimb_ = new CANSparkMax(Constants.LEFT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
