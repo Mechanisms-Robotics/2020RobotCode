@@ -38,7 +38,7 @@ public class Hood extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.useBreakMode = true;
         DEFAULT_CONSTANTS.enableSoftLimits = true;
 
-        DEFAULT_CONSTANTS.forwardSoftLimit = 2.99F;
+        DEFAULT_CONSTANTS.forwardSoftLimit = 3.5F;
         DEFAULT_CONSTANTS.reverseSoftLimit = 0.15F;
         DEFAULT_CONSTANTS.homePosition_ = 0.0;
 
@@ -64,16 +64,28 @@ public class Hood extends SingleMotorSubsystem {
         return instance_ == null ? instance_ = new Hood(DEFAULT_CONSTANTS) : instance_;
     }
 
+    public float getReverseSoftLimitValue() {
+        return super.constants_.reverseSoftLimit;
+    }
+
+    public float getForwardSoftLimitValue() {
+        return super.constants_.forwardSoftLimit;
+    }
+
     public void deployHood() {
         wantDeploy_ = true;
     }
 
-    public void stowHood() {
+    public void setToStowPosition() {
         if (getPosition() >= (STOW_POSITION  + constants_.deadband_)) {
             setSmartPosition(STOW_POSITION);
         } else {
             setOpenLoop(0.0);
         }
+    }
+
+    public void stowHood() {
+        setToStowPosition();
         wantDeploy_ = false;
     }
 
@@ -83,6 +95,14 @@ public class Hood extends SingleMotorSubsystem {
         } else {
             deployHood();
         }
+    }
+
+    public boolean isStowed() {
+        return (io_.reverseLimit || !isDeployed_);
+    }
+
+    public boolean isDeployed() {
+        return isDeployed_;
     }
 
 	@Override
