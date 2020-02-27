@@ -44,7 +44,7 @@ public class Drive implements Subsystem {
 
     private static final double DRIVE_ENCODER_PPR = 4096.0;
     private static final double NEO_ENCODER_PPR = 46.0;
-    private static final double HIGH_GEAR_RATIO = 8.63;
+    private static final double HIGH_GEAR_RATIO = 6.7;
 
     private static final int VELOCITY_PID = 0;
     private static final int EMPTY_PID = 1;

@@ -38,8 +38,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends TimedRobot {
 
-  static private double WHEEL_DIAMETER = 0.1522414151;
-  static private double GEARING = 8.63;
+  static private double WHEEL_DIAMETER = 0.1537638293;
+  static private double GEARING = 6.7;
   static private int PIDIDX = 0;
 
   Joystick stick;
@@ -74,13 +74,13 @@ public class Robot extends TimedRobot {
     stick = new Joystick(0);
 
     leftMaster = new CANSparkMax(1, MotorType.kBrushless);
-    leftMaster.setInverted(true);
+    leftMaster.setInverted(false);
     leftMaster.setIdleMode(IdleMode.kBrake);
 
     leftEncoder = leftMaster.getEncoder();
 
     rightMaster = new CANSparkMax(3, MotorType.kBrushless);
-    rightMaster.setInverted(true);
+    rightMaster.setInverted(false);
     rightMaster.setIdleMode(IdleMode.kBrake);
 
     rightEncoder = rightMaster.getEncoder();

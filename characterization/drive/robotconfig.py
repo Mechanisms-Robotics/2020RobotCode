@@ -12,9 +12,9 @@
     "rightMotorsInverted": [False, False],
     # The total gear reduction between the motor and the wheels, expressed as
     # a fraction [motor turns]/[wheel turns]
-    "gearing": 8.63,
+    "gearing": 6.7,
     # Wheel diameter (in units of your choice - will dictate units of analysis)
-    "wheelDiameter": 0.1522414151,
+    "wheelDiameter": 0.1537638293,
     # Your gyro type (one of "NavX", "Pigeon", "ADXRS450", "AnalogGyro", or "None")
     "gyroType": "NavX",
     # Whatever you put into the constructor of your gyro
