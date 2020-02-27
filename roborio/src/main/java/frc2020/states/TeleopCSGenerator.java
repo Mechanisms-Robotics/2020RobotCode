@@ -95,12 +95,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setShooterDemand(generateShooterDemand());
         state.setClimberDemand(generateClimberDemand());
         state.setIntakeDemand(generateIntakeDemand());
-
+        state.setFeederDemand(generateFeederDemand());
         if (manualControl) {
             state.setFlywheelDemand(generateFlywheelDemand());
             state.setTurretDemand(generateTurretDemand());
             state.setHoodDemand(generateHoodDemand());
-            state.setFeederDemand(generateFeederDemand());
         } else {
             resetManualControl();
         }
