@@ -179,15 +179,20 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         //deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
 
         IntakeDemand demand = new IntakeDemand();
-        if (intakeIntake && outtakeIntake) {
-            logger_.logInfo("Intake and outtake intake buttons pressed at same time", logName);
-        } else if (intakeIntake) {
-            demand.intake = true;
-        } else if (outtakeIntake) {
-            demand.outtake = true;
-        }
+        // if (intakeIntake && outtakeIntake) {
+        //     logger_.logInfo("Intake and outtake intake buttons pressed at same time", logName);
+        // } else if (intakeIntake) {
+        //     demand.intake = true;
+        // } else if (outtakeIntake) {
+        //     demand.outtake = true;
+        // }
 
         demand.deploy = deployIntake;
+        demand.intake = deployIntake;
+        if(outtakeIntake) {
+            demand.intake = false;
+            demand.outtake = true;
+        }
         return demand;
     }
 

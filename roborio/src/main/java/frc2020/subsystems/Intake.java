@@ -46,7 +46,6 @@ public class Intake extends SingleMotorSubsystem {
     }
 
     public void stowIntake() {
-        super.stop();
         wantDeploy_ = false;
     }
 
