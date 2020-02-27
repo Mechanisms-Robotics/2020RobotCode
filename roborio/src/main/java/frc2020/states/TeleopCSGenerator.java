@@ -139,7 +139,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double rightDrive = 0.0;
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
         var driveMode = driveChooser.getSelected();
-        var povDir = rightJoystick_.getPOV();
+        var povDir = leftJoystick_.getPOV();
         var quickTurn = povDir == 0 || povDir == 45 || povDir == 315;
 
         if (driveMode == DriveMode.Tank) {
