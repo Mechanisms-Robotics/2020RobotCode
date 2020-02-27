@@ -388,6 +388,14 @@ public class Shooter implements Subsystem {
         }
     }
 
+    public synchronized boolean hasTarget() {
+        if (limelight_ == null) {
+            return false;
+        } else {
+            return limelight_.getTargetReading().hasConfidentTarget();
+        }
+    }
+
     @Override
     public void outputTelemetry() {
         SmartDashboard.putString("Shooter state: ", state_.toString());
