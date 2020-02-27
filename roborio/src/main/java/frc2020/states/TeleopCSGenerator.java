@@ -46,6 +46,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean getStowAimingLatch;
     private LatchedBoolean getShooterLatch;
 
+    private boolean isFeederDemand = false;
+
     private Shooter shooter_ = Shooter.getInstance();
     private Drive drive_;
 
@@ -115,12 +117,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setShooterDemand(generateShooterDemand());
         state.setClimberDemand(generateClimberDemand());
         state.setIntakeDemand(generateIntakeDemand());
-
+        state.setFeederDemand(generateFeederDemand());
         if (manualControl) {
             state.setFlywheelDemand(generateFlywheelDemand());
             state.setTurretDemand(generateTurretDemand());
             state.setHoodDemand(generateHoodDemand());
-            state.setFeederDemand(generateFeederDemand());
         } else {
             resetManualControl();
         }
@@ -153,8 +154,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             if (rightDrive < 0) {
                 rSign = -1;
             }
-            leftDrive *= leftDrive * lSign;
-            rightDrive *= rightDrive * rSign;
+            final double JOYSTICK_EXPONENT = 1.7;
+            leftDrive = Math.pow(Math.abs(leftDrive), JOYSTICK_EXPONENT) * lSign;
+            rightDrive = Math.pow(Math.abs(rightDrive), JOYSTICK_EXPONENT) * rSign;
         } else if (driveMode == DriveMode.Arcade) {
             leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
@@ -204,6 +206,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else if (outtakeFeeder) {
             demand.outtake = true;
         }
+
+        isFeederDemand = intakeFeeder || outtakeFeeder;
         return demand;
     }
 
@@ -216,15 +220,20 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         //deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
 
         IntakeDemand demand = new IntakeDemand();
-        if (intakeIntake && outtakeIntake) {
-            logger_.logInfo("Intake and outtake intake buttons pressed at same time", logName);
-        } else if (intakeIntake) {
-            demand.intake = true;
-        } else if (outtakeIntake) {
-            demand.outtake = true;
-        }
+        // if (intakeIntake && outtakeIntake) {
+        //     logger_.logInfo("Intake and outtake intake buttons pressed at same time", logName);
+        // } else if (intakeIntake) {
+        //     demand.intake = true;
+        // } else if (outtakeIntake) {
+        //     demand.outtake = true;
+        // }
 
         demand.deploy = deployIntake;
+        demand.intake = deployIntake;
+        if(outtakeIntake) {
+            demand.intake = false;
+            demand.outtake = true;
+        }
         return demand;
     }
 
@@ -293,6 +302,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 }
             }
         }
+
+        demand.overrideFeeder = isFeederDemand;
 
         return demand;
     }

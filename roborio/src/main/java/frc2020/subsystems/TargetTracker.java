@@ -278,7 +278,7 @@ public class TargetTracker {
 
         // TODO: We should use error to return a confidence (in range 0.0 to 1.0)
         
-        return new Reading(cornerBasedTarget[0].getDegrees(),
+        return new Reading(rawData.xOffset,
                            cornerBasedTarget[1].getDegrees(),
                            range.range,
                            rangeArea.range,

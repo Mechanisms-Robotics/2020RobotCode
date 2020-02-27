@@ -98,6 +98,7 @@ public class CommandState {
 
     public static class ShooterDemand {
         public Shooter.ShooterState state = Shooter.ShooterState.Stowed;
+        public boolean overrideFeeder = false;
     }
 
     public void setManualControl(boolean manualControl) {
@@ -160,9 +161,11 @@ public class CommandState {
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
         maybeUpdateClimber(climber);
+        if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual) {
+            maybeUpdateFeeder(feeder);
+        }
         maybeUpdateShooter(shooter);
         if (shooter.getWantedState() == Shooter.ShooterState.Manual) {
-            maybeUpdateFeeder(feeder);
             maybeUpdateTurret(turret);
             maybeUpdateHood(hood);
             maybeUpdateFlywheel(flywheel);
@@ -302,6 +305,7 @@ public class CommandState {
     private void maybeUpdateShooter(Shooter shooter) {
         if (shooterDemand != null) {
             shooter.setState(shooterDemand.state);
+            shooter.setOverrideFeeder(shooterDemand.overrideFeeder);
 
             shooterDemand = null;
         }
