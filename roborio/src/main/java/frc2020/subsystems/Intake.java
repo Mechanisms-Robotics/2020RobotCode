@@ -65,10 +65,10 @@ public class Intake extends SingleMotorSubsystem {
     public void runIntake(boolean reverse) {
         if (reverse) {
             //super.setVelocity(REVERSE_RPM);
-            super.setOpenLoop(-0.55);
+            super.setOpenLoop(-0.60);
         } else {
             //super.setVelocity(INTAKE_RPM);
-            super.setOpenLoop(0.55);
+            super.setOpenLoop(0.60);
         }
     }
 

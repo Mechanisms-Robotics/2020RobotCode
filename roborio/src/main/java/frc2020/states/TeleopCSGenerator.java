@@ -128,8 +128,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             rSign = -1;
         }
 
-        leftDrive *= leftDrive * lSign;
-        rightDrive *= rightDrive * rSign;
+        // leftDrive *= leftDrive * lSign;
+        // rightDrive *= rightDrive * rSign;
+        final double JOYSTICK_EXPONENT = 1.7;
+        leftDrive = Math.pow(Math.abs(leftDrive), JOYSTICK_EXPONENT) * lSign;
+        rightDrive = Math.pow(Math.abs(rightDrive), JOYSTICK_EXPONENT) * rSign;
 
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         if (autoSteerBall || autoSteerStation) {
