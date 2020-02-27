@@ -8,8 +8,8 @@ public class Flywheel extends SingleMotorSubsystem {
     private static Flywheel instance_;
 
     // TODO: Set speed for actual robot
-    private static int FLYWHEEL_SPEED = 5000;
-    private static int LONG_RANGE_SPEED = 6000;
+    private static final int FLYWHEEL_SPEED = 5000;
+    private static final int LONG_RANGE_SPEED = 6000;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
@@ -27,7 +27,7 @@ public class Flywheel extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.slaveConstants_ = slaveConstantsArray;
         DEFAULT_CONSTANTS.name_ = "Flywheel";
-        DEFAULT_CONSTANTS.velocityDeadBand_ = 0; // rpm
+        DEFAULT_CONSTANTS.velocityDeadBand_ = 100; // rpm
         DEFAULT_CONSTANTS.velocityKp_ = 0.0006;
         DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         DEFAULT_CONSTANTS.velocityKd_ = 0.0;

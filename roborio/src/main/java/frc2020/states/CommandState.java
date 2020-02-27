@@ -27,6 +27,7 @@ public class CommandState {
     public boolean manualDemand = false;
     private TurretDemand turretDemand;
     private HoodDemand hoodDemand;
+    private ShooterDemand shooterDemand;
 
     private Logger logger_ = Logger.getInstance();
 
@@ -78,7 +79,6 @@ public class CommandState {
 
     public static class FlywheelDemand {
         public boolean spin = false;
-        public boolean longRange = false;
     }
 
     public static class ClimberDemand {
@@ -96,6 +96,11 @@ public class CommandState {
     public static class HoodDemand {
         public double speed = 0.0;
         public boolean deploy = false;
+    }
+
+    public static class ShooterDemand {
+        public Shooter.ShooterState state = Shooter.ShooterState.Stowed;
+        public boolean overrideFeeder = false;
     }
 
     public void setManualControl(boolean manualControl) {
@@ -137,6 +142,8 @@ public class CommandState {
     public void setHoodDemand(HoodDemand demand) {
         hoodDemand = demand;
     }
+
+    public void setShooterDemand(ShooterDemand demand) { shooterDemand = demand; }
     /**
      * Getter for each subsystem demand
      * @return
@@ -151,22 +158,18 @@ public class CommandState {
      * @param drive An instance of the drive train subsystem
      */
     public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret,
-                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood) {
+                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood, Shooter shooter) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
         maybeUpdateClimber(climber);
-        if (manualDemand) {
+        if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual) {
             maybeUpdateFeeder(feeder);
+        }
+        maybeUpdateShooter(shooter);
+        if (shooter.getWantedState() == Shooter.ShooterState.Manual) {
             maybeUpdateTurret(turret);
             maybeUpdateHood(hood);
-            maybeUpdateFlywheel(flywheel);
-        } else {
-            feederDemand = new FeederDemand();
-            turretDemand = new TurretDemand();
-            flywheelDemand = new FlywheelDemand();
-            maybeUpdateFeeder(feeder);
-            maybeUpdateTurret(turret);
             maybeUpdateFlywheel(flywheel);
         }
     }
@@ -298,6 +301,15 @@ public class CommandState {
                 hood.stowHood();
             }
             hoodDemand = null;
+        }
+    }
+
+    private void maybeUpdateShooter(Shooter shooter) {
+        if (shooterDemand != null) {
+            shooter.setState(shooterDemand.state);
+            shooter.setOverrideFeeder(shooterDemand.overrideFeeder);
+
+            shooterDemand = null;
         }
     }
 }
