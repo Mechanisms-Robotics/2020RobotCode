@@ -30,6 +30,9 @@ public class Logger {
 
     private static Logger instance_ = null;
 
+    private Logger() {
+    }
+
     public static Logger getInstance() {
         if (instance_ == null) {
             instance_ = new Logger();

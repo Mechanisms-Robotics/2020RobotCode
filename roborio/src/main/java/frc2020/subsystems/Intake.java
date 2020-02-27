@@ -10,7 +10,7 @@ public class Intake extends SingleMotorSubsystem {
 
     private static Intake instance_;
 
-    private final static int FLIPPER_FORWARD_PORT = 4; //TODO: Change for actual robot ports
+    private final static int FLIPPER_FORWARD_PORT = 4;
     private final static int FLIPPER_REVERSE_PORT = 5;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
@@ -31,13 +31,13 @@ public class Intake extends SingleMotorSubsystem {
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
 
+
     public static Intake getInstance() {
         return instance_ == null ? instance_ = new Intake(DEFAULT_CONSTANTS) : instance_;
     }
 
     protected Intake(SingleMotorSubsystemConstants constants) {
         super(constants);
-
         flipper_ = new DoubleSolenoid(FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
     }
 
@@ -46,7 +46,6 @@ public class Intake extends SingleMotorSubsystem {
     }
 
     public void stowIntake() {
-        super.stop();
         wantDeploy_ = false;
     }
 
@@ -66,10 +65,10 @@ public class Intake extends SingleMotorSubsystem {
     public void runIntake(boolean reverse) {
         if (reverse) {
             //super.setVelocity(REVERSE_RPM);
-            super.setOpenLoop(-0.5);
+            super.setOpenLoop(-0.60);
         } else {
             //super.setVelocity(INTAKE_RPM);
-            super.setOpenLoop(0.5);
+            super.setOpenLoop(0.60);
         }
     }
 
@@ -104,11 +103,6 @@ public class Intake extends SingleMotorSubsystem {
     @Override
     public void zeroSensors() {
         // No sensors to implement
-    }
-
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
-        // No loops to register
     }
 
     @Override
