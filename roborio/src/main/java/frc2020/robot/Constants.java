@@ -36,10 +36,10 @@ public class Constants {
     public final static int LEFT_CLIMB_PORT = 13;
 
     // Motor Controller Properties
-    public final static double OPEN_LOOP_RAMP = 0.15; // seconds
+    public final static double OPEN_LOOP_RAMP = 0.05; // seconds
     public final static double CLOSED_LOOP_RAMP = 0.10; // seconds
-    public final static int STALL_LIMIT = 45; // Amps DC
-    public final static int FREE_LIMIT = 40; // Amps DC
+    public final static int STALL_LIMIT = 60; // Amps DC
+    public final static int FREE_LIMIT = 60; // Amps DC
 
     //The Shifters (drive)
     public final static int SHIFT_FORWARD = 6;
