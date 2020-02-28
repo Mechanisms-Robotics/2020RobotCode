@@ -15,18 +15,18 @@ import frc2020.auto.AutoModeEndedException;
 import frc2020.subsystems.Drive;
 import frc2020.auto.commands.*;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Test auto mode for just trying out different paths, velocities, accelerations, etc
  */
-public class TestMode extends AutoMode {
+public class Basic3Ball extends AutoMode {
     private static DifferentialDriveKinematics DRIVE_KINEMATICS = 
         Drive.getInstance().getKinematics();
     private static SimpleMotorFeedforward FEEDFORWARD = 
         Drive.getInstance().getFeedforward();
 
-    private static Trajectory testTrajectory = null;
+    private static Trajectory autoLine = null;
     
     public static void generateTrajectories() {
         var maxVoltage = 10.0; // Voltes
@@ -39,10 +39,8 @@ public class TestMode extends AutoMode {
         // Note if you use a Pose2d WPILib will
         // generate a quntic spline instead of a cubic
         // spline. (This may take longer)
-        var midPoints = List.of(
-            new Translation2d(1.0, 0)
-        );
-        var endPose = new Pose2d(3.5, -1, Rotation2d.fromDegrees(-90.0));
+        var midPoints = new ArrayList<Translation2d>();
+        var endPose = new Pose2d(0.5, 0.0, Rotation2d.fromDegrees(0.0));
         
         // Define other constraintes
         var voltageConstraint = 
@@ -57,15 +55,16 @@ public class TestMode extends AutoMode {
                 .setKinematics(DRIVE_KINEMATICS)
                 .addConstraint(voltageConstraint);
 
-        testTrajectory = TrajectoryGenerator.generateTrajectory(
+        autoLine = TrajectoryGenerator.generateTrajectory(
             startPose, midPoints, endPose, config);
     }
 
     @Override
 	protected void routine() throws AutoModeEndedException {
-        if (testTrajectory == null) {
+        if (autoLine == null) {
             generateTrajectories();
         }
-		runCommand(new DriveTrajectory(testTrajectory, true));
+        runCommand(new DriveTrajectory(autoLine));
+		runCommand(new Shoot(5.0));
 	}
 }

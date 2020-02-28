@@ -321,7 +321,7 @@ public class Shooter implements Subsystem {
 
         flywheel_.stop();
 
-        limelight_.setLed(Limelight.LedMode.ON);
+        limelight_.setLed(Limelight.LedMode.PIPELINE);
 
         hood_.setToStowPosition();
 
@@ -349,6 +349,7 @@ public class Shooter implements Subsystem {
     private void handleShootingTransition() {
 
         hood_.deployHood();
+        limelight_.setLed(Limelight.LedMode.PIPELINE);
         
         if (!hood_.isDeployed()) {
             return;

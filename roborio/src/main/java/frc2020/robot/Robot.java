@@ -13,7 +13,7 @@ import frc2020.auto.AutoModeRunner;
 import frc2020.auto.modes.Basic13Ball;
 import frc2020.auto.modes.CenterToTrench8;
 import frc2020.auto.modes.RightToTrench8;
-import frc2020.auto.modes.TestMode;
+import frc2020.auto.modes.Basic3Ball;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
@@ -130,7 +130,7 @@ public class Robot extends TimedRobot {
         autoChooser_ = AutoChooser.getAutoChooser();
 
         // Pre-Generate Trajectories
-        TestMode.generateTrajectories();
+        Basic3Ball.generateTrajectories();
         Basic13Ball.generateTrajectories();
         CenterToTrench8.generateTrajectories();
         RightToTrench8.generateTrajectories();
@@ -266,7 +266,7 @@ public class Robot extends TimedRobot {
             teleopCSGenerator_.resetManualControl();
             enabledIterator_.start();
             autoRunner_ = new AutoModeRunner();
-            autoRunner_.setAutoMode(new RightToTrench8());
+            autoRunner_.setAutoMode(new Basic3Ball());
             autoRunner_.start();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
