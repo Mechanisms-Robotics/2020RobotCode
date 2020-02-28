@@ -1,6 +1,5 @@
 package frc2020.states;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.subsystems.*;
 import frc2020.util.Logger;
 import frc2020.subsystems.Climber;

@@ -161,7 +161,6 @@ public class Robot extends TimedRobot {
 
         periodicEventManager_.addEvent(flushLog_, Constants.LOGGER_FLUSH_TIME);
         periodicEventManager_.addEvent(runPassiveTests_, Constants.PASSIVE_TEST_TIME);
-
     }
 
     /**
