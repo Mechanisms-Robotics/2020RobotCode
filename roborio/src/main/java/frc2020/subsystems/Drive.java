@@ -52,7 +52,9 @@ public class Drive implements Subsystem {
     private static Logger logger_ = Logger.getInstance();
 
     private static final String logName = "Drive";
-    
+
+    private static double backupPosition_ = 0.0;
+
     // This is the instance_ of the Drive object on the robot
     public static Drive instance_;
 
@@ -494,6 +496,20 @@ public class Drive implements Subsystem {
                                                       baseDutyCycle - adjustedDutyCycle, true);
         openLoop(autoSteerSignal);
     }
+
+    public synchronized void setBackupDistance(double targetPosition) {
+        backupPosition_ = getOdometryPose().getTranslation().getX() - targetPosition;
+    }
+
+    public synchronized void autoBackup(double targetPosition) {
+        double kP = 0.0001; // TODO: Tune
+        double error = backupPosition_ - getOdometryPose().getTranslation().getX();
+
+        DriveSignal autoBackupSignal = new DriveSignal(error*kP, error*kP, true);
+
+        openLoop(autoBackupSignal);
+    }
+
 
     /**
     * Resets encoder ticks for CAN Coders and NEO Encoders
