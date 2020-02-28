@@ -83,7 +83,8 @@ public class CommandState {
     public static class ClimberDemand {
         public boolean deploy = false;
         public boolean lock = false;
-        public double winchSpeed = 0.0;
+        public double rightWinchSpeed = 0.0;
+        public double leftWinchSpeed = 0.0;
     }
 
     public static class TurretDemand {
@@ -260,7 +261,7 @@ public class CommandState {
 
     private void maybeUpdateClimber(Climber climber) {
         if (climberDemand != null) {
-            climber.controlWinch(climberDemand.winchSpeed);
+            climber.controlWinch(new DriveSignal(climberDemand.leftWinchSpeed, climberDemand.rightWinchSpeed, true));
             //Note that the winch demand is set first
             //If we have not yet stowed, super.stop() will override demand
 
