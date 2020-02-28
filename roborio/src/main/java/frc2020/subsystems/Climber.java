@@ -53,8 +53,8 @@ public class Climber implements Subsystem {
     private String logName = "Climber";
 
     private void configSparkMaxs() {
-        leftClimb_ = new CANSparkMax(Constants.RIGHT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
-        rightClimb_ = new CANSparkMax(Constants.LEFT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        leftClimb_ = new CANSparkMax(Constants.LEFT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        rightClimb_ = new CANSparkMax(Constants.RIGHT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
 
         leftClimb_.restoreFactoryDefaults();
         rightClimb_.restoreFactoryDefaults();
