@@ -497,11 +497,11 @@ public class Drive implements Subsystem {
     }
 
     public synchronized void setBackupDistance(double targetPosition) {
-        backupPosition_ = getOdometryPose().getTranslation().getX() - targetPosition;
+        backupPosition_ = getOdometryPose().getTranslation().getX() + targetPosition;
     }
 
     public synchronized void autoBackup() {
-        double kP = 0.0001; // TODO: Tune
+        double kP = 0.5; // TODO: Tune
         double error = backupPosition_ - getOdometryPose().getTranslation().getX();
 
         DriveSignal autoBackupSignal = new DriveSignal(error*kP, error*kP, true);

@@ -142,10 +142,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
-        final double BACKUP_DISTANCE = -0.54;
+        final double BACKUP_DISTANCE = 0.54;
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
-        boolean autoBackup = rightSecondJoystick_.getRawButtonPressed(Constants.AUTO_BACKUP_BUTTON);
+        boolean autoBackup = rightJoystick_.getPOV() == Constants.AUTO_BACKUP_POV_HAT;
+        boolean autoBackupLatchBoolean = autoBackupLatch.update(autoBackup);
 
         final double DEADBAND = 0.01;
 
@@ -188,8 +189,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         if (autoSteerBall || autoSteerStation) {
             return DriveDemand.autoSteer(signal);
-        } else if (autoBackup) {
-            if (autoBackupLatch.update(autoBackup)) {
+        }
+        if (autoBackup) {
+            if (autoBackupLatchBoolean) {
                 drive_.setBackupDistance(BACKUP_DISTANCE);
             }
             return DriveDemand.autoBackup();
