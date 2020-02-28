@@ -393,7 +393,6 @@ public class Drive implements Subsystem {
     public void registerLoops(ILooper in){
         in.register(driveLoop);
     }
-
     /**
      * Set all the Spark Maxes to Brake Mode
      *
@@ -871,7 +870,6 @@ public class Drive implements Subsystem {
         SmartDashboard.putNumber("Odometery Rotation", odometry_pose.getRotation().getDegrees());
         SmartDashboard.putNumber("Left FeedForward", io_.left_feedforward);
         SmartDashboard.putNumber("Right FeedForward", io_.right_feedforward);
-
 
         if (CSVWriter_ != null) {
             CSVWriter_.write();

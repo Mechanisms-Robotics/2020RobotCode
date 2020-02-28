@@ -1,6 +1,7 @@
 package frc2020.states;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
@@ -41,9 +42,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean deployClimber = false;
     private LatchedBoolean lockClimberLatch;
     private boolean lockClimber = false;
-
     private LatchedBoolean deployHoodLatch;
     private boolean deployHood = false;
+    private LatchedBoolean climberSplitLatch;
+    private boolean climberSplit = false;
 
     private LatchedBoolean getStowAimingLatch;
     private LatchedBoolean getShooterLatch;
@@ -51,8 +53,19 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean isFeederDemand = false;
 
     private Shooter shooter_ = Shooter.getInstance();
+
+    private CheesyDriveHelper cheesyHelper_;
+
     private Logger logger_ = Logger.getInstance();
     private String logName = "TeleopCS";
+
+
+    private enum DriveMode {
+        Tank,
+        Arcade,
+        Cheesy
+    }
+    private SendableChooser<DriveMode> driveChooser;
 
     /**
      * All ports and constants should be applied in here.
@@ -70,6 +83,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployClimberLatch = new LatchedBoolean();
         lockClimberLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
+        
+        drive_ = Drive.getInstance();
+        cheesyHelper_ = new CheesyDriveHelper();
         deployClimberLatch = new LatchedBoolean();
         lockClimberLatch = new LatchedBoolean();
         deployHoodLatch = new LatchedBoolean();
@@ -77,6 +93,13 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         getShooterLatch = new LatchedBoolean();
 
         drive_ = Drive.getInstance();
+
+        climberSplitLatch = new LatchedBoolean();
+        driveChooser = new SendableChooser<>();
+        driveChooser.setDefaultOption(DriveMode.Tank.toString(), DriveMode.Tank);
+        driveChooser.addOption(DriveMode.Arcade.toString(), DriveMode.Arcade);
+        driveChooser.addOption(DriveMode.Cheesy.toString(), DriveMode.Cheesy);
+        SmartDashboard.putData("Drive Chooser", driveChooser);
     }
 
     /**
@@ -123,25 +146,44 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
         boolean autoBackup = rightSecondJoystick_.getRawButtonPressed(Constants.AUTO_BACKUP_BUTTON);
-        double leftDrive = Math.abs(leftJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
-        double rightDrive = Math.abs(rightJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightJoystick_.getY();
 
-        int lSign = 1;
-        int rSign = 1;
+        final double DEADBAND = 0.01;
 
-        if (leftDrive < 0) {
-            lSign = -1;
+        double leftDrive = 0.0;
+        double rightDrive = 0.0;
+
+        var driveMode = driveChooser.getSelected();
+        var povDir = leftJoystick_.getPOV();
+        var quickTurn = povDir == 0 || povDir == 45 || povDir == 315;
+
+        if (driveMode == DriveMode.Tank) {
+            leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+            rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
+            int lSign = 1;
+            int rSign = 1;
+            if (leftDrive < 0) {
+                lSign = -1;
+            }
+            if (rightDrive < 0) {
+                rSign = -1;
+            }
+            final double JOYSTICK_EXPONENT = 1.7;
+            leftDrive = Math.pow(Math.abs(leftDrive), JOYSTICK_EXPONENT) * lSign;
+            rightDrive = Math.pow(Math.abs(rightDrive), JOYSTICK_EXPONENT) * rSign;
+        } else if (driveMode == DriveMode.Arcade) {
+            leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+            rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+            leftDrive += Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
+            rightDrive -= Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
+        } else if (driveMode == DriveMode.Cheesy){
+            double throttle = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
+            double wheel = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX();
+            DriveSignal dSignal = cheesyHelper_.cheesyDrive(throttle, wheel, quickTurn, !driveLowGear);
+            leftDrive = dSignal.getLeft();
+            rightDrive = dSignal.getRight();
+        } else {
+            logger_.logWarning("Invalid drive mode!", logName);
         }
-
-        if (rightDrive < 0) {
-            rSign = -1;
-        }
-
-        // leftDrive *= leftDrive * lSign;
-        // rightDrive *= rightDrive * rSign;
-        final double JOYSTICK_EXPONENT = 1.7;
-        leftDrive = Math.pow(Math.abs(leftDrive), JOYSTICK_EXPONENT) * lSign;
-        rightDrive = Math.pow(Math.abs(rightDrive), JOYSTICK_EXPONENT) * rSign;
 
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         if (autoSteerBall || autoSteerStation) {
@@ -230,16 +272,20 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     private ClimberDemand generateClimberDemand() {
-        boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
-                rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
-
         ClimberDemand demand = new ClimberDemand();
+        boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
+        rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
+
+        double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftSecondJoystick_.getY();
+        double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
+
+        climberSplit = climberSplitLatch.update(rightSecondJoystick_.getTrigger()) != climberSplit;
         deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
         demand.deploy = deployClimber;
         lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
         demand.lock = lockClimber;
-        demand.winchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
-
+        demand.leftWinchSpeed = climberSplit ? leftWinchSpeed : rightWinchSpeed;
+        demand.rightWinchSpeed = rightWinchSpeed;
         return demand;
     }
 
