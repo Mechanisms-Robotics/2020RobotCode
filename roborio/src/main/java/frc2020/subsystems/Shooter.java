@@ -97,7 +97,7 @@ public class Shooter implements Subsystem {
             case Manual:
                 return desiredState == ShooterState.Stowed;
             case Stowed:
-                return desiredState == ShooterState.Aiming;
+                return desiredState == ShooterState.Aiming || desiredState == ShooterState.Shooting;
             case Aiming:
                 return (desiredState == ShooterState.Shooting) || (desiredState == ShooterState.Stowed);
             case Shooting:
@@ -296,11 +296,9 @@ public class Shooter implements Subsystem {
         hood_.setToStowPosition();
 
         if (!flywheel_.isStopped()) {
-            logger_.logDebug("Waiting for flywheel to stop!", logName);
             return;
         }
 
-        logger_.logDebug("Flywheel stopped!", logName);
 
         hood_.stowHood();
 
@@ -308,22 +306,14 @@ public class Shooter implements Subsystem {
             return;
         }
 
-        logger_.logDebug("Hood stowed!", logName);
-
         state_ = ShooterState.Stowed;
-
-        logger_.logDebug("Transition successful!", logName);
     }
 
     private void handleAimingTransition () {
 
         hasStartedSeeking_ = false;
 
-        flywheel_.stop();
-
-        limelight_.setLed(Limelight.LedMode.ON);
-
-        hood_.setToStowPosition();
+        limelight_.setLed(Limelight.LedMode.PIPELINE);
 
         // TODO: Aim turret in ball park
 
@@ -333,14 +323,20 @@ public class Shooter implements Subsystem {
             return;
         }
 
-        if (!flywheel_.isStopped()) {
-            return;
-        }
+        if (wantedState_ != ShooterState.Shooting) {
 
-        hood_.stowHood();
+            flywheel_.stop();
+            hood_.setToStowPosition();
 
-        if (!hood_.isStowed()) {
-            return;
+            if (!flywheel_.isStopped()) {
+                return;
+            }
+
+            hood_.stowHood();
+
+            if (!hood_.isStowed()) {
+                return;
+            }
         }
 
         state_ = ShooterState.Aiming;
@@ -348,8 +344,13 @@ public class Shooter implements Subsystem {
 
     private void handleShootingTransition() {
 
+        if (state_ == ShooterState.Stowed) {
+            handleAimingTransition();
+        }
+
         hood_.deployHood();
-        
+        limelight_.setLed(Limelight.LedMode.PIPELINE);
+
         if (!hood_.isDeployed()) {
             return;
         }
@@ -385,6 +386,14 @@ public class Shooter implements Subsystem {
                 return;
             default:
                 logger_.logWarning("Invalid state on re-enable", logName);
+        }
+    }
+
+    public synchronized boolean hasTarget() {
+        if (limelight_ == null) {
+            return false;
+        } else {
+            return limelight_.getTargetReading().hasConfidentTarget();
         }
     }
 

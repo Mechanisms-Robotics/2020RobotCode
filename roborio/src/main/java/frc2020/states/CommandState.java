@@ -36,6 +36,7 @@ public class CommandState {
         public DemandType type = DemandType.OpenLoop;
         public boolean inLowGear = false;
         public boolean autoSteer = false;
+        public boolean autoBackup = false;
 
         /**
          * All possible demand types are inserted here
@@ -49,6 +50,14 @@ public class CommandState {
             DriveDemand demand = new DriveDemand();
             demand.signal = signal;
             demand.autoSteer = true;
+            demand.autoBackup = false;
+            return demand;
+        }
+
+        public static DriveDemand autoBackup() {
+            DriveDemand demand = new DriveDemand();
+            demand.autoSteer = false;
+            demand.autoBackup = true;
             return demand;
         }
 
@@ -183,6 +192,8 @@ public class CommandState {
             if (driveDemand.autoSteer) {
                 double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight()) / 2.0;
                 drive.autoSteer(limelight.getTargetReading().azimuth, average);
+            } else if (driveDemand.autoBackup) {
+                drive.autoBackup();
             } else if (driveDemand.type == DriveDemand.DemandType.Velocity) {
                 drive.driveVelocity(driveDemand.signal);
             } else {

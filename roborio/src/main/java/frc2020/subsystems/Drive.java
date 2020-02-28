@@ -44,7 +44,7 @@ public class Drive implements Subsystem {
 
     private static final double DRIVE_ENCODER_PPR = 4096.0;
     private static final double NEO_ENCODER_PPR = 46.0;
-    private static final double HIGH_GEAR_RATIO = 8.63;
+    private static final double HIGH_GEAR_RATIO = 6.7;
 
     private static final int VELOCITY_PID = 0;
     private static final int EMPTY_PID = 1;
@@ -52,7 +52,9 @@ public class Drive implements Subsystem {
     private static Logger logger_ = Logger.getInstance();
 
     private static final String logName = "Drive";
-    
+
+    private static double backupPosition_ = 0.0;
+
     // This is the instance_ of the Drive object on the robot
     public static Drive instance_;
 
@@ -493,6 +495,20 @@ public class Drive implements Subsystem {
                                                       baseDutyCycle - adjustedDutyCycle, true);
         openLoop(autoSteerSignal);
     }
+
+    public synchronized void setBackupDistance(double targetPosition) {
+        backupPosition_ = getOdometryPose().getTranslation().getX() + targetPosition;
+    }
+
+    public synchronized void autoBackup() {
+        double kP = 0.5; // TODO: Tune
+        double error = backupPosition_ - getOdometryPose().getTranslation().getX();
+
+        DriveSignal autoBackupSignal = new DriveSignal(error*kP, error*kP, true);
+
+        openLoop(autoBackupSignal);
+    }
+
 
     /**
     * Resets encoder ticks for CAN Coders and NEO Encoders

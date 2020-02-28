@@ -20,12 +20,15 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftSecondJoystick_;
     private Joystick rightSecondJoystick_;
 
+    private Drive drive_;
+
     // ONLY PERSISTENT VALUES SHOULD BE STORED HERE
     private final double JOYSTICK_DEADBAND = 0.01;
     private LatchedBoolean driveShiftLatch;
     private boolean autoSteerBall = false;
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
+    private LatchedBoolean autoBackupLatch;
 
     private LatchedBoolean manualControlLatch;
     private boolean manualControl = false;
@@ -50,7 +53,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean isFeederDemand = false;
 
     private Shooter shooter_ = Shooter.getInstance();
-    private Drive drive_;
 
     private CheesyDriveHelper cheesyHelper_;
 
@@ -75,6 +77,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         leftSecondJoystick_ = new Joystick(lJoySecPort);
         rightSecondJoystick_ = new Joystick(rJoySecPort);
         driveShiftLatch = new LatchedBoolean();
+        autoBackupLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
         deployClimberLatch = new LatchedBoolean();
@@ -88,6 +91,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployHoodLatch = new LatchedBoolean();
         getStowAimingLatch = new LatchedBoolean();
         getShooterLatch = new LatchedBoolean();
+
+        drive_ = Drive.getInstance();
+
         climberSplitLatch = new LatchedBoolean();
         driveChooser = new SendableChooser<>();
         driveChooser.setDefaultOption(DriveMode.Tank.toString(), DriveMode.Tank);
@@ -136,11 +142,17 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
+        final double BACKUP_DISTANCE = 0.54;
+        //Drive
+        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+        boolean autoBackup = rightJoystick_.getPOV() == Constants.AUTO_BACKUP_POV_HAT;
+        boolean autoBackupLatchBoolean = autoBackupLatch.update(autoBackup);
+
         final double DEADBAND = 0.01;
 
         double leftDrive = 0.0;
         double rightDrive = 0.0;
-        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+
         var driveMode = driveChooser.getSelected();
         var povDir = leftJoystick_.getPOV();
         var quickTurn = povDir == 0 || povDir == 45 || povDir == 315;
@@ -177,6 +189,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         if (autoSteerBall || autoSteerStation) {
             return DriveDemand.autoSteer(signal);
+        }
+        if (autoBackup) {
+            if (autoBackupLatchBoolean) {
+                drive_.setBackupDistance(BACKUP_DISTANCE);
+            }
+            return DriveDemand.autoBackup();
         }
         return DriveDemand.fromSignal(signal, driveLowGear);
     }
@@ -298,13 +316,19 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 if (getStowAiming) {
                     demand.state = Shooter.ShooterState.Stowed;
                 } else if (getShooter) {
-                    demand.state = Shooter.ShooterState.Shooting;
+                    if (shooter_.getWantedState() != Shooter.ShooterState.Shooting) {
+                        demand.state = Shooter.ShooterState.Shooting;
+                    } else {
+                        demand.state = Shooter.ShooterState.Stowed;
+                    }
                 } else {
                     demand.state = shooter_.getWantedState();
                 }
             } else {
                 if (getStowAiming) {
                     demand.state = Shooter.ShooterState.Aiming;
+                } else if (getShooter) {
+                    demand.state = Shooter.ShooterState.Shooting;
                 }
             }
         }

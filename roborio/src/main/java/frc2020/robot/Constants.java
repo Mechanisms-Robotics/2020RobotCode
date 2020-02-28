@@ -50,17 +50,20 @@ public class Constants {
     public final static int CLIMB_REVERSE = 3;
 
     // Drive Train Physical Properties
+    // TODO: Find for actual robot
     // meters NOTE: This is the effective wheel diameter not the measured one
-    public final static double WHEEL_DIAMETER = 0.1522414151; // meters
+    public final static double WHEEL_DIAMETER = 0.1537638293; // meters
     public final static double WHEEL_RADIUS = WHEEL_DIAMETER / 2; // meters
     public final static double DRIVE_TRACK_WIDTH = 0.635; // meters
     public final static double TRACK_SCRUB_FACTOR = 1.062; // We use this to calculate effective wheel base
     public final static double ROBOT_LENGTH = 0.97155; //meters
     public final static double ROBOT_WIDTH = 0.8382; //meters
+    public final static double INTAKE_LENGTH = 0.2794; //meters
+    public final static double INTAKE_WIDTH = 0.5; //meters
 
-    public final static double DRIVE_V_INTERCEPT = 0.189;  // Volts
-    public final static double DRIVE_KV = 2.28;  // V per rad/s
-    public final static double DRIVE_KA = 0.494; // V per rad/s^2
+    public final static double DRIVE_V_INTERCEPT = 0.243;  // Volts
+    public final static double DRIVE_KV = 1.76;  // V per m/s
+    public final static double DRIVE_KA = 0.557; // V per m/s^2
 
     // Drive Train Control Loop (VELOCITY)
     public final static double VELOCITY_HIGH_GEAR_KP = 0.0005; //2.28
@@ -79,6 +82,7 @@ public class Constants {
     public final static int AUTO_STEER_BUTTON = 2; // left driver
     public final static int AUTO_ALIGN_BUTTON = 3; // left driver
     public final static int SHOOTER_SET_STOWED_AIMING = 4; //left driver
+    public final static int AUTO_BACKUP_POV_HAT = 180;; //right driver
     // Left Driver Y-Axis: Left Drive Control
 
     public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
