@@ -501,7 +501,7 @@ public class Drive implements Subsystem {
         backupPosition_ = getOdometryPose().getTranslation().getX() - targetPosition;
     }
 
-    public synchronized void autoBackup(double targetPosition) {
+    public synchronized void autoBackup() {
         double kP = 0.0001; // TODO: Tune
         double error = backupPosition_ - getOdometryPose().getTranslation().getX();
 

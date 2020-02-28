@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
+import frc2020.subsystems.Drive;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Shooter;
 import frc2020.util.*;
@@ -18,12 +19,15 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftSecondJoystick_;
     private Joystick rightSecondJoystick_;
 
+    private Drive drive_;
+
     // ONLY PERSISTENT VALUES SHOULD BE STORED HERE
     private final double JOYSTICK_DEADBAND = 0.01;
     private LatchedBoolean driveShiftLatch;
     private boolean autoSteerBall = false;
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
+    private LatchedBoolean autoBackupLatch;
 
     private LatchedBoolean manualControlLatch;
     private boolean manualControl = false;
@@ -60,6 +64,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         leftSecondJoystick_ = new Joystick(lJoySecPort);
         rightSecondJoystick_ = new Joystick(rJoySecPort);
         driveShiftLatch = new LatchedBoolean();
+        autoBackupLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
         deployClimberLatch = new LatchedBoolean();
@@ -70,6 +75,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployHoodLatch = new LatchedBoolean();
         getStowAimingLatch = new LatchedBoolean();
         getShooterLatch = new LatchedBoolean();
+
+        drive_ = Drive.getInstance();
     }
 
     /**
@@ -112,8 +119,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
+        final double BACKUP_DISTANCE = -0.54;
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+        boolean autoBackup = rightSecondJoystick_.getRawButtonPressed(Constants.AUTO_BACKUP_BUTTON);
         double leftDrive = Math.abs(leftJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftJoystick_.getY();
         double rightDrive = Math.abs(rightJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightJoystick_.getY();
 
@@ -137,6 +146,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         if (autoSteerBall || autoSteerStation) {
             return DriveDemand.autoSteer(signal);
+        } else if (autoBackup) {
+            if (autoBackupLatch.update(autoBackup)) {
+                drive_.setBackupDistance(BACKUP_DISTANCE);
+            }
+            return DriveDemand.autoBackup();
         }
         return DriveDemand.fromSignal(signal, driveLowGear);
     }
