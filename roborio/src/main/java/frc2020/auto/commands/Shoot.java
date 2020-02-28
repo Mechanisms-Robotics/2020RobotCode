@@ -62,7 +62,7 @@ public class Shoot implements Command {
      */
     @Override
     public void update() {
-        if (needsToAim_ || SHOOTER.getState() == Shooter.ShooterState.Aiming) {
+        if (needsToAim_ && SHOOTER.getState() == Shooter.ShooterState.Aiming) {
             if (SHOOTER.hasTarget()) {
                 SHOOTER.setState(Shooter.ShooterState.Shooting);
                 shootStartTime_ = Timer.getFPGATimestamp();
