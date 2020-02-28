@@ -31,11 +31,15 @@ public class Constants {
     public final static int RIGHT_MASTER_PORT = 3; // Spark Max
     public final static int RIGHT_SLAVE_PORT = 4; // Spark Max
 
+    // Climber Ports
+    public final static int RIGHT_CLIMB_PORT = 12;
+    public final static int LEFT_CLIMB_PORT = 13;
+
     // Motor Controller Properties
-    public final static double OPEN_LOOP_RAMP = 0.15; // seconds
+    public final static double OPEN_LOOP_RAMP = 0.05; // seconds
     public final static double CLOSED_LOOP_RAMP = 0.10; // seconds
-    public final static int STALL_LIMIT = 45; // Amps DC
-    public final static int FREE_LIMIT = 40; // Amps DC
+    public final static int STALL_LIMIT = 60; // Amps DC
+    public final static int FREE_LIMIT = 60; // Amps DC
 
     //The Shifters (drive)
     public final static int SHIFT_FORWARD = 6;
@@ -78,6 +82,7 @@ public class Constants {
     public final static int AUTO_STEER_BUTTON = 2; // left driver
     public final static int AUTO_ALIGN_BUTTON = 3; // left driver
     public final static int SHOOTER_SET_STOWED_AIMING = 4; //left driver
+    public final static int AUTO_BACKUP_BUTTON = 11; //right second
     // Left Driver Y-Axis: Left Drive Control
 
     public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger

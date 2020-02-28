@@ -393,7 +393,6 @@ public class Drive implements Subsystem {
     public void registerLoops(ILooper in){
         in.register(driveLoop);
     }
-
     /**
      * Set all the Spark Maxes to Brake Mode
      *
@@ -501,7 +500,7 @@ public class Drive implements Subsystem {
         backupPosition_ = getOdometryPose().getTranslation().getX() - targetPosition;
     }
 
-    public synchronized void autoBackup(double targetPosition) {
+    public synchronized void autoBackup() {
         double kP = 0.0001; // TODO: Tune
         double error = backupPosition_ - getOdometryPose().getTranslation().getX();
 
@@ -871,7 +870,6 @@ public class Drive implements Subsystem {
         SmartDashboard.putNumber("Odometery Rotation", odometry_pose.getRotation().getDegrees());
         SmartDashboard.putNumber("Left FeedForward", io_.left_feedforward);
         SmartDashboard.putNumber("Right FeedForward", io_.right_feedforward);
-
 
         if (CSVWriter_ != null) {
             CSVWriter_.write();

@@ -1,6 +1,5 @@
 package frc2020.states;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.subsystems.*;
 import frc2020.util.Logger;
 import frc2020.subsystems.Climber;
@@ -37,6 +36,7 @@ public class CommandState {
         public DemandType type = DemandType.OpenLoop;
         public boolean inLowGear = false;
         public boolean autoSteer = false;
+        public boolean autoBackup = false;
 
         /**
          * All possible demand types are inserted here
@@ -50,6 +50,14 @@ public class CommandState {
             DriveDemand demand = new DriveDemand();
             demand.signal = signal;
             demand.autoSteer = true;
+            demand.autoBackup = false;
+            return demand;
+        }
+
+        public static DriveDemand autoBackup() {
+            DriveDemand demand = new DriveDemand();
+            demand.autoSteer = false;
+            demand.autoBackup = true;
             return demand;
         }
 
@@ -84,7 +92,8 @@ public class CommandState {
     public static class ClimberDemand {
         public boolean deploy = false;
         public boolean lock = false;
-        public double winchSpeed = 0.0;
+        public double rightWinchSpeed = 0.0;
+        public double leftWinchSpeed = 0.0;
     }
 
     public static class TurretDemand {
@@ -183,6 +192,8 @@ public class CommandState {
             if (driveDemand.autoSteer) {
                 double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight()) / 2.0;
                 drive.autoSteer(limelight.getTargetReading().azimuth, average);
+            } else if (driveDemand.autoBackup) {
+                drive.autoBackup();
             } else if (driveDemand.type == DriveDemand.DemandType.Velocity) {
                 drive.driveVelocity(driveDemand.signal);
             } else {
@@ -261,7 +272,7 @@ public class CommandState {
 
     private void maybeUpdateClimber(Climber climber) {
         if (climberDemand != null) {
-            climber.controlWinch(climberDemand.winchSpeed);
+            climber.controlWinch(new DriveSignal(climberDemand.leftWinchSpeed, climberDemand.rightWinchSpeed, true));
             //Note that the winch demand is set first
             //If we have not yet stowed, super.stop() will override demand
 
