@@ -316,13 +316,19 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 if (getStowAiming) {
                     demand.state = Shooter.ShooterState.Stowed;
                 } else if (getShooter) {
-                    demand.state = Shooter.ShooterState.Shooting;
+                    if (shooter_.getWantedState() != Shooter.ShooterState.Shooting) {
+                        demand.state = Shooter.ShooterState.Shooting;
+                    } else {
+                        demand.state = Shooter.ShooterState.Stowed;
+                    }
                 } else {
                     demand.state = shooter_.getWantedState();
                 }
             } else {
                 if (getStowAiming) {
                     demand.state = Shooter.ShooterState.Aiming;
+                } else if (getShooter) {
+                    demand.state = Shooter.ShooterState.Shooting;
                 }
             }
         }
