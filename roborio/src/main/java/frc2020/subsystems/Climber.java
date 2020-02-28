@@ -53,14 +53,14 @@ public class Climber implements Subsystem {
     private String logName = "Climber";
 
     private void configSparkMaxs() {
-        leftClimb_ = new CANSparkMax(Constants.LEFT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
-        rightClimb_ = new CANSparkMax(Constants.RIGHT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        leftClimb_ = new CANSparkMax(Constants.RIGHT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+        rightClimb_ = new CANSparkMax(Constants.LEFT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
 
         leftClimb_.restoreFactoryDefaults();
         rightClimb_.restoreFactoryDefaults();
 
-        leftClimb_.setInverted(false);
-        rightClimb_.setInverted(true);
+        leftClimb_.setInverted(true);
+        rightClimb_.setInverted(false);
 
         leftClimb_.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 10);
         rightClimb_.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 10);
