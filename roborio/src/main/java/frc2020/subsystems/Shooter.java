@@ -244,8 +244,8 @@ public class Shooter implements Subsystem {
 
     private void handleStowed() {
         if (handleOverrideFeeder()) {
-            //feeder_.setState(FeederState.INTAKING);
-            feeder_.setState(FeederState.MANUAL);
+            feeder_.setState(FeederState.INTAKING);
+            //feeder_.setState(FeederState.MANUAL);
         }
     }
 
