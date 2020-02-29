@@ -306,7 +306,7 @@ public class Robot extends TimedRobot {
                 autoRunner_ = null;
             }
             teleopCSGenerator_.resetManualControl();
-            teleopCSGenerator_.resetAutoBackup();
+            teleopCSGenerator_.resetPresetPositions();
             shooter_.handleReenable();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);

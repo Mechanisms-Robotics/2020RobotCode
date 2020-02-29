@@ -78,11 +78,12 @@ public class Constants {
     public final static int LEFT_SECONDARY_DRIVER_JOYSTICK_PORT = 3;
     public final static int RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT = 4;
 
-    public final static int SHOOTER_SET_SHOOTING = 1; //left driver trigger
+    public final static int SHOOTER_SET_SHOOTING = 1; // left driver trigger
     public final static int AUTO_STEER_BUTTON = 2; // left driver
     public final static int AUTO_ALIGN_BUTTON = 3; // left driver
-    public final static int SHOOTER_SET_STOWED_AIMING = 4; //left driver
-    public final static int AUTO_BACKUP_POV_HAT = 180;; //right driver
+    public final static int SHOOTER_SET_STOWED_AIMING = 4; // left driver
+    public final static int AUTO_BACKUP_POV_HAT = 180; // right driver
+    public final static int TRENCH_POV_HAT = 0; // right driver
     // Left Driver Y-Axis: Left Drive Control
 
     public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
