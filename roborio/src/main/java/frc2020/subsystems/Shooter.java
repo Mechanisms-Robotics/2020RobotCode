@@ -26,6 +26,8 @@ public class Shooter implements Subsystem {
     private final static double TURRET_SEEKING_DUTY_CYCLE = 0.07; // duty cycle
     private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
 
+    private final static int POWER_PORT_SPEED = 5000;
+
     private double startingPosition = 0.0;
     private double turretSeekPower_ = TURRET_SEEKING_DUTY_CYCLE;
     private boolean hasStartedSeeking_ = false;
@@ -341,10 +343,10 @@ public class Shooter implements Subsystem {
             return;
         }
 
-        flywheel_.spinFlywheel();
+        flywheel_.spinFlywheel(POWER_PORT_SPEED);
         hood_.setToStowPosition();
 
-        if(!flywheel_.upToSpeed() || !hood_.atDemand()) {
+        if(!flywheel_.atVelocity(POWER_PORT_SPEED) || !hood_.atDemand()) {
             return;
         }
 
