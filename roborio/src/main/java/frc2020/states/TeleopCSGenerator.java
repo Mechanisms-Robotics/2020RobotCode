@@ -118,8 +118,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         // Whether to auto target to station
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
         // Whether to run the power port backup sequence
-        autoBackup = rightJoystick_.getPOV() == Constants.AUTO_BACKUP_POV_HAT;
-        autoBackupLatchBoolean = autoBackupLatch.update(autoBackup);
+        boolean autoBackupSharedBoolean  = autoBackupLatch.update(rightJoystick_.getPOV() == Constants.AUTO_BACKUP_POV_HAT);
+        autoBackup = autoBackupSharedBoolean != autoBackup;
+        autoBackupLatchBoolean = autoBackupSharedBoolean;
 
         // Whether to use manual control or not
         manualControl = manualControlLatch.update(leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) &&
@@ -334,7 +335,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                     demand.state = shooter_.getWantedState();
                 }
             } else if (shooter_.getWantedState() == ShooterState.PowerPort || shooter_.getWantedState() == ShooterState.Trench) {
-                if (getStowAiming) {
+                if (!autoBackup) {
                     demand.state = ShooterState.Stowed;
                 } else {
                     demand.state = shooter_.getWantedState();
@@ -361,5 +362,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         manualControl = false;
         deployHood = false;
         spinFlywheel = false;
+    }
+
+    public synchronized void resetAutoBackup() {
+        autoBackup = false;
     }
 }

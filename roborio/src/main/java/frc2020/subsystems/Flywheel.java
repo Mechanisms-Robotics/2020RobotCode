@@ -48,7 +48,11 @@ public class Flywheel extends SingleMotorSubsystem {
      * Spins flywheel at set speed
      */
     public synchronized void spinFlywheel() {
-        super.setVelocity(FLYWHEEL_SPEED);
+        spinFlywheel(FLYWHEEL_SPEED);
+    }
+
+    public synchronized void spinFlywheel(double velocity) {
+        super.setVelocity(velocity);
     }
 
     public synchronized void spinLongRangeFlywheel() {
