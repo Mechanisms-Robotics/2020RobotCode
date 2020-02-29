@@ -8,6 +8,7 @@ import frc2020.states.CommandState.*;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Shooter;
+import frc2020.subsystems.Shooter.ShooterState;
 import frc2020.util.*;
 
 /**
@@ -29,6 +30,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
     private LatchedBoolean autoBackupLatch;
+    private boolean autoBackup;
+    private boolean autoBackupLatchBoolean;
 
     private LatchedBoolean manualControlLatch;
     private boolean manualControl = false;
@@ -112,6 +115,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         // Whether to auto target to station
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
+        // Whether to run the power port backup sequence
+        autoBackup = rightJoystick_.getPOV() == Constants.AUTO_BACKUP_POV_HAT;
+        autoBackupLatchBoolean = autoBackupLatch.update(autoBackup);
 
         // Whether to use manual control or not
         manualControl = manualControlLatch.update(leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) &&
@@ -145,8 +151,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         final double BACKUP_DISTANCE = 0.54;
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
-        boolean autoBackup = rightJoystick_.getPOV() == Constants.AUTO_BACKUP_POV_HAT;
-        boolean autoBackupLatchBoolean = autoBackupLatch.update(autoBackup);
 
         final double DEADBAND = 0.01;
 
@@ -324,11 +328,19 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 } else {
                     demand.state = shooter_.getWantedState();
                 }
+            } else if (shooter_.getWantedState() == Shooter.ShooterState.PowerPort) {
+                if (getStowAiming) {
+                    demand.state = ShooterState.Stowed;
+                } else {
+                    demand.state = ShooterState.PowerPort;
+                }
             } else {
                 if (getStowAiming) {
                     demand.state = Shooter.ShooterState.Aiming;
                 } else if (getShooter) {
                     demand.state = Shooter.ShooterState.Shooting;
+                } else if (autoBackupLatchBoolean) {
+                    demand.state = Shooter.ShooterState.PowerPort;
                 }
             }
         }
