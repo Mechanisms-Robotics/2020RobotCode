@@ -3,6 +3,7 @@ package frc2020.subsystems;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.loops.ILooper;
+import frc2020.robot.Constants;
 
 public class Turret extends SingleMotorSubsystem {
 
@@ -52,8 +53,8 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.useBreakMode = true;
 
         DEFAULT_CONSTANTS.enableSoftLimits = true;
-        DEFAULT_CONSTANTS.forwardSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() + 10.0); // 350.0F
-        DEFAULT_CONSTANTS.reverseSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() - 10.0); // 5.0F
+        DEFAULT_CONSTANTS.forwardSoftLimit = Constants.IS_COMP_BOT ? (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() + 60.0) : (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() + 10.0); // 350.0F
+        DEFAULT_CONSTANTS.reverseSoftLimit = Constants.IS_COMP_BOT ? (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() - 60.0) : (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() - 10.0); // 5.0F
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
