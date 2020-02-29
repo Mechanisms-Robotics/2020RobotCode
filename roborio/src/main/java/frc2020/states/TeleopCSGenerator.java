@@ -8,6 +8,7 @@ import frc2020.states.CommandState.*;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Shooter;
+import frc2020.subsystems.Shooter.ShooterState;
 import frc2020.util.*;
 
 /**
@@ -327,12 +328,18 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 } else {
                     demand.state = shooter_.getWantedState();
                 }
+            } else if (shooter_.getWantedState() == Shooter.ShooterState.PowerPort) {
+                if (getStowAiming) {
+                    demand.state = ShooterState.Stowed;
+                } else {
+                    demand.state = ShooterState.PowerPort;
+                }
             } else {
                 if (getStowAiming) {
                     demand.state = Shooter.ShooterState.Aiming;
                 } else if (getShooter) {
                     demand.state = Shooter.ShooterState.Shooting;
-                } else if (autoBackup) {
+                } else if (autoBackupLatchBoolean) {
                     demand.state = Shooter.ShooterState.PowerPort;
                 }
             }
