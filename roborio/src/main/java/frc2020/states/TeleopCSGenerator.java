@@ -96,6 +96,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployHoodLatch = new LatchedBoolean();
         getStowAimingLatch = new LatchedBoolean();
         getShooterLatch = new LatchedBoolean();
+        getTrenchLatch = new LatchedBoolean();
 
         drive_ = Drive.getInstance();
 
@@ -334,11 +335,17 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 } else {
                     demand.state = shooter_.getWantedState();
                 }
-            } else if (shooter_.getWantedState() == ShooterState.PowerPort || shooter_.getWantedState() == ShooterState.Trench) {
+            } else if (shooter_.getWantedState() == ShooterState.PowerPort) {
                 if (!autoBackup) {
                     demand.state = ShooterState.Stowed;
                 } else {
-                    demand.state = shooter_.getWantedState();
+                    demand.state = ShooterState.PowerPort;
+                }
+            } else if (shooter_.getWantedState() == ShooterState.Trench) {
+                if (!getTrench) {
+                    demand.state = ShooterState.Stowed;
+                } else {
+                    demand.state = ShooterState.Trench;
                 }
             } else {
                 if (getStowAiming) {
@@ -364,7 +371,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         spinFlywheel = false;
     }
 
-    public synchronized void resetAutoBackup() {
+    public synchronized void resetPresetPositions() {
         autoBackup = false;
+        getTrench = false;
     }
 }
