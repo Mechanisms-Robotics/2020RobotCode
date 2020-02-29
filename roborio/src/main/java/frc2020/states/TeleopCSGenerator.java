@@ -356,4 +356,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployHood = false;
         spinFlywheel = false;
     }
+
+    public synchronized void resetAutoBackup() {
+        autoBackup = false;
+    }
 }
