@@ -1,10 +1,7 @@
 package frc2020.robot;
 
-import frc2020.util.DriveSignal;
-import frc2020.util.Logger;
-import frc2020.util.LoggerNotStartedException;
-import frc2020.util.PeriodicEvent;
-import frc2020.util.PeriodicEventManager;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.util.*;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
@@ -200,6 +197,7 @@ public class Robot extends TimedRobot {
 
             periodicEventManager_.run();
             manager_.outputToSmartDashboard();
+            SmartDashboard.putBoolean("IsCompBot: ", Constants.IS_COMP_BOT);
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
 //            if (target != null) {
 //                SmartDashboard.putNumber("Distance", target.getTranslation().getX());
@@ -352,7 +350,10 @@ public class Robot extends TimedRobot {
             disabledIterator_.stop();
             enabledIterator_.start();
             teleopCSGenerator_.resetManualControl();
-            manager_.runActiveTests();
+  //          manager_.runActiveTests();
+            hood_.deployHood();
+            Timer.delay(1.0);
+            hood_.setSmartPosition(2.5);
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;

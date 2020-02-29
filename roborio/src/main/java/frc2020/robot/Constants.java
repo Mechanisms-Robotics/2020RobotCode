@@ -12,9 +12,24 @@ import frc2020.util.Logger;
  * quickly update the entire robot for electrical wiring changes
  */
 public class Constants {
+    private static Logger logger_ = Logger.getInstance();
+
+    public final static String COMP_BOT_MAC = "00-80-2F-28-50-8D";
+    public final static boolean IS_COMP_BOT;
+    static {
+        String currentMacAddress = getMACAddress();
+        logger_.logInfo("RIO Mac Address: " + currentMacAddress);
+        if (currentMacAddress.equals(COMP_BOT_MAC)) {
+            logger_.logInfo("Hello CompBot");
+            IS_COMP_BOT = true;
+        } else {
+            logger_.logInfo("Hello Practice Bot"); // TODO: Get pracitce bot mac address
+            IS_COMP_BOT = false;
+        }
+    }
+
     // Logger
     public final static double LOGGER_FLUSH_TIME = 2.0;
-    private static Logger logger_ = Logger.getInstance();
 
     // Passive tests
     public final static double PASSIVE_TEST_TIME = 10.0;
@@ -44,10 +59,6 @@ public class Constants {
     //The Shifters (drive)
     public final static int SHIFT_FORWARD = 6;
     public final static int SHIFT_REVERSE = 7;
-
-    //Climber
-    public final static int CLIMB_FORWARD = 2;
-    public final static int CLIMB_REVERSE = 3;
 
     // Drive Train Physical Properties
     // TODO: Find for actual robot
@@ -137,9 +148,7 @@ public class Constants {
                     logger_.logError("Network Interface for the specified address is not found.");
                 }
             }
-        } catch (final SocketException e) {
-            e.printStackTrace();
-        } catch (final NullPointerException e) {
+        } catch (final SocketException | NullPointerException e) {
             e.printStackTrace();
         }
         return "";

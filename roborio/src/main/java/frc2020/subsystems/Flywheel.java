@@ -2,6 +2,7 @@ package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
+import frc2020.robot.Constants;
 
 public class Flywheel extends SingleMotorSubsystem {
 
@@ -16,7 +17,7 @@ public class Flywheel extends SingleMotorSubsystem {
     static {
         var masterConstants = new MotorConstants();
         masterConstants.id_ = 10;
-        masterConstants.invertMotor_ = false;
+        masterConstants.invertMotor_ = Constants.IS_COMP_BOT ? true : false;
 
         MotorConstants[] slaveConstantsArray = new MotorConstants[1];
         var slaveConstants = new MotorConstants();
