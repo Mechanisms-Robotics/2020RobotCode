@@ -1,12 +1,15 @@
 package frc2020.states;
 
+import frc2020.subsystems.*;
 import frc2020.util.Logger;
+import frc2020.subsystems.Climber;
 import frc2020.subsystems.ControlPanel;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Flywheel;
 import frc2020.subsystems.Intake;
 import frc2020.subsystems.Limelight;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.util.DriveSignal;
 
 /**
@@ -21,7 +24,11 @@ public class CommandState {
     public IntakeDemand intakeDemand;
     public FlywheelDemand flywheelDemand;
     public ControlPanelDemand controlPanelDemand;
+    public ClimberDemand climberDemand;
     public boolean manualDemand = false;
+    private TurretDemand turretDemand;
+    private HoodDemand hoodDemand;
+    private ShooterDemand shooterDemand;
 
     private Logger logger_ = Logger.getInstance();
 
@@ -81,6 +88,28 @@ public class CommandState {
         public boolean deploy = false;
     }
 
+    public static class ClimberDemand {
+        public boolean deploy = false;
+        public boolean lock = false;
+        public double rightWinchSpeed = 0.0;
+        public double leftWinchSpeed = 0.0;
+    }
+
+    public static class TurretDemand {
+        public double speed = 0.0;
+        public boolean useOpenLoop = true;
+    }
+
+    public static class HoodDemand {
+        public double speed = 0.0;
+        public boolean deploy = false;
+    }
+
+    public static class ShooterDemand {
+        public Shooter.ShooterState state = Shooter.ShooterState.Stowed;
+        public boolean overrideFeeder = false;
+    }
+
     public void setManualControl(boolean manualControl) {
         manualDemand = manualControl;
     }
@@ -113,6 +142,19 @@ public class CommandState {
         controlPanelDemand = demand;
     }
 
+    public void setClimberDemand(ClimberDemand demand) {
+        climberDemand = demand;
+    }
+
+    public void setTurretDemand(TurretDemand demand) {
+        turretDemand = demand;
+    }
+
+    public void setHoodDemand(HoodDemand demand) {
+        hoodDemand = demand;
+    }
+
+    public void setShooterDemand(ShooterDemand demand) { shooterDemand = demand; }
     /**
      * Getter for each subsystem demand
      * @return
@@ -121,65 +163,27 @@ public class CommandState {
         return driveDemand;
     }
 
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake) {
-        maybeUpdateLimelight(limelight);
-        maybeUpdateDrive(drive, limelight);
-        maybeUpdateIntake(intake);
-        if (manualDemand) {
-            maybeUpdateFeeder(feeder);
-            feederDemand = null;
-        } else { // TODO: Remove when superstructure implemented
-            feederDemand = new FeederDemand();
-            maybeUpdateFeeder(feeder);
-        }
-        driveDemand = null;
-        limelightDemand = null;
-        intakeDemand = null;
-    }
-
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, ControlPanel controlPanel) {
-        maybeUpdateLimelight(limelight);
-        maybeUpdateDrive(drive, limelight);
-        maybeUpdateIntake(intake);
-        if (manualDemand) {
-            maybeUpdateFeeder(feeder);
-            maybeUpdateControlPanel(controlPanel);
-            controlPanelDemand = null;
-            feederDemand = null;
-        } else { // TODO: Remove when superstructure implemented
-            feederDemand = new FeederDemand();
-            controlPanelDemand = new ControlPanelDemand();
-            maybeUpdateFeeder(feeder);
-            maybeUpdateControlPanel(controlPanel);
-        }
-        driveDemand = null;
-        limelightDemand = null;
-        intakeDemand = null;
-    }
-
     /**
      * Tries to update all the subsystems for the robot
      * from this command state
      * @param drive An instance of the drive train subsystem
      */
-    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Intake intake, Flywheel flywheel) { 
+    public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret,
+                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood, Shooter shooter, ControlPanel controlPanel) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
-        if (manualDemand) {
+        maybeUpdateClimber(climber);
+        if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual) {
             maybeUpdateFeeder(feeder);
-            maybeUpdateFlywheel(flywheel);
-            feederDemand = null;
-            flywheelDemand = null;
-        } else { // TODO: Remove when superstructure implemented
-            feederDemand = new FeederDemand();
-            flywheelDemand = new FlywheelDemand();
-            maybeUpdateFeeder(feeder);
-            maybeUpdateFlywheel(flywheel);
         }
-        driveDemand = null;
-        limelightDemand = null;
-        intakeDemand = null;
+        maybeUpdateShooter(shooter);
+        if (shooter.getWantedState() == Shooter.ShooterState.Manual) {
+            maybeUpdateTurret(turret);
+            maybeUpdateHood(hood);
+            maybeUpdateFlywheel(flywheel);
+            maybeUpdateControlPanel(controlPanel);
+        }
     }
 
     /**
@@ -189,7 +193,7 @@ public class CommandState {
      */
     private void maybeUpdateDrive(Drive drive, Limelight limelight) {
         if (driveDemand != null) {
-            if ( driveDemand.autoSteer) {
+            if (driveDemand.autoSteer) {
                 double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight()) / 2.0;
                 drive.autoSteer(limelight.getTargetReading().azimuth, average);
             } else if (driveDemand.type == DriveDemand.DemandType.Velocity) {
@@ -203,6 +207,7 @@ public class CommandState {
                 drive.setHighGear();
             }
         }
+        driveDemand = null;
     }
 
     /**
@@ -214,6 +219,7 @@ public class CommandState {
         if (limelightDemand != null) {
             limelight.setPipeline(limelightDemand.pipeline);
             limelight.setLed(limelightDemand.ledMode);
+            limelightDemand = null;
         }
     }
 
@@ -229,11 +235,12 @@ public class CommandState {
             } else {
                 feeder.stop();
             }
+            feederDemand = null;
         }
     }
 
     private void maybeUpdateIntake(Intake intake) {
-        if(intakeDemand != null) {
+        if (intakeDemand != null) {
             if (intakeDemand.outtake && intakeDemand.intake) {
                 logger_.logInfo("Both intake intake and outake buttons pressed");
                 intake.stop();
@@ -245,21 +252,23 @@ public class CommandState {
                 intake.stop();
             }
 
-            if(intakeDemand.deploy) {
+            if (intakeDemand.deploy) {
                 intake.deployIntake();
             } else {
                 intake.stowIntake();
             }
+            intakeDemand = null;
         }
     }
 
     private void maybeUpdateFlywheel(Flywheel flywheel) {
-        if(flywheelDemand != null) {
-            if(flywheelDemand.spin) {
+        if (flywheelDemand != null) {
+            if (flywheelDemand.spin) {
                 flywheel.spinFlywheel();
             } else {
-                flywheel.stop();
+                flywheel.setOpenLoop(0.0);
             }
+            flywheelDemand = null;
         }
     }
 
@@ -281,6 +290,60 @@ public class CommandState {
             } else {
                 controlPanel.stowPanelArm();
             }
+            controlPanelDemand = null;
+        }
+    }
+
+    private void maybeUpdateClimber(Climber climber) {
+        if (climberDemand != null) {
+            climber.controlWinch(new DriveSignal(climberDemand.leftWinchSpeed, climberDemand.rightWinchSpeed, true));
+            //Note that the winch demand is set first
+            //If we have not yet stowed, super.stop() will override demand
+
+            if (climberDemand.deploy) {
+                climber.deployClimberArm();
+            } else {
+                climber.stowClimberArm();
+            }
+
+            if (climberDemand.lock) {
+                climber.lockWinch();
+            } else {
+                climber.unlockWinch();
+            }
+        }
+        climberDemand = null;
+    }
+
+    private void maybeUpdateTurret(Turret turret) {
+        if (turretDemand != null) {
+            if (turretDemand.useOpenLoop) {
+                turret.setOpenLoop(turretDemand.speed);
+            } else {
+                turret.setRelativeRotation(new Rotation2d(turretDemand.speed));
+            }
+            turretDemand = null;
+        }
+    }
+
+    private void maybeUpdateHood(Hood hood) {
+        if (hoodDemand != null) {
+            if (hoodDemand.deploy) {
+                hood.deployHood();
+                hood.setOpenLoop(hoodDemand.speed);
+            } else {
+                hood.stowHood();
+            }
+            hoodDemand = null;
+        }
+    }
+
+    private void maybeUpdateShooter(Shooter shooter) {
+        if (shooterDemand != null) {
+            shooter.setState(shooterDemand.state);
+            shooter.setOverrideFeeder(shooterDemand.overrideFeeder);
+
+            shooterDemand = null;
         }
     }
 }

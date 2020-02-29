@@ -1,8 +1,8 @@
 package frc2020.subsystems;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc2020.loops.ILooper;
 
 public class Feeder extends SingleMotorSubsystem {
 
@@ -10,6 +10,25 @@ public class Feeder extends SingleMotorSubsystem {
 
     private final static int INTAKE_SPEED = 3500; // rpm
     private final static int OUTTAKE_SPEED = -3500; // rpm
+    private final static int PRIME_SPEED = -2000; // rpm TODO: Tune value
+    private final static int SHOOTING_SPEED = 3500; // rpm TODO: Tune value
+
+    private final static int INTAKE_BREAK_BEAM_CHANNEL = 0; // TODO: Change for robot	
+    private final static int TURRET_BREAK_BEAM_CHANNEL = 1; // TODO: Change for robot	
+
+    private DigitalInput intakeBreakBeam_;	
+    private DigitalInput turretBreakBeam_;
+
+    private FeederState state_ = FeederState.IDLE;
+
+    public enum FeederState {
+        MANUAL,
+        IDLE,
+        INTAKING,
+        PRIMING,
+        SHOOTING
+    }
+
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
         new SingleMotorSubsystemConstants();
@@ -32,6 +51,14 @@ public class Feeder extends SingleMotorSubsystem {
         return instance_ == null ? instance_ = new Feeder(DEFAULT_CONSTANTS) : instance_;
     }
 
+    public FeederState getState() {
+        return state_;
+    }
+
+    public void setState(FeederState desiredState) {
+        state_ = desiredState;
+    }
+
     public void runFeeder(boolean outtake) {
         runFeeder(outtake ? OUTTAKE_SPEED : INTAKE_SPEED);
     }
@@ -45,16 +72,19 @@ public class Feeder extends SingleMotorSubsystem {
 
     protected Feeder(SingleMotorSubsystemConstants constants) {
         super(constants);
+        
+        intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM_CHANNEL);	
+        turretBreakBeam_ = new DigitalInput(TURRET_BREAK_BEAM_CHANNEL);
     }
 
     //TODO: Check what boolean is when broken
     public synchronized boolean getIntakeBreakBeamBroken() {
-        return super.io_.forwardLimit;
+        return !intakeBreakBeam_.get();
     }
     
     //TODO: Check what boolean is when broken
     public synchronized boolean getShooterBreakBeamBroken() {
-        return super.io_.reverseLimit;
+        return !turretBreakBeam_.get();
     }
 
     @Override
@@ -71,16 +101,67 @@ public class Feeder extends SingleMotorSubsystem {
         }
 
         logger_.logInfo("Running feeder intake");
-        super.setVelocity(INTAKE_SPEED); //TODO: Adjust velocity once we can test speed
+        super.setVelocity(INTAKE_SPEED);
         Timer.delay(1.5);
         super.stop();
 
         logger_.logInfo("Running feeder outtake");
-        super.setVelocity(OUTTAKE_SPEED); //TODO: Adjust velocity once we can test speed
+        super.setVelocity(OUTTAKE_SPEED);
         Timer.delay(1.5);
         super.stop();
 
         return hasPassedTests;
+    }
+
+    @Override
+    public synchronized void writePeriodicOutputs() {
+        super.writePeriodicOutputs();
+
+        switch (state_) {
+            case MANUAL:
+                break;
+            case IDLE:
+                super.stop();
+                break;
+            case INTAKING:
+                intakeFeeder();
+                break;
+            case PRIMING:
+                primeFeeder();
+                break;
+            case SHOOTING:
+                shootFeeder();
+                break;
+            default:
+                logger_.logWarning("Invalid feeder state", logName_);
+        }
+    }
+
+    public boolean isPrimed() {
+        if (state_ == FeederState.PRIMING) {
+            return !getShooterBreakBeamBroken();
+        }
+        return false;
+    }
+
+    private synchronized void intakeFeeder() {
+        if (getIntakeBreakBeamBroken()) {//&& !getShooterBreakBeamBroken()) {
+            runFeeder(false);
+        } else {
+            super.stop();
+        }
+    }
+
+    private synchronized void primeFeeder() {
+        if (getShooterBreakBeamBroken()) {
+            runFeeder(PRIME_SPEED);
+        } else {
+            super.stop();
+        }
+    }
+
+    private synchronized void shootFeeder() {
+        runFeeder(SHOOTING_SPEED);
     }
 
     @Override
@@ -89,12 +170,8 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     @Override
-    public void registerLoops(ILooper enabledLooper) {
-        // No loops to register for the time being
-    }
-
-    @Override
     public void outputTelemetry() {
+        super.outputTelemetry();
         SmartDashboard.putBoolean("Intake Break Beam Broken", getIntakeBreakBeamBroken());
         SmartDashboard.putBoolean("Shooter Break Beam Broken", getShooterBreakBeamBroken());
     }

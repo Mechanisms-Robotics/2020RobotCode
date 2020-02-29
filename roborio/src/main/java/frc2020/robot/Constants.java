@@ -31,11 +31,15 @@ public class Constants {
     public final static int RIGHT_MASTER_PORT = 3; // Spark Max
     public final static int RIGHT_SLAVE_PORT = 4; // Spark Max
 
+    // Climber Ports
+    public final static int RIGHT_CLIMB_PORT = 12;
+    public final static int LEFT_CLIMB_PORT = 13;
+
     // Motor Controller Properties
-    public final static double OPEN_LOOP_RAMP = 0.25; // seconds
-    public final static double CLOSED_LOOP_RAMP = 0.25; // seconds
-    public final static int STALL_LIMIT = 45; // Amps DC
-    public final static int FREE_LIMIT = 40; // Amps DC
+    public final static double OPEN_LOOP_RAMP = 0.05; // seconds
+    public final static double CLOSED_LOOP_RAMP = 0.10; // seconds
+    public final static int STALL_LIMIT = 60; // Amps DC
+    public final static int FREE_LIMIT = 60; // Amps DC
 
     //The Shifters (drive)
     public final static int SHIFT_FORWARD = 6;
@@ -70,20 +74,35 @@ public class Constants {
     public final static int RIGHT_DRIVER_JOYSTICK_PORT = 1;
     public final static int LEFT_SECONDARY_DRIVER_JOYSTICK_PORT = 3;
     public final static int RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT = 4;
+
+    public final static int SHOOTER_SET_SHOOTING = 1; //left driver trigger
     public final static int AUTO_STEER_BUTTON = 2; // left driver
     public final static int AUTO_ALIGN_BUTTON = 3; // left driver
-    public final static int MANUAL_CONTROL_BUTTON_1 = 7; //right second
-    public final static int MANUAL_CONTROL_BUTTON_2 = 13; //right second
-    public final static int MANUAL_FEEDER_INTAKE_HAT = 0; //right second
-    public final static int MANUAL_FEEDER_OUTTAKE_HAT = 180; //right second
-    public final static int MANUAL_CONTROL_PANEL_CLOCKWISE_HAT = 0; //left second
-    public final static int MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT = 180; //left second
-    public final static int INTAKE_DEPLOY_TOGGLE = 3; //right driver
-    public final static int INTAKE_OUTTAKE_BUTTON = 2; // right driver
-    public final static int INTAKE_INTAKE_BUTTON = 1; // right driver trigger
-    public final static int FLYWHEEL_SPIN_TOGGLE = 2; // right second
+    public final static int SHOOTER_SET_STOWED_AIMING = 4; //left driver
+    // Left Driver Y-Axis: Left Drive Control
 
+    public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
+    public final static int INTAKE_INTAKE_BUTTON = 2; // right driver
+    public final static int INTAKE_OUTTAKE_BUTTON = 3; // right driver
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
+    // Right Driver Y-Axis: Right Drive Control
+
+    public final static int TOGGLE_HOOD_DEPLOY = 1; //left second trigger
+    public final static int FLYWHEEL_SPIN_TOGGLE = 2; // left second
+    public final static int MANUAL_CONTROL_BUTTON_1 = 7; //left second
+    public final static int MANUAL_CONTROL_BUTTON_2 = 13; //left second
+    public final static int MANUAL_FEEDER_INTAKE_HAT = 180; //left second
+    public final static int MANUAL_FEEDER_OUTTAKE_HAT = 0; //left second
+    // Left Second Y-Axis: Manual Hood Control
+
+    public final static int LOCK_CLIMBER_TOGGLE = 2; //right second
+    public final static int DEPLOY_CLIMBER_TOGGLE_1 = 3; //right second
+    public final static int DEPLOY_CLIMBER_TOGGLE_2 = 4; //right second
+    // Right Second Y-Axis: Climber Winch Control
+    // Right Second Twist: Manual Turret Control
+
+    public final static int MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT = 180; // right second
+    public final static int MANUAL_CONTROL_PANEL_CLOCKWISE_HAT = 0; // right second
 
     //CANcoder IDs
     public final static int LEFT_CAN_CODER_ID = 1;
