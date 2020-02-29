@@ -30,8 +30,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
     private LatchedBoolean autoBackupLatch;
-    private boolean autoBackup;
-    private boolean autoBackupLatchBoolean;
+    private boolean autoBackup = false;
+    private boolean autoBackupLatchBoolean = false;
 
     private LatchedBoolean manualControlLatch;
     private boolean manualControl = false;
@@ -52,6 +52,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private LatchedBoolean getStowAimingLatch;
     private LatchedBoolean getShooterLatch;
+    private LatchedBoolean getTrenchLatch;
+    private boolean getTrench = false;
 
     private boolean isFeederDemand = false;
 
@@ -313,34 +315,39 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         boolean getStowAiming = getStowAimingLatch.update(leftJoystick_.getRawButton(Constants.SHOOTER_SET_STOWED_AIMING));
         boolean getShooter = getShooterLatch.update(leftJoystick_.getTrigger());
+
+        getTrench = getTrenchLatch.update(rightJoystick_.getPOV() == Constants.TRENCH_POV_HAT) != getTrench;
+
         if (manualControl) {
-            demand.state = Shooter.ShooterState.Manual;
+            demand.state = ShooterState.Manual;
         } else {
-            if (shooter_.getWantedState() == Shooter.ShooterState.Aiming || shooter_.getWantedState() == Shooter.ShooterState.Shooting) {
+            if (shooter_.getWantedState() == ShooterState.Aiming || shooter_.getWantedState() == ShooterState.Shooting) {
                 if (getStowAiming) {
-                    demand.state = Shooter.ShooterState.Stowed;
+                    demand.state = ShooterState.Stowed;
                 } else if (getShooter) {
-                    if (shooter_.getWantedState() != Shooter.ShooterState.Shooting) {
-                        demand.state = Shooter.ShooterState.Shooting;
+                    if (shooter_.getWantedState() != ShooterState.Shooting) {
+                        demand.state = ShooterState.Shooting;
                     } else {
-                        demand.state = Shooter.ShooterState.Stowed;
+                        demand.state = ShooterState.Stowed;
                     }
                 } else {
                     demand.state = shooter_.getWantedState();
                 }
-            } else if (shooter_.getWantedState() == Shooter.ShooterState.PowerPort) {
+            } else if (shooter_.getWantedState() == ShooterState.PowerPort || shooter_.getWantedState() == ShooterState.Trench) {
                 if (getStowAiming) {
                     demand.state = ShooterState.Stowed;
                 } else {
-                    demand.state = ShooterState.PowerPort;
+                    demand.state = shooter_.getWantedState();
                 }
             } else {
                 if (getStowAiming) {
-                    demand.state = Shooter.ShooterState.Aiming;
+                    demand.state = ShooterState.Aiming;
                 } else if (getShooter) {
-                    demand.state = Shooter.ShooterState.Shooting;
+                    demand.state = ShooterState.Shooting;
                 } else if (autoBackupLatchBoolean) {
-                    demand.state = Shooter.ShooterState.PowerPort;
+                    demand.state = ShooterState.PowerPort;
+                } else if (getTrench) {
+                    demand.state = ShooterState.Trench;
                 }
             }
         }
