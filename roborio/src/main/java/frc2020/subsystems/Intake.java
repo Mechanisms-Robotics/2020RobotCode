@@ -14,8 +14,8 @@ public class Intake extends SingleMotorSubsystem {
     private final static int FLIPPER_REVERSE_PORT = 5;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
-    private final static double INTAKE_RPM = 4000;
-    private final static double REVERSE_RPM = -3200;
+    private final static double INTAKE_RPM = 5500;
+    private final static double REVERSE_RPM = -5500;
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
     static {
@@ -25,12 +25,15 @@ public class Intake extends SingleMotorSubsystem {
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Intake";
+        DEFAULT_CONSTANTS.velocityKp_ = 0.000045;
+        DEFAULT_CONSTANTS.velocityKi_ = 0.0;
+        DEFAULT_CONSTANTS.velocityKd_ = 0.0;
+        DEFAULT_CONSTANTS.velocityKf_ = 0.0001;
     }
 
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
     private boolean isDeployed_ = false;
-
 
     public static Intake getInstance() {
         return instance_ == null ? instance_ = new Intake(DEFAULT_CONSTANTS) : instance_;
@@ -64,12 +67,16 @@ public class Intake extends SingleMotorSubsystem {
      */
     public void runIntake(boolean reverse) {
         if (reverse) {
-            //super.setVelocity(REVERSE_RPM);
-            super.setOpenLoop(-0.55);
+            runIntake(REVERSE_RPM);
+            //super.setOpenLoop(-0.55);
         } else {
-            //super.setVelocity(INTAKE_RPM);
-            super.setOpenLoop(0.55);
+            runIntake(INTAKE_RPM);
+            //super.setOpenLoop(0.55);
         }
+    }
+
+    public void runIntake(double speed) {
+        super.setVelocity(speed);
     }
 
     /** 
@@ -107,6 +114,7 @@ public class Intake extends SingleMotorSubsystem {
 
     @Override
     public void outputTelemetry() {
+        super.outputTelemetry();
         SmartDashboard.putBoolean("Intake Deployed", isDeployed_);
     }
 
