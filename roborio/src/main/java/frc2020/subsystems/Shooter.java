@@ -38,6 +38,7 @@ public class Shooter implements Subsystem {
     public enum ShooterState {
         Manual,
         Stowed,
+        PowerPort,
         Aiming,
         Shooting
     }
@@ -97,7 +98,11 @@ public class Shooter implements Subsystem {
             case Manual:
                 return desiredState == ShooterState.Stowed;
             case Stowed:
-                return desiredState == ShooterState.Aiming || desiredState == ShooterState.Shooting;
+                return desiredState == ShooterState.Aiming || 
+                       desiredState == ShooterState.Shooting ||
+                       desiredState == ShooterState.PowerPort;
+            case PowerPort:
+                return desiredState == ShooterState.Stowed;
             case Aiming:
                 return (desiredState == ShooterState.Shooting) || (desiredState == ShooterState.Stowed);
             case Shooting:
@@ -157,6 +162,9 @@ public class Shooter implements Subsystem {
                     case Stowed:
                         handleStowed();
                         break;
+                    case PowerPort:
+                        handlePowerPort();
+                        break;
                     case Aiming:
                         handleAiming();
                         break;
@@ -174,6 +182,9 @@ public class Shooter implements Subsystem {
                         break;
                     case Stowed:
                         handleStowedTransition();
+                        break;
+                    case PowerPort:
+                        handlePowerPortTransition();
                         break;
                     case Aiming:
                         handleAimingTransition();
@@ -249,6 +260,13 @@ public class Shooter implements Subsystem {
         }
     }
 
+    private void handlePowerPort() {
+        if (handleOverrideFeeder()) {
+            feeder_.setState(FeederState.SHOOTING);
+        }
+    }
+
+
     private void handleAiming() {
         if (limelight_.getTargetReading().hasConfidentTarget()) {
             autoTurret();
@@ -307,6 +325,30 @@ public class Shooter implements Subsystem {
         }
 
         state_ = ShooterState.Stowed;
+    }
+
+    private void handlePowerPortTransition() {
+        feeder_.setState(FeederState.PRIMING);
+
+        if(!feeder_.isPrimed()) {
+            return;
+        }
+
+        turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
+        hood_.deployHood();
+
+        if(!turret_.atDemand() || !hood_.isDeployed()) {
+            return;
+        }
+
+        flywheel_.spinFlywheel();
+        hood_.setToStowPosition();
+
+        if(!flywheel_.upToSpeed() || !hood_.atDemand()) {
+            return;
+        }
+
+        state_ = ShooterState.PowerPort;
     }
 
     private void handleAimingTransition () {
