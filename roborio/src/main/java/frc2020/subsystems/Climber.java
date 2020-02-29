@@ -10,6 +10,11 @@ import frc2020.robot.Constants;
 import frc2020.util.DriveSignal;
 import frc2020.util.Logger;
 
+/**
+ * This class controls our Climber subsystem of our robot. Climber implements
+ * subsystem rather than SingleMotorSubsystem because winches want to have the
+ * option to be independently controlled rather than one slaved off of the other.
+ */
 public class Climber implements Subsystem {
 
     private static Climber instance_;
@@ -52,6 +57,11 @@ public class Climber implements Subsystem {
     private Logger logger_ = Logger.getInstance();
     private String logName = "Climber";
 
+    /**
+     * Configures our spark maxes for the climb winches in specific. Just
+     * bare basic settings for the sparks because we don't need to do any
+     * complex tasks with these.
+     */
     private void configSparkMaxs() {
         leftClimb_ = new CANSparkMax(Constants.LEFT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
         rightClimb_ = new CANSparkMax(Constants.RIGHT_CLIMB_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -68,10 +78,16 @@ public class Climber implements Subsystem {
         rightClimb_.setSmartCurrentLimit(STALL_LIMIT, FREE_LIMIT);
     }
 
+    /**
+     * @return climber instance
+     */
     public static Climber getInstance() {
         return instance_ == null ? instance_ = new Climber() : instance_;
     }
 
+    /**
+     * Configures sparks and solenoids
+     */
     protected Climber() {
         configSparkMaxs();
         leftClimbPID = leftClimb_.getPIDController();
@@ -82,10 +98,18 @@ public class Climber implements Subsystem {
         winchLock_ = new DoubleSolenoid(WINCH_LOCK_PCM_ID, WINCH_LOCK_FORWARD_PORT, WINCH_LOCK_REVERSE_PORT);
     }
 
+    /**
+     * Deploys climber solenoids
+     */
     public void deployClimberArm() {
         wantDeploy_ = true;
     }
 
+    /**
+     * Stows climber arms and if hasn't deployed set winch motors to 0 for safety.
+     * If it has deployed we can move motors for extra pulling power on shield
+     * generator.
+     */
     public void stowClimberArm() {
         if(!hasDeployed_) {
             setOpenLoop(new DriveSignal(0.0, 0.0));
@@ -93,14 +117,23 @@ public class Climber implements Subsystem {
         wantDeploy_ = false;
     }
 
+    /**
+     * Locks winch
+     */
     public void lockWinch() {
         wantLock_ = true;
     }
 
+    /**
+     * Unlocks winch
+     */
     public void unlockWinch() {
         wantLock_ = false;
     }
 
+    /**
+     * Powers motors using an openloop drive signal demand
+     */
     public void controlWinch(DriveSignal demand) {
         setOpenLoop(demand);
     }
@@ -114,6 +147,9 @@ public class Climber implements Subsystem {
         hasDeployed_ = false;
     }
 
+    /**
+     * simple openloop function that takes in a driveSignal
+     */
     private void setOpenLoop(DriveSignal signal) {
         io_.leftDemand = signal.getLeft();
         io_.rightDemand = signal.getRight();
@@ -170,6 +206,10 @@ public class Climber implements Subsystem {
         isLocked_ = winchLock_.get() == LOCKED_VALUE;
     }
 
+    /**
+     * writes arm solenoid deploys/retracts, if arms deployed,
+     * and winch locks/unlocks
+     */
     @Override
     public synchronized void writePeriodicOutputs() {
         if (wantDeploy_ != isDeployed_) {
@@ -202,6 +242,9 @@ public class Climber implements Subsystem {
         return true;
     }
 
+    /**
+     * Outputs whether climber is deployed and whether climber is locked
+     */
     @Override
     public void outputTelemetry() {
         SmartDashboard.putBoolean("Climber deployed", isDeployed_);

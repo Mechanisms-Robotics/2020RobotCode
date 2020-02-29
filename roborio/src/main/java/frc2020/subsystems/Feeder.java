@@ -4,6 +4,10 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+/**
+ * Feeder subsystem class for our robot. Implements SingleMotorSubsystem
+ * because feeder runs on only one motor.
+ */
 public class Feeder extends SingleMotorSubsystem {
 
     private static Feeder instance_;
@@ -47,18 +51,31 @@ public class Feeder extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.velocityKf_ = 0.00017;
     }
 
+    /**
+     * @return feeder instance
+     */
     public static Feeder getInstance() {
         return instance_ == null ? instance_ = new Feeder(DEFAULT_CONSTANTS) : instance_;
     }
 
+    /**
+     * @return gets feeder state [MANUAL, IDLE, INTAKING, PRIMING, SHOOTING]
+     */
     public FeederState getState() {
         return state_;
     }
 
+    /**
+     * set our feeder state [MANUAL, IDLE, INTAKING, PRIMING, SHOOTING]
+     */
     public void setState(FeederState desiredState) {
         state_ = desiredState;
     }
 
+    /**
+     * main function for intaking/outtaking balls through feeder
+     * @param outtake runs feeder in reverse
+     */
     public void runFeeder(boolean outtake) {
         runFeeder(outtake ? OUTTAKE_SPEED : INTAKE_SPEED);
     }
@@ -70,6 +87,9 @@ public class Feeder extends SingleMotorSubsystem {
         super.setVelocity(speed);
     }
 
+    /**
+     * constructs intake and shooter break beams
+     */
     protected Feeder(SingleMotorSubsystemConstants constants) {
         super(constants);
         
@@ -77,16 +97,27 @@ public class Feeder extends SingleMotorSubsystem {
         turretBreakBeam_ = new DigitalInput(TURRET_BREAK_BEAM_CHANNEL);
     }
 
+    /**
+     * @return true if break beam is broken
+     */
     //TODO: Check what boolean is when broken
     public synchronized boolean getIntakeBreakBeamBroken() {
         return !intakeBreakBeam_.get();
     }
-    
+
+    /**
+     * @return true if break beam is broken
+     */
     //TODO: Check what boolean is when broken
     public synchronized boolean getShooterBreakBeamBroken() {
         return !turretBreakBeam_.get();
     }
 
+    /**
+     * If either break beams are broken test fails, and feeder
+     * intakes and outtake for 1.5 sec each
+     * @return true if feeder has passed all active tests
+     */
     @Override
     public boolean runActiveTests() {
         boolean hasPassedTests = true;
@@ -113,6 +144,9 @@ public class Feeder extends SingleMotorSubsystem {
         return hasPassedTests;
     }
 
+    /**
+     * Calls functions for feeder depending on feeder state
+     */
     @Override
     public synchronized void writePeriodicOutputs() {
         super.writePeriodicOutputs();
@@ -137,6 +171,9 @@ public class Feeder extends SingleMotorSubsystem {
         }
     }
 
+    /**
+     * @return true if feeder is primed
+     */
     public boolean isPrimed() {
         if (state_ == FeederState.PRIMING) {
             return !getShooterBreakBeamBroken();
@@ -144,6 +181,9 @@ public class Feeder extends SingleMotorSubsystem {
         return false;
     }
 
+    /**
+     *
+     */
     private synchronized void intakeFeeder() {
         if (getIntakeBreakBeamBroken()) {//&& !getShooterBreakBeamBroken()) {
             runFeeder(false);
