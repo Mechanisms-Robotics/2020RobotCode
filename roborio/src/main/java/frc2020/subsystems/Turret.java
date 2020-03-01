@@ -3,6 +3,7 @@ package frc2020.subsystems;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import frc2020.loops.ILooper;
+import frc2020.robot.Constants;
 
 public class Turret extends SingleMotorSubsystem {
 
@@ -37,23 +38,24 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.closedLoopRampRate_ = 0.1;
         DEFAULT_CONSTANTS.cruiseVelocity_ = 360*120; //deg/min
         DEFAULT_CONSTANTS.acceleration_ = 360*120*8; //deg/min^2
-        DEFAULT_CONSTANTS.deadband_ = 0.25;
+        DEFAULT_CONSTANTS.deadband_ = Constants.IS_COMP_BOT ? 0.5 : 0.25;
 
         DEFAULT_CONSTANTS.kP_ = 0.00002;
         DEFAULT_CONSTANTS.kI_ = 0.0;
         DEFAULT_CONSTANTS.kD_ = 0.0;
         DEFAULT_CONSTANTS.kF_ = 0.000001;
 
-        DEFAULT_CONSTANTS.positionKp_ = 0.01;
+        DEFAULT_CONSTANTS.positionKp_ = Constants.IS_COMP_BOT ? 0.040 : 0.01;
         DEFAULT_CONSTANTS.positionKi_ = 0.0;
         DEFAULT_CONSTANTS.positionKd_ = 0.0;
-        DEFAULT_CONSTANTS.positionKf_ = 0.0001;
+        DEFAULT_CONSTANTS.positionKf_ = Constants.IS_COMP_BOT ? 0.0000: 0.0001; // 0.0035
 
         DEFAULT_CONSTANTS.useBreakMode = true;
 
         DEFAULT_CONSTANTS.enableSoftLimits = true;
-        DEFAULT_CONSTANTS.forwardSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() + 10.0); // 350.0F
-        DEFAULT_CONSTANTS.reverseSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() - 10.0); // 5.0F
+        double hoodWindow = Constants.IS_COMP_BOT ? 30.0 : 10.0;
+        DEFAULT_CONSTANTS.forwardSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() + hoodWindow); // 350.0F
+        DEFAULT_CONSTANTS.reverseSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() - hoodWindow); // 5.0F
     }
 
     private final static Rotation2d TURRET_TO_ROBOT = Rotation2d.fromDegrees(180);
@@ -72,7 +74,11 @@ public class Turret extends SingleMotorSubsystem {
      *                      positive counter-clockwise
      */
     public synchronized void setRelativeRotation(Rotation2d deltaRotation) {
-        setPosition(getPosition() + deltaRotation.getDegrees());
+        if (Constants.IS_COMP_BOT) {
+            setPosition(getPosition() + deltaRotation.getDegrees());
+        } else {
+            setPosition(getPosition() + deltaRotation.getDegrees());
+        }
     }
 
     /**

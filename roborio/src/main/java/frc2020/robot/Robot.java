@@ -351,9 +351,7 @@ public class Robot extends TimedRobot {
             enabledIterator_.start();
             teleopCSGenerator_.resetManualControl();
   //          manager_.runActiveTests();
-            hood_.deployHood();
-            Timer.delay(1.0);
-            hood_.setSmartPosition(2.5);
+            turret_.setPosition(115.0+10.0);
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;
