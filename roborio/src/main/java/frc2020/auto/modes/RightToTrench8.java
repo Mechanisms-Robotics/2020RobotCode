@@ -44,7 +44,7 @@ public class RightToTrench8 extends AutoMode {
                  FieldConstants.THIRD_TRENCH_BALL_Y - Constants.ROBOT_WIDTH*.25)
             );
 
-            shootPose2d = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - 0.9144, FieldConstants.THIRD_TRENCH_BALL_Y - 1.0668,
+            shootPose2d = new Pose2d(FieldConstants.SECOND_TRENCH_BALL_X, FieldConstants.THIRD_TRENCH_BALL_Y - 1.0668,
              Rotation2d.fromDegrees(-90));
 
             var voltageConstraint = new DifferentialDriveVoltageConstraint(FEEDFORWARD, DRIVE_KINEMATICS, maxVoltage);

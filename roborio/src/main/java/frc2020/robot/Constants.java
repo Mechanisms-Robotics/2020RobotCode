@@ -12,9 +12,24 @@ import frc2020.util.Logger;
  * quickly update the entire robot for electrical wiring changes
  */
 public class Constants {
+    private static Logger logger_ = Logger.getInstance();
+
+    public final static String COMP_BOT_MAC = "00-80-2F-28-50-8D";
+    public final static boolean IS_COMP_BOT;
+    static {
+        String currentMacAddress = getMACAddress();
+        logger_.logInfo("RIO Mac Address: " + currentMacAddress);
+        if (currentMacAddress.equals(COMP_BOT_MAC)) {
+            logger_.logInfo("Hello CompBot");
+            IS_COMP_BOT = true;
+        } else {
+            logger_.logInfo("Hello Practice Bot"); // TODO: Get pracitce bot mac address
+            IS_COMP_BOT = false;
+        }
+    }
+
     // Logger
     public final static double LOGGER_FLUSH_TIME = 2.0;
-    private static Logger logger_ = Logger.getInstance();
 
     // Passive tests
     public final static double PASSIVE_TEST_TIME = 10.0;
@@ -45,22 +60,21 @@ public class Constants {
     public final static int SHIFT_FORWARD = 6;
     public final static int SHIFT_REVERSE = 7;
 
-    //Climber
-    public final static int CLIMB_FORWARD = 2;
-    public final static int CLIMB_REVERSE = 3;
-
     // Drive Train Physical Properties
+    // TODO: Find for actual robot
     // meters NOTE: This is the effective wheel diameter not the measured one
-    public final static double WHEEL_DIAMETER = 0.1522414151; // meters
+    public final static double WHEEL_DIAMETER = 0.1537638293; // meters
     public final static double WHEEL_RADIUS = WHEEL_DIAMETER / 2; // meters
-    public final static double DRIVE_TRACK_WIDTH = 0.635; // meters
-    public final static double TRACK_SCRUB_FACTOR = 1.062; // We use this to calculate effective wheel base
+    public final static double DRIVE_TRACK_WIDTH = 0.625; // meters
+    public final static double TRACK_SCRUB_FACTOR = 1.0896; // We use this to calculate effective wheel base
     public final static double ROBOT_LENGTH = 0.97155; //meters
     public final static double ROBOT_WIDTH = 0.8382; //meters
+    public final static double INTAKE_LENGTH = 0.2794; //meters
+    public final static double INTAKE_WIDTH = 0.5; //meters
 
-    public final static double DRIVE_V_INTERCEPT = 0.189;  // Volts
-    public final static double DRIVE_KV = 2.28;  // V per rad/s
-    public final static double DRIVE_KA = 0.494; // V per rad/s^2
+    public final static double DRIVE_V_INTERCEPT = IS_COMP_BOT ? 0.296 : 0.243;  // Volts
+    public final static double DRIVE_KV = IS_COMP_BOT ? 1.80 : 1.76;  // V per m/s
+    public final static double DRIVE_KA = IS_COMP_BOT ? 0.511 : 0.557; // V per m/s^2
 
     // Drive Train Control Loop (VELOCITY)
     public final static double VELOCITY_HIGH_GEAR_KP = 0.0005; //2.28
@@ -75,10 +89,12 @@ public class Constants {
     public final static int LEFT_SECONDARY_DRIVER_JOYSTICK_PORT = 3;
     public final static int RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT = 4;
 
-    public final static int SHOOTER_SET_SHOOTING = 1; //left driver trigger
+    public final static int SHOOTER_SET_SHOOTING = 1; // left driver trigger
     public final static int AUTO_STEER_BUTTON = 2; // left driver
     public final static int AUTO_ALIGN_BUTTON = 3; // left driver
-    public final static int SHOOTER_SET_STOWED_AIMING = 4; //left driver
+    public final static int SHOOTER_SET_STOWED_AIMING = 4; // left driver
+    public final static int AUTO_BACKUP_POV_HAT = 180; // right driver
+    public final static int TRENCH_POV_HAT = 0; // right driver
     // Left Driver Y-Axis: Left Drive Control
 
     public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
@@ -136,9 +152,7 @@ public class Constants {
                     logger_.logError("Network Interface for the specified address is not found.");
                 }
             }
-        } catch (final SocketException e) {
-            e.printStackTrace();
-        } catch (final NullPointerException e) {
+        } catch (final SocketException | NullPointerException e) {
             e.printStackTrace();
         }
         return "";
