@@ -34,17 +34,18 @@ public class CenterToTrench8 extends AutoMode {
 
     public static void generateTrajectories() {
         var maxVoltage = 10.0; //Volts
-        var maxAccel = 1.5; // meters/sec^2
-        var maxVelocity = 1.5; // meters/sec
 
-        var trenchPickup = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - Constants.ROBOT_LENGTH / 2 + Constants.INTAKE_LENGTH + 0.4,
+        var trenchPickup = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - Constants.ROBOT_LENGTH / 2 + Constants.INTAKE_LENGTH + 0.5,
                 FieldConstants.THIRD_TRENCH_BALL_Y - 0.1, new Rotation2d());
         {
+            var maxAccel = 1.5; // meters/sec^2
+            var maxVelocity = 1.5; // meters/sec
+
             var startPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH,
                     FieldConstants.CENTER_POWER_PORT_Y, new Rotation2d());
 
             Translation2d midPoint1 = startPose.transformBy(new Transform2d(
-                    new Translation2d(1.5875, 1.0652), Rotation2d.fromDegrees(0))).getTranslation();
+                    new Translation2d(1.5875, 1.0652 + 0.06), Rotation2d.fromDegrees(0))).getTranslation();
 
             List<Translation2d> midPoints = List.of(
                     midPoint1
@@ -69,6 +70,8 @@ public class CenterToTrench8 extends AutoMode {
         }
 
         {
+            var maxAccel = 2.5; // meters/sec^2
+            var maxVelocity = 2.5; // meters/sec
 
             var startPose = trenchPickup;
 
@@ -106,9 +109,9 @@ public class CenterToTrench8 extends AutoMode {
             runCommand(new IntakeCommand(true));
             runCommand(new DriveTrajectory(centerToTrench, true));
             runCommand(new WaitCommand(0.5));
-            runCommand(new IntakeCommand(false));
             runCommand(new DriveTrajectory(trenchToEnd));
             runCommand(new Shoot(4.0));
+            //runCommand(new IntakeCommand(false));
 
             //runCommand(new WaitCommand(0.5));
             //runCommand(new DriveTrajectory(trenchToEnd));
