@@ -1,6 +1,7 @@
 package frc2020.auto;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import frc2020.auto.modes.CenterToTrench8;
 import frc2020.util.Logger;
 
 /**
@@ -14,7 +15,8 @@ public class AutoChooser {
      * All the possible auto modes will go in here
      */
     public enum AutoModeChoices {
-        NONE(null);
+        NONE(null),
+        CENTER_EIGHT_BALL(new CenterToTrench8());
 
         public AutoMode autoMode;
 

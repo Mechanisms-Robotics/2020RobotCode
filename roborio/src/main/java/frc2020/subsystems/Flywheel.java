@@ -1,14 +1,16 @@
 package frc2020.subsystems;
 
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
+import frc2020.robot.Constants;
 
 public class Flywheel extends SingleMotorSubsystem {
 
     private static Flywheel instance_;
 
     // TODO: Set speed for actual robot
-    private static final int FLYWHEEL_SPEED = 5000;
+    private static final int FLYWHEEL_SPEED = Constants.IS_COMP_BOT ? 5600 : 5000;
     private static final int LONG_RANGE_SPEED = 6000;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
@@ -16,7 +18,7 @@ public class Flywheel extends SingleMotorSubsystem {
     static {
         var masterConstants = new MotorConstants();
         masterConstants.id_ = 10;
-        masterConstants.invertMotor_ = false;
+        masterConstants.invertMotor_ = Constants.IS_COMP_BOT ? true : false;
 
         MotorConstants[] slaveConstantsArray = new MotorConstants[1];
         var slaveConstants = new MotorConstants();
@@ -27,21 +29,38 @@ public class Flywheel extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.slaveConstants_ = slaveConstantsArray;
         DEFAULT_CONSTANTS.name_ = "Flywheel";
-        DEFAULT_CONSTANTS.velocityDeadBand_ = 100; // rpm
-        DEFAULT_CONSTANTS.velocityKp_ = 0.0006;
+        DEFAULT_CONSTANTS.velocityDeadBand_ = 200; // rpm
+        DEFAULT_CONSTANTS.velocityKp_ = Constants.IS_COMP_BOT ? 0.1583: 0.0006;
         DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         DEFAULT_CONSTANTS.velocityKd_ = 0.0;
-        DEFAULT_CONSTANTS.velocityKf_ = 0.00019;
+        DEFAULT_CONSTANTS.velocityKf_ = Constants.IS_COMP_BOT ? 0.0 : 0.00019;
         DEFAULT_CONSTANTS.useBreakMode = true;
 
     }
 
+    private SimpleMotorFeedforward feedforward_;
+    private static final double KS = 0.0497;
+    private static final double KV = 0.13;
+    private static final double KA = 0.0357;
+
     protected Flywheel(SingleMotorSubsystemConstants constants) {
         super(constants);
+        feedforward_ = new SimpleMotorFeedforward(KS, KV, KA);
     }
 
     public static Flywheel getInstance() {
         return instance_ == null ? instance_ = new Flywheel(DEFAULT_CONSTANTS) : instance_;
+    }
+
+    @Override
+    public synchronized void setVelocity(double units) {
+        if (Constants.IS_COMP_BOT) {
+            double feedforward = feedforward_.calculate(units);
+            super.setVelocity(units, feedforward);
+        } else {
+            super.setVelocity(units);
+        }
+
     }
 
     /**
@@ -56,7 +75,7 @@ public class Flywheel extends SingleMotorSubsystem {
     }
 
     public synchronized void spinLongRangeFlywheel() {
-        super.setVelocity(LONG_RANGE_SPEED);
+        this.setVelocity(LONG_RANGE_SPEED);
     }
 
     /**
@@ -81,8 +100,8 @@ public class Flywheel extends SingleMotorSubsystem {
 
     @Override
     protected boolean atReverseLimit() {
-        // Not necessary for flywheel
-        return false;
+        // We never want the flywheel to run backwards
+        return true;
     }
 
     @Override

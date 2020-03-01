@@ -1,10 +1,7 @@
 package frc2020.robot;
 
-import frc2020.util.DriveSignal;
-import frc2020.util.Logger;
-import frc2020.util.LoggerNotStartedException;
-import frc2020.util.PeriodicEvent;
-import frc2020.util.PeriodicEventManager;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.util.*;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
@@ -128,6 +125,7 @@ public class Robot extends TimedRobot {
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT,
             Constants.LEFT_SECONDARY_DRIVER_JOYSTICK_PORT, Constants.RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT);
         autoChooser_ = AutoChooser.getAutoChooser();
+        SmartDashboard.putData("Auto Chooser", autoChooser_);
 
         // Pre-Generate Trajectories
         Basic3Ball.generateTrajectories();
@@ -200,6 +198,7 @@ public class Robot extends TimedRobot {
 
             periodicEventManager_.run();
             manager_.outputToSmartDashboard();
+            SmartDashboard.putBoolean("IsCompBot: ", Constants.IS_COMP_BOT);
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
 //            if (target != null) {
 //                SmartDashboard.putNumber("Distance", target.getTranslation().getX());
@@ -265,7 +264,7 @@ public class Robot extends TimedRobot {
             teleopCSGenerator_.resetManualControl();
             enabledIterator_.start();
             autoRunner_ = new AutoModeRunner();
-            autoRunner_.setAutoMode(new Basic3Ball());
+            autoRunner_.setAutoMode(AutoChooser.getAuto(autoChooser_.getSelected()));
             autoRunner_.start();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
@@ -353,7 +352,8 @@ public class Robot extends TimedRobot {
             disabledIterator_.stop();
             enabledIterator_.start();
             teleopCSGenerator_.resetManualControl();
-            manager_.runActiveTests();
+  //          manager_.runActiveTests();
+            turret_.setPosition(115.0+10.0);
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;

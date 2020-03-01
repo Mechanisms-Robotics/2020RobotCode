@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.robot.Constants;
 
 public class Hood extends SingleMotorSubsystem {
 
@@ -42,17 +43,17 @@ public class Hood extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.reverseSoftLimit = 0.15F;
         DEFAULT_CONSTANTS.homePosition_ = 0.0;
 
-        DEFAULT_CONSTANTS.deadband_ = 0.10;
+        DEFAULT_CONSTANTS.deadband_ = 0.13;
 
-        DEFAULT_CONSTANTS.kP_ = 0.0005;
+        DEFAULT_CONSTANTS.kP_ = Constants.IS_COMP_BOT ? 0.0005 : 0.0005;
         DEFAULT_CONSTANTS.kI_ = 0.0;
         DEFAULT_CONSTANTS.kD_ = 0.0;
-        DEFAULT_CONSTANTS.kF_ = 0.0010;
+        DEFAULT_CONSTANTS.kF_ =  Constants.IS_COMP_BOT ? 0.0011 : 0.0010;
         DEFAULT_CONSTANTS.cruiseVelocity_ = 500.0;
         DEFAULT_CONSTANTS.acceleration_ = 500.0;
 
-        DEFAULT_CONSTANTS.minOutput = -0.3;
-        DEFAULT_CONSTANTS.maxOutput = 0.3;
+        DEFAULT_CONSTANTS.minOutput = Constants.IS_COMP_BOT ? -0.5 :-0.3;
+        DEFAULT_CONSTANTS.maxOutput = Constants.IS_COMP_BOT ? 0.5 : 0.3;
     }
 
     protected Hood(SingleMotorSubsystemConstants constants) {
