@@ -14,8 +14,9 @@ public class ControlPanel extends SingleMotorSubsystem {
     private static ControlPanel instance_;
 
     //TODO: change on actual robot
-    private final static int FLIPPER_FORWARD_PORT = 0; 
-    private final static int FLIPPER_REVERSE_PORT = 1;
+    private final static int FLIPPER_PCM_ID = 1;
+    private final static int FLIPPER_FORWARD_PORT = 2; 
+    private final static int FLIPPER_REVERSE_PORT = 3;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
     private final static double FORWARD_RPM = 3000;
@@ -35,6 +36,13 @@ public class ControlPanel extends SingleMotorSubsystem {
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "ControlPanel";
+
+        // DEFAULT_CONSTANTS.velocityDeadBand_ = 100;
+        // DEFAULT_CONSTANTS.velocityKp_ = 0.0001;
+        // DEFAULT_CONSTANTS.velocityKi_ = 0.0;
+        // DEFAULT_CONSTANTS.velocityKd_ = 0.0;
+        // DEFAULT_CONSTANTS.velocityKf_ = 0.0001;
+        
     }
 
     private DoubleSolenoid flipper_;
@@ -56,7 +64,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     protected ControlPanel(SingleMotorSubsystemConstants constants) {
         super(constants);
         
-        flipper_ = new DoubleSolenoid(FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
+        flipper_ = new DoubleSolenoid(FLIPPER_PCM_ID, FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
     }
 
     public void deployPanelArm() {
@@ -78,10 +86,12 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     public void runPanelWheel(boolean reverse) {
         if (reverse) {
-            super.setVelocity(REVERSE_RPM);
+            // super.setVelocity(REVERSE_RPM);
+            super.setOpenLoop(-0.5);
         }
         else {
-            super.setVelocity(FORWARD_RPM);
+            // super.setVelocity(FORWARD_RPM);
+            super.setOpenLoop(0.5);
         }
     }
 
@@ -141,7 +151,6 @@ public class ControlPanel extends SingleMotorSubsystem {
                     case IDLE:
                         break;
                     case POSITION:
-                        wheelWatcher_.update();
 
                         if (goalColor_ == WheelColor.UNKNOWN) {
                             state_ = ControlPanelState.IDLE;
@@ -150,8 +159,9 @@ public class ControlPanel extends SingleMotorSubsystem {
                         }
 
                         WheelColor colorCompliment = wheelWatcher_.getColorAt90(goalColor_);
+                        WheelColor currentColor = wheelWatcher_.getWedgeColor();
 
-                        if (colorCompliment == goalColor_) {
+                        if (currentColor == colorCompliment) {
                             state_ = ControlPanelState.IDLE;
                             stop();
                             break;
@@ -160,7 +170,6 @@ public class ControlPanel extends SingleMotorSubsystem {
                         runPanelWheel(true);
                         break;
                     case ROTATION:
-                        wheelWatcher_.update();
 
                         if (wheelWatcher_.getEdgeCount() == GOAL_EDGE_COUNT) {
                             state_ = ControlPanelState.IDLE;
@@ -189,15 +198,23 @@ public class ControlPanel extends SingleMotorSubsystem {
     };
 
 
-    public synchronized void startPositionControl() {
-        wheelWatcher_.reset();
-        goalColor_ = getFMSColor(gameData);
-        state_ = ControlPanelState.POSITION;
+    public synchronized void togglePositionControl() {
+        if (state_ != ControlPanelState.POSITION) {
+            wheelWatcher_.reset();
+            goalColor_ = getFMSColor(gameData);
+            state_ = ControlPanelState.POSITION;
+        } else {
+            state_ = ControlPanelState.IDLE;
+        }
     }
 
-    public synchronized void startRotationControl() {
-        wheelWatcher_.reset();
-        state_ = ControlPanelState.ROTATION;
+    public synchronized void toggleRotationControl() {
+        if (state_ != ControlPanelState.ROTATION) {
+            wheelWatcher_.reset();
+            state_ = ControlPanelState.ROTATION;
+        } else {
+            state_ = ControlPanelState.IDLE;
+        }
     }
 
     public synchronized void startManualControl() {
@@ -222,7 +239,9 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     @Override
     public void outputTelemetry() {
-        SmartDashboard.putBoolean("Panel Arm deployed", isDeployed_);
+        super.outputTelemetry();
+        SmartDashboard.putBoolean("Control Panel Deployed", isDeployed_);
+        SmartDashboard.putString("Control Panel Color", wheelWatcher_.getWedgeColor().toString());
     }
 
     @Override
@@ -243,6 +262,8 @@ public class ControlPanel extends SingleMotorSubsystem {
         super.readPeriodicInputs();
 
         isDeployed_ = flipper_.get() == DEPLOYED_VALUE;
+        
+        wheelWatcher_.update();
     }
 
     @Override

@@ -95,6 +95,8 @@ public class CommandState {
         public boolean clockwise = false;
         public boolean counterclockwise = false;
         public boolean deploy = false;
+        public boolean rotation = false;
+        public boolean position = false;
     }
 
     public static class ClimberDemand {
@@ -183,6 +185,7 @@ public class CommandState {
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
         maybeUpdateClimber(climber);
+        maybeUpdateControlPanel(controlPanel);
         if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual) {
             maybeUpdateFeeder(feeder);
         }
@@ -191,7 +194,6 @@ public class CommandState {
             maybeUpdateTurret(turret);
             maybeUpdateHood(hood);
             maybeUpdateFlywheel(flywheel);
-            maybeUpdateControlPanel(controlPanel);
         }
     }
 
@@ -285,15 +287,24 @@ public class CommandState {
 
     private void maybeUpdateControlPanel(ControlPanel controlPanel) {
         if (controlPanelDemand != null) {
-            if (controlPanelDemand.clockwise && controlPanelDemand.counterclockwise) {
-                logger_.logInfo("Both control panel forward and reverse buttons pressed");
-                controlPanel.stop();
-            } else if (controlPanelDemand.clockwise) {
-                controlPanel.runPanelWheel(true);
-            } else if (controlPanelDemand.counterclockwise) {
-                controlPanel.runPanelWheel(false);
+            if (manualDemand) {
+                controlPanel.startManualControl();
+                if (controlPanelDemand.clockwise && controlPanelDemand.counterclockwise) {
+                    logger_.logInfo("Both control panel forward and reverse buttons pressed");
+                    controlPanel.stop();
+                } else if (controlPanelDemand.clockwise) {
+                    controlPanel.runPanelWheel(true);
+                } else if (controlPanelDemand.counterclockwise) {
+                    controlPanel.runPanelWheel(false);
+                } else {
+                    controlPanel.stop();
+                }
             } else {
-                controlPanel.stop();
+                if (controlPanelDemand.rotation) {
+                    controlPanel.toggleRotationControl();
+                } else if (controlPanelDemand.position) {
+                    controlPanel.togglePositionControl();
+                }
             }
 
             if(controlPanelDemand.deploy) {

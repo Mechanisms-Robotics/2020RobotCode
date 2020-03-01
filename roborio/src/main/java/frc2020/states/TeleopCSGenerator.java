@@ -40,10 +40,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private LatchedBoolean spinFlywheelLatch;
     private boolean spinFlywheel = false;
+
     private LatchedBoolean deployControlPanelLatch;
-    private boolean deployControlPanel;
-    private boolean counterClockwiseControlPanel;
-    private boolean clockwiseControlPanel;
+    private boolean deployControlPanel = false;
+    private LatchedBoolean controlPanelRotationLatch;
+    private LatchedBoolean controlPanelPositionLatch;
 
     private LatchedBoolean deployClimberLatch;
     private boolean deployClimber = false;
@@ -93,6 +94,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         lockClimberLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
         deployControlPanelLatch = new LatchedBoolean();
+        controlPanelRotationLatch = new LatchedBoolean();
+        controlPanelPositionLatch = new LatchedBoolean();
 
         drive_ = Drive.getInstance();
         cheesyHelper_ = new CheesyDriveHelper();
@@ -131,11 +134,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         // Whether to use manual control or not
         manualControl = manualControlLatch.update(leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) &&
                 leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
-
-        //Control Panel
-        deployControlPanel = deployControlPanelLatch.update(leftSecondJoystick_.getTrigger()) != deployControlPanel;
-        counterClockwiseControlPanel = rightSecondJoystick_.getPOV() != Constants.MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT;
-        clockwiseControlPanel = rightSecondJoystick_.getPOV() != Constants.MANUAL_CONTROL_PANEL_CLOCKWISE_HAT;
 
         // The command state for the robot
         CommandState state = new CommandState();
@@ -315,12 +313,27 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private ControlPanelDemand generateControlPanelDemand() {
         ControlPanelDemand demand = new ControlPanelDemand();
 
+        deployControlPanel = deployControlPanelLatch.update(rightSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
+        boolean controlPanelRotation = controlPanelRotationLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
+        boolean controlPanelPosition = controlPanelPositionLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
+
+        boolean counterClockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT;
+        boolean clockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_CLOCKWISE_HAT;
+
         if (clockwiseControlPanel && counterClockwiseControlPanel) {
             logger_.logInfo("Counterclockwise and clockwise control panel buttons pressed at same time", logName);
         } else if (clockwiseControlPanel) {
             demand.clockwise = true;
         } else if (counterClockwiseControlPanel) {
             demand.counterclockwise = true;
+        }
+
+        if (!(controlPanelPosition && controlPanelRotation)) {
+            if (controlPanelRotation) {
+                demand.rotation = true;
+            } else if (controlPanelPosition) {
+                demand.position = true;
+            }
         }
 
         demand.deploy = deployControlPanel;
