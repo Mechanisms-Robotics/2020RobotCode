@@ -34,8 +34,11 @@ public class CenterToTrench8 extends AutoMode {
 
     public static void generateTrajectories() {
         var maxVoltage = 10.0; //Volts
-        var maxAccel = 1.0; // meters/sec^2
-        var maxVelocity = 1.0; // meters/sec
+        var maxAccel = 1.5; // meters/sec^2
+        var maxVelocity = 1.5; // meters/sec
+
+        var trenchPickup = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - Constants.ROBOT_LENGTH / 2 + Constants.INTAKE_LENGTH + 0.4,
+                FieldConstants.THIRD_TRENCH_BALL_Y - 0.1, new Rotation2d());
         {
             var startPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH,
                     FieldConstants.CENTER_POWER_PORT_Y, new Rotation2d());
@@ -47,7 +50,7 @@ public class CenterToTrench8 extends AutoMode {
                     midPoint1
             );
 
-            var endPose = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - Constants.ROBOT_LENGTH / 2 + Constants.INTAKE_LENGTH + .1, FieldConstants.THIRD_TRENCH_BALL_Y - 0.1, new Rotation2d());
+            var endPose = trenchPickup;
 
             var voltageConstraint =
                     new DifferentialDriveVoltageConstraint(
@@ -67,13 +70,13 @@ public class CenterToTrench8 extends AutoMode {
 
         {
 
-            var startPose = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X, FieldConstants.THIRD_TRENCH_BALL_Y, new Rotation2d());
+            var startPose = trenchPickup;
 
             List<Translation2d> midPoints = List.of(
                 //new Translation2d(2.471801‬, 0.854075‬)
             );
 
-            var endPose = startPose.transformBy(new Transform2d(new Translation2d(-2.54, -1.6256), Rotation2d.fromDegrees(45)));
+            var endPose = startPose.transformBy(new Transform2d(new Translation2d(-2.0, -0.5), Rotation2d.fromDegrees(15)));
 
             var voltageConstraint =
                 new DifferentialDriveVoltageConstraint(
@@ -99,11 +102,13 @@ public class CenterToTrench8 extends AutoMode {
                 generateTrajectories();
             }
 
-            runCommand(new Shoot(5.0));
+            runCommand(new Shoot(4.0));
             runCommand(new IntakeCommand(true));
             runCommand(new DriveTrajectory(centerToTrench, true));
+            runCommand(new WaitCommand(0.5));
             runCommand(new IntakeCommand(false));
-            runCommand(new Shoot(5.0));
+            runCommand(new DriveTrajectory(trenchToEnd));
+            runCommand(new Shoot(4.0));
 
             //runCommand(new WaitCommand(0.5));
             //runCommand(new DriveTrajectory(trenchToEnd));
