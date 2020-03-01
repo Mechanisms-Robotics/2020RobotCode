@@ -125,6 +125,7 @@ public class Robot extends TimedRobot {
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT,
             Constants.LEFT_SECONDARY_DRIVER_JOYSTICK_PORT, Constants.RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT);
         autoChooser_ = AutoChooser.getAutoChooser();
+        SmartDashboard.putData("Auto Chooser", autoChooser_);
 
         // Pre-Generate Trajectories
         Basic3Ball.generateTrajectories();
@@ -263,7 +264,7 @@ public class Robot extends TimedRobot {
             teleopCSGenerator_.resetManualControl();
             enabledIterator_.start();
             autoRunner_ = new AutoModeRunner();
-            autoRunner_.setAutoMode(new Basic3Ball());
+            autoRunner_.setAutoMode(AutoChooser.getAuto(autoChooser_.getSelected()));
             autoRunner_.start();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
