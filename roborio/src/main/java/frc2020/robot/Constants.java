@@ -65,16 +65,16 @@ public class Constants {
     // meters NOTE: This is the effective wheel diameter not the measured one
     public final static double WHEEL_DIAMETER = 0.1537638293; // meters
     public final static double WHEEL_RADIUS = WHEEL_DIAMETER / 2; // meters
-    public final static double DRIVE_TRACK_WIDTH = 0.635; // meters
-    public final static double TRACK_SCRUB_FACTOR = 1.062; // We use this to calculate effective wheel base
+    public final static double DRIVE_TRACK_WIDTH = 0.625; // meters
+    public final static double TRACK_SCRUB_FACTOR = 1.0896; // We use this to calculate effective wheel base
     public final static double ROBOT_LENGTH = 0.97155; //meters
     public final static double ROBOT_WIDTH = 0.8382; //meters
     public final static double INTAKE_LENGTH = 0.2794; //meters
     public final static double INTAKE_WIDTH = 0.5; //meters
 
-    public final static double DRIVE_V_INTERCEPT = 0.243;  // Volts
-    public final static double DRIVE_KV = 1.76;  // V per m/s
-    public final static double DRIVE_KA = 0.557; // V per m/s^2
+    public final static double DRIVE_V_INTERCEPT = IS_COMP_BOT ? 0.296 : 0.243;  // Volts
+    public final static double DRIVE_KV = IS_COMP_BOT ? 1.80 : 1.76;  // V per m/s
+    public final static double DRIVE_KA = IS_COMP_BOT ? 0.511 : 0.557; // V per m/s^2
 
     // Drive Train Control Loop (VELOCITY)
     public final static double VELOCITY_HIGH_GEAR_KP = 0.0005; //2.28
