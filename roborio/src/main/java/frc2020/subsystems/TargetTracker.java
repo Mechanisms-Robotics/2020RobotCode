@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.subsystems.Limelight.LimelightRawData;
 import frc2020.util.Logger;
 import frc2020.util.Util;
@@ -191,6 +192,9 @@ public class TargetTracker {
         averageReading.rangeArea /= confidenceSum;
         averageReading.rangeCorner /= confidenceSum;
         averageReading.confidence /= confidenceSum;
+
+//        SmartDashboard.putNumber("Number of readings: ", readings_.size());
+//        SmartDashboard.putNumber("Average Azimuth: ", averageReading.azimuth);
 
         return averageReading;
     }

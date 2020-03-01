@@ -2,6 +2,7 @@ package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.robot.Constants;
 import frc2020.subsystems.Feeder.FeederState;
 import frc2020.util.*;
 import frc2020.loops.ILooper;
@@ -26,6 +27,9 @@ public class Shooter implements Subsystem {
     private final static double TURRET_SEEKING_DUTY_CYCLE = 0.07; // duty cycle
     private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
 
+    private final static double TRENCH_HOOD_POSITION = 3.476; // units
+    private final static int POWER_PORT_SPEED = 5000;
+
     private double startingPosition = 0.0;
     private double turretSeekPower_ = TURRET_SEEKING_DUTY_CYCLE;
     private boolean hasStartedSeeking_ = false;
@@ -39,6 +43,7 @@ public class Shooter implements Subsystem {
         Manual,
         Stowed,
         PowerPort,
+        Trench,
         Aiming,
         Shooting
     }
@@ -100,8 +105,11 @@ public class Shooter implements Subsystem {
             case Stowed:
                 return desiredState == ShooterState.Aiming || 
                        desiredState == ShooterState.Shooting ||
-                       desiredState == ShooterState.PowerPort;
+                       desiredState == ShooterState.PowerPort ||
+                       desiredState == ShooterState.Trench;
             case PowerPort:
+                return desiredState == ShooterState.Stowed;
+            case Trench:
                 return desiredState == ShooterState.Stowed;
             case Aiming:
                 return (desiredState == ShooterState.Shooting) || (desiredState == ShooterState.Stowed);
@@ -165,6 +173,9 @@ public class Shooter implements Subsystem {
                     case PowerPort:
                         handlePowerPort();
                         break;
+                    case Trench:
+                        handleTrench();
+                        break;
                     case Aiming:
                         handleAiming();
                         break;
@@ -185,6 +196,9 @@ public class Shooter implements Subsystem {
                         break;
                     case PowerPort:
                         handlePowerPortTransition();
+                        break;
+                    case Trench:
+                        handleTrenchTransition();
                         break;
                     case Aiming:
                         handleAimingTransition();
@@ -242,9 +256,19 @@ public class Shooter implements Subsystem {
 
     private void loadHoodRangeAngleValues() {
         // (range, angle)
-        hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
-        hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.98), new InterpolatingDouble(3.476));
-        hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.31), new InterpolatingDouble(3.476));
+        if(Constants.IS_COMP_BOT) {
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.12));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.69));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(3.07));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(5.18), new InterpolatingDouble(3.27));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(6.26), new InterpolatingDouble(3.28));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.17), new InterpolatingDouble(3.30));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(8.70), new InterpolatingDouble(2.60));
+        } else {
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.98), new InterpolatingDouble(3.476));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.31), new InterpolatingDouble(3.476));
+        }
     }
 
     private void handleManual() {
@@ -266,6 +290,11 @@ public class Shooter implements Subsystem {
         }
     }
 
+    private void handleTrench() {
+        if (handleOverrideFeeder()) {
+            feeder_.setState(FeederState.SHOOTING);
+        }
+    }
 
     private void handleAiming() {
         if (limelight_.getTargetReading().hasConfidentTarget()) {
@@ -300,7 +329,7 @@ public class Shooter implements Subsystem {
         feeder_.stop();
         hood_.stop();
         turret_.stop();
-        limelight_.setLed(Limelight.LedMode.OFF);
+        limelight_.setLed(Limelight.LedMode.ON);
         state_ = ShooterState.Manual;
     }
 
@@ -341,14 +370,38 @@ public class Shooter implements Subsystem {
             return;
         }
 
-        flywheel_.spinFlywheel();
+        flywheel_.spinFlywheel(POWER_PORT_SPEED);
         hood_.setToStowPosition();
+
+        if(!flywheel_.atVelocity(POWER_PORT_SPEED) || !hood_.atDemand()) {
+            return;
+        }
+
+        state_ = ShooterState.PowerPort;
+    }
+
+    private void handleTrenchTransition() {
+        feeder_.setState(FeederState.PRIMING);
+
+        if(!feeder_.isPrimed()) {
+            return;
+        }
+
+        turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
+        hood_.deployHood();
+
+        if(!turret_.atDemand() || !hood_.isDeployed()) {
+            return;
+        }
+
+        flywheel_.spinFlywheel();
+        hood_.setSmartPosition(TRENCH_HOOD_POSITION);
 
         if(!flywheel_.upToSpeed() || !hood_.atDemand()) {
             return;
         }
 
-        state_ = ShooterState.PowerPort;
+        state_ = ShooterState.Trench;
     }
 
     private void handleAimingTransition () {
