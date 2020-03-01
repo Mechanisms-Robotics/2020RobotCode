@@ -2,6 +2,7 @@ package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.robot.Constants;
 import frc2020.subsystems.Feeder.FeederState;
 import frc2020.util.*;
 import frc2020.loops.ILooper;
@@ -242,9 +243,19 @@ public class Shooter implements Subsystem {
 
     private void loadHoodRangeAngleValues() {
         // (range, angle)
-        hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
-        hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.98), new InterpolatingDouble(3.476));
-        hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.31), new InterpolatingDouble(3.476));
+        if(Constants.IS_COMP_BOT) {
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.12));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.69));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(3.07));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(5.18), new InterpolatingDouble(3.27));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(6.26), new InterpolatingDouble(3.28));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.17), new InterpolatingDouble(3.30));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(8.70), new InterpolatingDouble(2.60));
+        } else {
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.98), new InterpolatingDouble(3.476));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.31), new InterpolatingDouble(3.476));
+        }
     }
 
     private void handleManual() {
@@ -300,7 +311,7 @@ public class Shooter implements Subsystem {
         feeder_.stop();
         hood_.stop();
         turret_.stop();
-        limelight_.setLed(Limelight.LedMode.OFF);
+        limelight_.setLed(Limelight.LedMode.ON);
         state_ = ShooterState.Manual;
     }
 

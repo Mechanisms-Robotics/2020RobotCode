@@ -31,7 +31,7 @@ public class Flywheel extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.slaveConstants_ = slaveConstantsArray;
         DEFAULT_CONSTANTS.name_ = "Flywheel";
-        DEFAULT_CONSTANTS.velocityDeadBand_ = 100; // rpm
+        DEFAULT_CONSTANTS.velocityDeadBand_ = 200; // rpm
         DEFAULT_CONSTANTS.velocityKp_ = Constants.IS_COMP_BOT ? 0.1583: 0.0006;
         DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         DEFAULT_CONSTANTS.velocityKd_ = 0.0;
