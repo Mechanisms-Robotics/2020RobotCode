@@ -46,8 +46,8 @@ public class Climber implements Subsystem {
 
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
-    private final static DoubleSolenoid.Value UNLOCKED_VALUE = Constants.IS_COMP_BOT ? Value.kReverse : Value.kReverse;
-    private final static DoubleSolenoid.Value LOCKED_VALUE = Constants.IS_COMP_BOT ? Value.kForward : Value.kForward;
+    private final static DoubleSolenoid.Value UNLOCKED_VALUE = Constants.IS_COMP_BOT ? Value.kForward : Value.kReverse;
+    private final static DoubleSolenoid.Value LOCKED_VALUE = Constants.IS_COMP_BOT ? Value.kReverse : Value.kForward;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "Climber";
