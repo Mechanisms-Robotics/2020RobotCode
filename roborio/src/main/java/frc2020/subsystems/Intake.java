@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
+import frc2020.robot.Constants;
 
 public class Intake extends SingleMotorSubsystem {
 
@@ -14,21 +15,21 @@ public class Intake extends SingleMotorSubsystem {
     private final static int FLIPPER_REVERSE_PORT = 5;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
-    private final static double INTAKE_RPM = 5500;
-    private final static double REVERSE_RPM = -5500;
+    private final static double INTAKE_RPM = Constants.IS_COMP_BOT ? 5600 : 5400;
+    private final static double REVERSE_RPM = -INTAKE_RPM;
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
     static {
         var masterConstants = new MotorConstants();
         masterConstants.id_ = 9;
         masterConstants.invertMotor_ = true;
-        
+        // TODO: Tune these
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "Intake";
         DEFAULT_CONSTANTS.velocityKp_ = 0.000045;
         DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         DEFAULT_CONSTANTS.velocityKd_ = 0.0;
-        DEFAULT_CONSTANTS.velocityKf_ = 0.0001;
+        DEFAULT_CONSTANTS.velocityKf_ = Constants.IS_COMP_BOT ?  0.00009 : 0.0001;
     }
 
     private DoubleSolenoid flipper_;

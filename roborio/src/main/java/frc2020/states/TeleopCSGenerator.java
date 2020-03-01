@@ -91,8 +91,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         
         drive_ = Drive.getInstance();
         cheesyHelper_ = new CheesyDriveHelper();
-        deployClimberLatch = new LatchedBoolean();
-        lockClimberLatch = new LatchedBoolean();
         deployHoodLatch = new LatchedBoolean();
         getStowAimingLatch = new LatchedBoolean();
         getShooterLatch = new LatchedBoolean();
@@ -374,5 +372,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     public synchronized void resetPresetPositions() {
         autoBackup = false;
         getTrench = false;
+        lockClimber = false; // forces climb to unlock upon enable
     }
 }
