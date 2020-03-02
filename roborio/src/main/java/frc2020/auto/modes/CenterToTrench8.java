@@ -38,8 +38,8 @@ public class CenterToTrench8 extends AutoMode {
         var trenchPickup = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - Constants.ROBOT_LENGTH / 2 + Constants.INTAKE_LENGTH + 0.5,
                 FieldConstants.THIRD_TRENCH_BALL_Y - 0.1, new Rotation2d());
         {
-            var maxAccel = 1.5; // meters/sec^2
-            var maxVelocity = 1.5; // meters/sec
+            var maxAccel = 1.9; // meters/sec^2
+            var maxVelocity = 1.9; // meters/sec
 
             var startPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH,
                     FieldConstants.CENTER_POWER_PORT_Y, new Rotation2d());
@@ -70,8 +70,8 @@ public class CenterToTrench8 extends AutoMode {
         }
 
         {
-            var maxAccel = 2.5; // meters/sec^2
-            var maxVelocity = 2.5; // meters/sec
+            var maxAccel = 2.7; // meters/sec^2
+            var maxVelocity = 2.7; // meters/sec
 
             var startPose = trenchPickup;
 
@@ -105,7 +105,7 @@ public class CenterToTrench8 extends AutoMode {
                 generateTrajectories();
             }
 
-            runCommand(new Shoot(4.0));
+            runCommand(new Shoot(3.75));
             runCommand(new IntakeCommand(true));
             runCommand(new DriveTrajectory(centerToTrench, true));
             runCommand(new WaitCommand(0.5));

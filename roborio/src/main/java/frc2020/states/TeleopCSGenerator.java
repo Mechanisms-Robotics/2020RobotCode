@@ -96,8 +96,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         getShooterLatch = new LatchedBoolean();
         getTrenchLatch = new LatchedBoolean();
 
-        drive_ = Drive.getInstance();
-
         climberSplitLatch = new LatchedBoolean();
         driveChooser = new SendableChooser<>();
         driveChooser.setDefaultOption(DriveMode.Tank.toString(), DriveMode.Tank);
