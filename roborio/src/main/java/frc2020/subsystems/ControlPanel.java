@@ -87,11 +87,11 @@ public class ControlPanel extends SingleMotorSubsystem {
     public void runPanelWheel(boolean reverse) {
         if (reverse) {
             // super.setVelocity(REVERSE_RPM);
-            super.setOpenLoop(-0.5);
+            super.setOpenLoop(-1);
         }
         else {
             // super.setVelocity(FORWARD_RPM);
-            super.setOpenLoop(0.5);
+            super.setOpenLoop(1);
         }
     }
 
@@ -268,12 +268,12 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     @Override
     protected boolean atReverseLimit() {
-        return !isDeployed_;
+        return false;//!isDeployed_;
     }
 
     @Override
     protected boolean atForwardLimit() {
-        return !isDeployed_;
+        return false;//!isDeployed_;
     }
 
     @Override

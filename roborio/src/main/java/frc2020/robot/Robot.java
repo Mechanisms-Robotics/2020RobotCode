@@ -357,7 +357,6 @@ public class Robot extends TimedRobot {
             enabledIterator_.start();
             teleopCSGenerator_.resetManualControl();
   //          manager_.runActiveTests();
-            turret_.setPosition(115.0+10.0);
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -370,7 +369,7 @@ public class Robot extends TimedRobot {
     @Override
     public void testPeriodic() {
         try {
-
+            //controlPanel_.setOpenLoop(1);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
