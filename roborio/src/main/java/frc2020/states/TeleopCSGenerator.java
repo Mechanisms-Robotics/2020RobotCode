@@ -314,7 +314,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         boolean getStowAiming = getStowAimingLatch.update(leftJoystick_.getRawButton(Constants.SHOOTER_SET_STOWED_AIMING));
         boolean getShooter = getShooterLatch.update(leftJoystick_.getTrigger());
 
-        getTrench = getTrenchLatch.update(rightJoystick_.getPOV() == Constants.TRENCH_POV_HAT) != getTrench;
+        getTrench = getTrenchLatch.update(rightJoystick_.getRawButton(Constants.TRENCH_BUTTON)) != getTrench;
 
         if (manualControl) {
             demand.state = ShooterState.Manual;
@@ -332,14 +332,16 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                     demand.state = shooter_.getWantedState();
                 }
             } else if (shooter_.getWantedState() == ShooterState.PowerPort) {
-                if (!autoBackup) {
+                if (!autoBackup || getStowAiming) {
                     demand.state = ShooterState.Stowed;
+                    autoBackup = false;
                 } else {
                     demand.state = ShooterState.PowerPort;
                 }
             } else if (shooter_.getWantedState() == ShooterState.Trench) {
-                if (!getTrench) {
+                if (!getTrench || getStowAiming) {
                     demand.state = ShooterState.Stowed;
+                    getTrench = false;
                 } else {
                     demand.state = ShooterState.Trench;
                 }

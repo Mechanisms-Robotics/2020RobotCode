@@ -443,14 +443,14 @@ public class Shooter implements Subsystem {
             handleAimingTransition();
         }
 
+        autoTurret();
+
         hood_.deployHood();
         limelight_.setLed(Limelight.LedMode.PIPELINE);
 
         if (!hood_.isDeployed()) {
             return;
         }
-
-        // TODO: Set hood angle automatically
 
         flywheel_.spinFlywheel();
         autoHood();
