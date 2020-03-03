@@ -242,6 +242,8 @@ public class ControlPanel extends SingleMotorSubsystem {
         super.outputTelemetry();
         SmartDashboard.putBoolean("Control Panel Deployed", isDeployed_);
         SmartDashboard.putString("Control Panel Color", wheelWatcher_.getWedgeColor().toString());
+        SmartDashboard.putString("Control Panel State", state_.toString());
+        SmartDashboard.putNumber("Control Panel Edge Count", wheelWatcher_.getEdgeCount());
     }
 
     @Override
