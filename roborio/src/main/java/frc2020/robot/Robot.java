@@ -128,8 +128,8 @@ public class Robot extends TimedRobot {
         SmartDashboard.putData("Auto Chooser", autoChooser_);
 
         // Pre-Generate Trajectories
-        Basic3Ball.generateTrajectories();
-        Basic13Ball.generateTrajectories();
+        //Basic3Ball.generateTrajectories();
+        //Basic13Ball.generateTrajectories();
         CenterToTrench8.generateTrajectories();
         RightToTrench8.generateTrajectories();
 
