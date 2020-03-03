@@ -312,6 +312,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployControlPanel = deployControlPanelLatch.update(rightSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
         boolean controlPanelRotation = controlPanelRotationLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
         boolean controlPanelPosition = controlPanelPositionLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
+        controlPanelPosition = false; //TODO: REMOVE WHEN WORKING
 
         boolean counterClockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT;
         boolean clockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_CLOCKWISE_HAT;
