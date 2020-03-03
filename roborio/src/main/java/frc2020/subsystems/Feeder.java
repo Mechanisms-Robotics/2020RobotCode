@@ -11,7 +11,7 @@ public class Feeder extends SingleMotorSubsystem {
     private final static int INTAKE_SPEED = 3500; // rpm
     private final static int OUTTAKE_SPEED = -3500; // rpm
     private final static int PRIME_SPEED = -2000; // rpm TODO: Tune value
-    private final static int SHOOTING_SPEED = 3500; // rpm TODO: Tune value
+    private final static int SHOOTING_SPEED = 7000; // rpm TODO: Tune value
 
     private final static int INTAKE_BREAK_BEAM_CHANNEL = 0; // TODO: Change for robot	
     private final static int TURRET_BREAK_BEAM_CHANNEL = 1; // TODO: Change for robot	
