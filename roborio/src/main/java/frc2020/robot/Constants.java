@@ -93,14 +93,13 @@ public class Constants {
     public final static int AUTO_STEER_BUTTON = 2; // left driver
     public final static int AUTO_ALIGN_BUTTON = 3; // left driver
     public final static int SHOOTER_SET_STOWED_AIMING = 4; // left driver
-    public final static int AUTO_BACKUP_POV_HAT = 180; // right driver
-    public final static int TRENCH_BUTTON = 8; // right driver
     // Left Driver Y-Axis: Left Drive Control
 
     public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
-    public final static int INTAKE_INTAKE_BUTTON = 2; // right driver
     public final static int INTAKE_OUTTAKE_BUTTON = 3; // right driver
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
+    public final static int POWER_PORT_BACKUP_BUTTON = 2; // right driver
+    public final static int TRENCH_BUTTON = 8; // right driver
     // Right Driver Y-Axis: Right Drive Control
 
     public final static int TOGGLE_HOOD_DEPLOY = 1; //left second trigger

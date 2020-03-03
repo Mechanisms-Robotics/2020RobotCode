@@ -123,7 +123,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         // Whether to auto target to station
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
         // Whether to run the power port backup sequence
-        boolean autoBackupSharedBoolean  = autoBackupLatch.update(rightJoystick_.getPOV() == Constants.AUTO_BACKUP_POV_HAT);
+        boolean autoBackupSharedBoolean  = autoBackupLatch.update(rightJoystick_.getRawButton(Constants.POWER_PORT_BACKUP_BUTTON));
         autoBackup = autoBackupSharedBoolean != autoBackup;
         autoBackupLatchBoolean = autoBackupSharedBoolean;
 
@@ -156,7 +156,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
-        final double BACKUP_DISTANCE = 0.54;
+        final double BACKUP_DISTANCE = 0.59;
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
 
@@ -245,7 +245,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private IntakeDemand generateIntakeDemand() {
         deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
-        boolean intakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_INTAKE_BUTTON);
         boolean outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
 
         // This is so that if they press intake/outake and it is not deployed it will deploy
