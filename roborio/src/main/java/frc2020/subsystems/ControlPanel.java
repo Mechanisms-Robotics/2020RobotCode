@@ -36,6 +36,7 @@ public class ControlPanel extends SingleMotorSubsystem {
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "ControlPanel";
+        DEFAULT_CONSTANTS.useBreakMode = true;
 
         // DEFAULT_CONSTANTS.velocityDeadBand_ = 100;
         // DEFAULT_CONSTANTS.velocityKp_ = 0.0001;
@@ -87,11 +88,11 @@ public class ControlPanel extends SingleMotorSubsystem {
     public void runPanelWheel(boolean reverse) {
         if (reverse) {
             // super.setVelocity(REVERSE_RPM);
-            super.setOpenLoop(-1);
+            super.setOpenLoop(-0.7);
         }
         else {
             // super.setVelocity(FORWARD_RPM);
-            super.setOpenLoop(1);
+            super.setOpenLoop(0.7);
         }
     }
 
