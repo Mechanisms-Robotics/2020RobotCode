@@ -18,7 +18,7 @@ public class Hood extends SingleMotorSubsystem {
     /*TODO: when we have the robot, set this value to halfway between all the way back
             and at the forward position of the reverse limit switch
     */
-    private final static double STOW_POSITION = 0.2; // encoder units
+    private final static double STOW_POSITION = Constants.IS_COMP_BOT ? 0.4 : 0.2; // encoder units
 
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
