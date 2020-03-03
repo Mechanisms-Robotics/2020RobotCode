@@ -282,8 +282,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
         rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
 
-        double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftSecondJoystick_.getY();
-        double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
+        double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY();
+        double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : rightSecondJoystick_.getY();
 
         climberSplit = climberSplitLatch.update(rightSecondJoystick_.getTrigger()) != climberSplit;
         deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
