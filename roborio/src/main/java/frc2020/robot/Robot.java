@@ -46,6 +46,7 @@ public class Robot extends TimedRobot {
     private Turret turret_;
     private Hood hood_;
     private Shooter shooter_;
+    private ControlPanel controlPanel_;
 
     private Compressor compressor_;
     private AutoMode currentAutoMode_;
@@ -105,7 +106,8 @@ public class Robot extends TimedRobot {
                   Turret.getInstance(),
                   Hood.getInstance(),
                   Flywheel.getInstance(),
-                  Shooter.getInstance()
+                  Shooter.getInstance(),
+                  ControlPanel.getInstance()
                 )
         );
 
@@ -116,6 +118,7 @@ public class Robot extends TimedRobot {
         flywheel_ = Flywheel.getInstance();
         climber_ = Climber.getInstance();
         hood_ = Hood.getInstance();
+        controlPanel_ = ControlPanel.getInstance();
         shooter_ = Shooter.getInstance();
         shooter_.setLimelight(limelight_turret_);
 
@@ -335,7 +338,8 @@ public class Robot extends TimedRobot {
                     flywheel_,
                     climber_,
                     hood_,
-                    shooter_);
+                    shooter_,
+                    controlPanel_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -353,7 +357,6 @@ public class Robot extends TimedRobot {
             enabledIterator_.start();
             teleopCSGenerator_.resetManualControl();
   //          manager_.runActiveTests();
-            turret_.setPosition(115.0+10.0);
         } catch (Throwable t){
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -366,7 +369,7 @@ public class Robot extends TimedRobot {
     @Override
     public void testPeriodic() {
         try {
-
+            //controlPanel_.setOpenLoop(1);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

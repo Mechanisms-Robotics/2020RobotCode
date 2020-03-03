@@ -41,6 +41,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean spinFlywheelLatch;
     private boolean spinFlywheel = false;
 
+    private LatchedBoolean deployControlPanelLatch;
+    private boolean deployControlPanel = false;
+    private LatchedBoolean controlPanelRotationLatch;
+    private LatchedBoolean controlPanelPositionLatch;
+
     private LatchedBoolean deployClimberLatch;
     private boolean deployClimber = false;
     private LatchedBoolean lockClimberLatch;
@@ -88,7 +93,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployClimberLatch = new LatchedBoolean();
         lockClimberLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
-        
+        deployControlPanelLatch = new LatchedBoolean();
+        controlPanelRotationLatch = new LatchedBoolean();
+        controlPanelPositionLatch = new LatchedBoolean();
+
         drive_ = Drive.getInstance();
         cheesyHelper_ = new CheesyDriveHelper();
         deployHoodLatch = new LatchedBoolean();
@@ -115,7 +123,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         // Whether to auto target to station
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
         // Whether to run the power port backup sequence
-        boolean autoBackupSharedBoolean  = autoBackupLatch.update(rightJoystick_.getPOV() == Constants.AUTO_BACKUP_POV_HAT);
+        boolean autoBackupSharedBoolean  = autoBackupLatch.update(rightJoystick_.getRawButton(Constants.POWER_PORT_BACKUP_BUTTON));
         autoBackup = autoBackupSharedBoolean != autoBackup;
         autoBackupLatchBoolean = autoBackupSharedBoolean;
 
@@ -132,6 +140,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setClimberDemand(generateClimberDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFeederDemand(generateFeederDemand());
+        state.setControlPanelDemand(generateControlPanelDemand());
         if (manualControl) {
             state.setFlywheelDemand(generateFlywheelDemand());
             state.setTurretDemand(generateTurretDemand());
@@ -139,7 +148,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else {
             resetManualControl();
         }
-
         return state;
     }
 
@@ -148,7 +156,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
-        final double BACKUP_DISTANCE = 0.54;
+        final double BACKUP_DISTANCE = 0.59;
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
 
@@ -237,7 +245,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private IntakeDemand generateIntakeDemand() {
         deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
-        boolean intakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_INTAKE_BUTTON);
         boolean outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
 
         // This is so that if they press intake/outake and it is not deployed it will deploy
@@ -295,16 +302,46 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         return demand;
     }
 
+    private ControlPanelDemand generateControlPanelDemand() {
+        ControlPanelDemand demand = new ControlPanelDemand();
+
+        deployControlPanel = deployControlPanelLatch.update(rightSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
+        boolean controlPanelRotation = controlPanelRotationLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
+        boolean controlPanelPosition = controlPanelPositionLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
+        controlPanelPosition = false; //TODO: REMOVE WHEN WORKING
+
+        boolean counterClockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT;
+        boolean clockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_CLOCKWISE_HAT;
+
+        if (clockwiseControlPanel && counterClockwiseControlPanel) {
+            logger_.logInfo("Counterclockwise and clockwise control panel buttons pressed at same time", logName);
+        } else if (clockwiseControlPanel) {
+            demand.clockwise = true;
+        } else if (counterClockwiseControlPanel) {
+            demand.counterclockwise = true;
+        }
+
+        if (!(controlPanelPosition && controlPanelRotation)) {
+            if (controlPanelRotation) {
+                demand.rotation = true;
+            } else if (controlPanelPosition) {
+                demand.position = true;
+            }
+        }
+
+        demand.deploy = deployControlPanel;
+        return demand;
+    }
     private HoodDemand generateHoodDemand() {
         HoodDemand demand = new HoodDemand();
         final double MAX_SPEED = 0.1;
-        
+
         deployHood = deployHoodLatch.update(leftSecondJoystick_.getTrigger()) != deployHood;
 
         demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY(),
                                     -MAX_SPEED, MAX_SPEED);
         demand.deploy = deployHood;
-        return demand;   
+        return demand;
     }
 
     private ShooterDemand generateShooterDemand() {

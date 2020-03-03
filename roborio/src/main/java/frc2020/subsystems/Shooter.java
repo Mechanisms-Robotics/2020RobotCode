@@ -256,14 +256,36 @@ public class Shooter implements Subsystem {
 
     private void loadHoodRangeAngleValues() {
         // (range, angle)
-        if(Constants.IS_COMP_BOT) {
+        if (Constants.IS_COMP_BOT) {
+            // These are the values before 3 March tuning
+//            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.12));
+//            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.69));
+//            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(3.07));
+//            hoodAngleRangeInterpolator.put(new InterpolatingDouble(5.18), new InterpolatingDouble(3.27));
+//            hoodAngleRangeInterpolator.put(new InterpolatingDouble(6.26), new InterpolatingDouble(3.28));
+//            hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.17), new InterpolatingDouble(3.30));
+//            hoodAngleRangeInterpolator.put(new InterpolatingDouble(8.70), new InterpolatingDouble(2.60));
+
+            // TUNABLES
+
+            // position robot just OUTSIDE of trench
+            final var BEGINNING_OF_TRENCH = new InterpolatingDouble(4.46);
+            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(3.1); // decrease to shoot higher
+
+            // position robot as far BACK in trench as possible
+            final var END_OF_TRENCH = new InterpolatingDouble(7.51);
+            final var END_OF_TRENCH_HOOD = new InterpolatingDouble(3.30); // decrease to shoot higher
+
+            // position robot BEYOND trench in front of power port
+            final var BEYOND_TRENCH = new InterpolatingDouble(10.0);
+            final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(2.48); // decrease to shoot a bit higher
+
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.12));
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.69));
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(3.07));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(5.18), new InterpolatingDouble(3.27));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(6.26), new InterpolatingDouble(3.28));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.17), new InterpolatingDouble(3.30));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(8.70), new InterpolatingDouble(2.60));
+            hoodAngleRangeInterpolator.put(BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD);
+            hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);
+            hoodAngleRangeInterpolator.put(BEYOND_TRENCH, BEYOND_TRENCH_HOOD);
         } else {
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.98), new InterpolatingDouble(3.476));

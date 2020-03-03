@@ -93,14 +93,13 @@ public class Constants {
     public final static int AUTO_STEER_BUTTON = 2; // left driver
     public final static int AUTO_ALIGN_BUTTON = 3; // left driver
     public final static int SHOOTER_SET_STOWED_AIMING = 4; // left driver
-    public final static int AUTO_BACKUP_POV_HAT = 180; // right driver
-    public final static int TRENCH_BUTTON = 8; // right driver
     // Left Driver Y-Axis: Left Drive Control
 
     public final static int INTAKE_DEPLOY_TOGGLE = 1; //right driver trigger
-    public final static int INTAKE_INTAKE_BUTTON = 2; // right driver
     public final static int INTAKE_OUTTAKE_BUTTON = 3; // right driver
     public final static int DRIVE_TOGGLE_SHIFT_BUTTON = 4; // right driver
+    public final static int POWER_PORT_BACKUP_BUTTON = 2; // right driver
+    public final static int TRENCH_BUTTON = 8; // right driver
     // Right Driver Y-Axis: Right Drive Control
 
     public final static int TOGGLE_HOOD_DEPLOY = 1; //left second trigger
@@ -110,10 +109,16 @@ public class Constants {
     public final static int MANUAL_FEEDER_INTAKE_HAT = 180; //left second
     public final static int MANUAL_FEEDER_OUTTAKE_HAT = 0; //left second
     // Left Second Y-Axis: Manual Hood Control
-    
+
     public final static int LOCK_CLIMBER_TOGGLE = 2; //right second
     public final static int DEPLOY_CLIMBER_TOGGLE_1 = 3; //right second
     public final static int DEPLOY_CLIMBER_TOGGLE_2 = 4; //right second
+    public final static int DEPLOY_CONTROL_PANEL_TOGGLE = 8; //right second
+    public final static int CONTROL_PANEL_ROTATION_TOGGLE = 9; //right second
+    public final static int CONTROL_PANEL_POSITION_TOGGLE = 10; //right second
+    public final static int MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT = 270; // right second
+    public final static int MANUAL_CONTROL_PANEL_CLOCKWISE_HAT = 90; // right second
+    public final static int CLIMBER_SPLIT_TOGGLE = 1; // right second (Not used just for reference)
     // Right Second Y-Axis: Climber Winch Control
     // Right Second Twist: Manual Turret Control
 
