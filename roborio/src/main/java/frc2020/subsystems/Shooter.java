@@ -339,8 +339,6 @@ public class Shooter implements Subsystem {
             autoHood();
         }
 
-        //TODO: Set hood angle automatically
-
         if (handleOverrideFeeder()) {
             feeder_.runFeeder(false);
         }

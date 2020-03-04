@@ -15,9 +15,6 @@ public class Hood extends SingleMotorSubsystem {
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kForward;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kReverse;
 
-    /*TODO: when we have the robot, set this value to halfway between all the way back
-            and at the forward position of the reverse limit switch
-    */
     private final static double STOW_POSITION = Constants.IS_COMP_BOT ? 0.4 : 0.2; // encoder units
 
     private DoubleSolenoid flipper_;

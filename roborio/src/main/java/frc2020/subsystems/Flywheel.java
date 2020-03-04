@@ -9,7 +9,6 @@ public class Flywheel extends SingleMotorSubsystem {
 
     private static Flywheel instance_;
 
-    // TODO: Set speed for actual robot
     private static final int FLYWHEEL_SPEED = Constants.IS_COMP_BOT ? 5600 : 5000;
     private static final int LONG_RANGE_SPEED = 6000;
 

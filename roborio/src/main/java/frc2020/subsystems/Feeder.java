@@ -10,11 +10,11 @@ public class Feeder extends SingleMotorSubsystem {
 
     private final static int INTAKE_SPEED = 3500; // rpm
     private final static int OUTTAKE_SPEED = -3500; // rpm
-    private final static int PRIME_SPEED = -2000; // rpm TODO: Tune value
-    private final static int SHOOTING_SPEED = 3500; // rpm TODO: Tune value
+    private final static int PRIME_SPEED = -2000; // rpm 
+    private final static int SHOOTING_SPEED = 3500; // rpm
 
-    private final static int INTAKE_BREAK_BEAM_CHANNEL = 0; // TODO: Change for robot	
-    private final static int TURRET_BREAK_BEAM_CHANNEL = 1; // TODO: Change for robot	
+    private final static int INTAKE_BREAK_BEAM_CHANNEL = 0;	
+    private final static int TURRET_BREAK_BEAM_CHANNEL = 1;	
 
     private DigitalInput intakeBreakBeam_;	
     private DigitalInput turretBreakBeam_;
@@ -77,12 +77,10 @@ public class Feeder extends SingleMotorSubsystem {
         turretBreakBeam_ = new DigitalInput(TURRET_BREAK_BEAM_CHANNEL);
     }
 
-    //TODO: Check what boolean is when broken
     public synchronized boolean getIntakeBreakBeamBroken() {
         return !intakeBreakBeam_.get();
     }
     
-    //TODO: Check what boolean is when broken
     public synchronized boolean getShooterBreakBeamBroken() {
         return !turretBreakBeam_.get();
     }
