@@ -1,6 +1,7 @@
 package frc2020.auto;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import frc2020.auto.modes.Basic3Ball;
 import frc2020.auto.modes.CenterToTrench8;
 import frc2020.auto.modes.RightToTrench8;
 import frc2020.util.Logger;
@@ -17,6 +18,7 @@ public class AutoChooser {
      */
     public enum AutoModeChoices {
         NONE(null),
+        BASIC_THREE_BALL(new Basic3Ball()),
         CENTER_EIGHT_BALL(new CenterToTrench8()),
         RIGHT_EIGHT_BALL(new RightToTrench8());
 
