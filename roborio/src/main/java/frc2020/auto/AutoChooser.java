@@ -41,7 +41,7 @@ public class AutoChooser {
             return choice.autoMode;
         }
         logger_.logWarning("No auto mode selected");
-        return null;
+        return AutoModeChoices.BASIC_THREE_BALL.autoMode;
     }
 
     /**
