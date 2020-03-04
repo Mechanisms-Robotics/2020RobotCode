@@ -40,7 +40,7 @@ public class Basic3Ball extends AutoMode {
         // generate a quntic spline instead of a cubic
         // spline. (This may take longer)
         var midPoints = new ArrayList<Translation2d>();
-        var endPose = new Pose2d(2.5, 0.0, Rotation2d.fromDegrees(0.0));
+        var endPose = new Pose2d(1.5, 0.0, Rotation2d.fromDegrees(0.0));
         
         // Define other constraintes
         var voltageConstraint = 
@@ -64,10 +64,7 @@ public class Basic3Ball extends AutoMode {
         if (autoLine == null) {
             generateTrajectories();
         }
-        runCommand(new IntakeCommand(true));
         runCommand(new DriveTrajectory(autoLine));
-        runCommand(new WaitCommand(2.0));
-        runCommand(new IntakeCommand(false));
 		runCommand(new Shoot(5.0));
 	}
 }
