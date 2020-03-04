@@ -270,7 +270,11 @@ public class Shooter implements Subsystem {
 
             // position robot just OUTSIDE of trench
             final var BEGINNING_OF_TRENCH = new InterpolatingDouble(4.46);
-            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(3.1); // decrease to shoot higher
+            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(3.10); // decrease to shoot higher
+
+            // position halfway between the two
+            final var MIDDLE_OF_TRENCH = new InterpolatingDouble(5.99); // (calculated, not measured)
+            final var MIDDLE_OF_TRENCH_HOOD = new InterpolatingDouble(3.23); // decrease to shoot higher
 
             // position robot as far BACK in trench as possible
             final var END_OF_TRENCH = new InterpolatingDouble(7.51);
@@ -284,6 +288,7 @@ public class Shooter implements Subsystem {
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.69));
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(3.07));
             hoodAngleRangeInterpolator.put(BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD);
+            hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(BEYOND_TRENCH, BEYOND_TRENCH_HOOD);
         } else {
