@@ -8,8 +8,8 @@ public class Feeder extends SingleMotorSubsystem {
 
     private static Feeder instance_;
 
-    private final static int INTAKE_SPEED = 3500; // rpm
-    private final static int OUTTAKE_SPEED = -3500; // rpm
+    private final static int INTAKE_SPEED = 4500; // rpm // changed from 3500
+    private final static int OUTTAKE_SPEED = -4500; // rpm // changed from 3500
     private final static int PRIME_SPEED = -2000; // rpm 
     private final static int SHOOTING_SPEED = 3500; // rpm
 

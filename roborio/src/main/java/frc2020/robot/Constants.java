@@ -14,19 +14,19 @@ import frc2020.util.Logger;
 public class Constants {
     private static Logger logger_ = Logger.getInstance();
 
-    public final static String COMP_BOT_MAC = "00-80-2F-28-50-8D";
-    public final static boolean IS_COMP_BOT;
-    static {
-        String currentMacAddress = getMACAddress();
-        logger_.logInfo("RIO Mac Address: " + currentMacAddress);
-        if (currentMacAddress.equals(COMP_BOT_MAC)) {
-            logger_.logInfo("Hello CompBot");
-            IS_COMP_BOT = true;
-        } else {
-            logger_.logInfo("Hello Practice Bot"); // TODO: Get pracitce bot mac address
-            IS_COMP_BOT = false;
-        }
-    }
+    public final static String COMP_BOT_MAC = "00-80-2F-28-50-8D"; //00-80-2F-28-50-8E
+    public final static boolean IS_COMP_BOT = true;
+//    static {
+//        String currentMacAddress = getMACAddress();
+//        logger_.logInfo("RIO Mac Address: " + currentMacAddress);
+//        if (currentMacAddress.equals(COMP_BOT_MAC)) {
+//            logger_.logInfo("Hello CompBot");
+//            IS_COMP_BOT = true;
+//        } else {
+//            logger_.logInfo("Hello Practice Bot"); // TODO: Get pracitce bot mac address
+//            IS_COMP_BOT = false;
+//        }
+//    }
 
     // Logger
     public final static double LOGGER_FLUSH_TIME = 2.0;
