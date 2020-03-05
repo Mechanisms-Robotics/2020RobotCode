@@ -40,7 +40,7 @@ public class Logger {
         return instance_;
     }
 
-    private Level LOGGER_LEVEL = Level.Debug;
+    private Level LOGGER_LEVEL = Level.Info;
 
     public enum Level {
         Debug(3), 

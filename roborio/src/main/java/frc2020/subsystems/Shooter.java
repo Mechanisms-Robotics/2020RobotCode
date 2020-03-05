@@ -78,7 +78,7 @@ public class Shooter implements Subsystem {
             return;
         }
         if (isValidTransition(desiredState)) {
-            logger_.logDebug("Transitioning from " + state_ + " to " + desiredState, logName);
+            //logger_.logDebug("Transitioning from " + state_ + " to " + desiredState, logName); // TODO: fix spamming
             wantedState_ = desiredState;
          } else {
             logger_.logWarning("Transitioning from " + state_ + " to " + desiredState + " IS INVALID", logName);
