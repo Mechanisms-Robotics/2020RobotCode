@@ -82,15 +82,15 @@ public class RightToTrench8 extends AutoMode {
         }
 
         {
-            var maxAccel = 2.5; // meters / seconds*2
-            var maxVelocity = 2.5; // meters / seconds
+            var maxAccel = 3.5; // meters / seconds*2
+            var maxVelocity = 3.5; // meters / seconds
 
             var startPose = secondPickup;
 
             List<Translation2d> midPoints = List.of(
             );
 
-            var endPose = new Pose2d(FieldConstants.SECOND_TRENCH_BALL_X + 0.5,
+            var endPose = new Pose2d(FieldConstants.SECOND_TRENCH_BALL_X + 0.5 - 1.0,
                     FieldConstants.THIRD_TRENCH_BALL_Y - 0.2, Rotation2d.fromDegrees(15));
 
             var voltageConstraint = new DifferentialDriveVoltageConstraint(FEEDFORWARD, DRIVE_KINEMATICS, maxVoltage);
