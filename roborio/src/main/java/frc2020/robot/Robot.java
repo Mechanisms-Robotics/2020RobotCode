@@ -49,6 +49,7 @@ public class Robot extends TimedRobot {
     private ControlPanel controlPanel_;
 
     private Compressor compressor_;
+    private DriverStation ds_;
     private AutoMode currentAutoMode_;
 
     private TeleopCSGenerator teleopCSGenerator_;
@@ -123,6 +124,7 @@ public class Robot extends TimedRobot {
         shooter_.setLimelight(limelight_turret_);
 
         compressor_ = new Compressor();
+        ds_ = DriverStation.getInstance();
         //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT,
@@ -202,6 +204,7 @@ public class Robot extends TimedRobot {
             periodicEventManager_.run();
             manager_.outputToSmartDashboard();
             SmartDashboard.putBoolean("IsCompBot: ", Constants.IS_COMP_BOT);
+            SmartDashboard.putNumber("MATCH TIME", ds_.getMatchTime());
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
 //            if (target != null) {
 //                SmartDashboard.putNumber("Distance", target.getTranslation().getX());

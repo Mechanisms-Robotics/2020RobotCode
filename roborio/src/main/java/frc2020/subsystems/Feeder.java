@@ -143,7 +143,7 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     private synchronized void intakeFeeder() {
-        if (getIntakeBreakBeamBroken()) {//&& !getShooterBreakBeamBroken()) {
+        if (getIntakeBreakBeamBroken() && !getShooterBreakBeamBroken()) {
             runFeeder(false);
         } else {
             super.stop();

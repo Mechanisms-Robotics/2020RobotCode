@@ -106,8 +106,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         climberSplitLatch = new LatchedBoolean();
         driveChooser = new SendableChooser<>();
-        driveChooser.setDefaultOption(DriveMode.Tank.toString(), DriveMode.Tank);
-        driveChooser.addOption(DriveMode.Arcade.toString(), DriveMode.Arcade);
+        driveChooser.setDefaultOption(DriveMode.Arcade.toString(), DriveMode.Arcade);
+        driveChooser.addOption(DriveMode.Tank.toString(), DriveMode.Tank);
         driveChooser.addOption(DriveMode.Cheesy.toString(), DriveMode.Cheesy);
         SmartDashboard.putData("Drive Chooser", driveChooser);
     }
