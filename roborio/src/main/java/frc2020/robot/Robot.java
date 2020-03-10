@@ -1,16 +1,15 @@
 package frc2020.robot;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.auto.modes.Basic3Ball;
 import frc2020.util.*;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
-import frc2020.auto.modes.Basic13Ball;
 import frc2020.auto.modes.CenterToTrench8;
 import frc2020.auto.modes.RightToTrench8;
-import frc2020.auto.modes.Basic3Ball;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
