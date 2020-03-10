@@ -345,7 +345,7 @@ public class Shooter implements Subsystem {
         }
 
         if (handleOverrideFeeder()) {
-            feeder_.runFeeder(false);
+            feeder_.shootFeeder();
         }
     }
 
