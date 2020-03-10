@@ -457,6 +457,8 @@ public class Shooter implements Subsystem {
             if (!hood_.isStowed()) {
                 return;
             }
+
+            flywheel_.spinFlywheel();
         }
 
         state_ = ShooterState.Aiming;

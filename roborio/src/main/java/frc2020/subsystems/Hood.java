@@ -15,7 +15,7 @@ public class Hood extends SingleMotorSubsystem {
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kForward;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kReverse;
 
-    private final static double STOW_POSITION = Constants.IS_COMP_BOT ? 0.4 : 0.2; // encoder units
+    private final static double STOW_POSITION = Constants.IS_COMP_BOT ? 0.2 : 0.2; // encoder units
 
     private DoubleSolenoid flipper_;
     private boolean wantDeploy_ = false;
