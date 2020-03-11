@@ -46,7 +46,6 @@ public class Flywheel extends SingleMotorSubsystem {
     protected Flywheel(SingleMotorSubsystemConstants constants) {
         super(constants);
         feedforward_ = new SimpleMotorFeedforward(KS, KV, KA);
-        SmartDashboard.putNumber("Flywheel Calculated Feedforward", feedforward_.calculate(0));
     }
 
     public static Flywheel getInstance() {
@@ -57,7 +56,6 @@ public class Flywheel extends SingleMotorSubsystem {
     public synchronized void setVelocity(double units) {
         if (Constants.IS_COMP_BOT) {
             double feedforward = feedforward_.calculate(units);
-            logger_.logDebug("Calculated Feedforward: " + feedforward);
             super.setVelocity(units, feedforward);
         } else {
             super.setVelocity(units);
