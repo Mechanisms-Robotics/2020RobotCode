@@ -9,7 +9,7 @@ public class Flywheel extends SingleMotorSubsystem {
 
     private static Flywheel instance_;
 
-    private static final int FLYWHEEL_SPEED = Constants.IS_COMP_BOT ? 5600 : 5000;
+    private static final int FLYWHEEL_SPEED = Constants.IS_COMP_BOT ? 5800 : 5000;
     private static final int LONG_RANGE_SPEED = 6000;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
@@ -29,11 +29,12 @@ public class Flywheel extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.slaveConstants_ = slaveConstantsArray;
         DEFAULT_CONSTANTS.name_ = "Flywheel";
         DEFAULT_CONSTANTS.velocityDeadBand_ = 200; // rpm
-        DEFAULT_CONSTANTS.velocityKp_ = Constants.IS_COMP_BOT ? 0.1583: 0.0006;
+        DEFAULT_CONSTANTS.velocityKp_ = Constants.IS_COMP_BOT ? 0.01: 0.0006; //0.1583
         DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         DEFAULT_CONSTANTS.velocityKd_ = 0.0;
         DEFAULT_CONSTANTS.velocityKf_ = Constants.IS_COMP_BOT ? 0.0 : 0.00019;
         DEFAULT_CONSTANTS.useBreakMode = true;
+        DEFAULT_CONSTANTS.useVoltageComp_ = true;
 
     }
 
@@ -70,7 +71,7 @@ public class Flywheel extends SingleMotorSubsystem {
     }
 
     public synchronized void spinFlywheel(double velocity) {
-        super.setVelocity(velocity);
+        setVelocity(velocity);
     }
 
     public synchronized void spinLongRangeFlywheel() {
