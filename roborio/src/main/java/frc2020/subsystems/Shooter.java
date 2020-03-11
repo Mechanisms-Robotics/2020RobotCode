@@ -23,6 +23,7 @@ public class Shooter implements Subsystem {
     private Logger logger_ = Logger.getInstance();
     private String logName = "Shooter";
 
+    private final static double FAR_FEEDER_DISTANCE = 4.0; // meters
 
     private final static double TURRET_SEEKING_DUTY_CYCLE = 0.07; // duty cycle
     private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
@@ -345,7 +346,11 @@ public class Shooter implements Subsystem {
         }
 
         if (handleOverrideFeeder()) {
-            feeder_.shootFeeder();
+            if (limelight_.getTargetReading().range < FAR_FEEDER_DISTANCE) {
+                feeder_.shootFeeder();
+            } else {
+                feeder_.runFeeder(Feeder.INTAKE_SPEED);
+            }
         }
     }
 
