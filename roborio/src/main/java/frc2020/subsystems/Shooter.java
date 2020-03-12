@@ -458,7 +458,7 @@ public class Shooter implements Subsystem {
                 return;
             }
 
-            flywheel_.spinFlywheel();
+            //flywheel_.spinFlywheel();
         }
 
         state_ = ShooterState.Aiming;
