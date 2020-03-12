@@ -23,7 +23,7 @@ public class Shooter implements Subsystem {
     private Logger logger_ = Logger.getInstance();
     private String logName = "Shooter";
 
-    private final static double FAR_FEEDER_DISTANCE = 4.0; // meters
+    private final static double FAR_FEEDER_DISTANCE = 4.46; // meters, should be same as BEGINNING_TRENCH
 
     private final static double TURRET_SEEKING_DUTY_CYCLE = 0.07; // duty cycle
     private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
