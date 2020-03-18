@@ -23,12 +23,13 @@ public class Shooter implements Subsystem {
     private Logger logger_ = Logger.getInstance();
     private String logName = "Shooter";
 
+    private final static double FAR_FEEDER_DISTANCE = 5.99; // meters, should be same as MIDDLE_TRENCH
 
     private final static double TURRET_SEEKING_DUTY_CYCLE = 0.07; // duty cycle
     private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
 
     private final static double TRENCH_HOOD_POSITION = 3.476; // units
-    private final static int POWER_PORT_SPEED = 5000;
+    private final static int POWER_PORT_SPEED = 3500;
 
     private double startingPosition = 0.0;
     private double turretSeekPower_ = TURRET_SEEKING_DUTY_CYCLE;
@@ -313,7 +314,7 @@ public class Shooter implements Subsystem {
 
     private void handlePowerPort() {
         if (handleOverrideFeeder()) {
-            feeder_.setState(FeederState.SHOOTING);
+            feeder_.runFeeder(Feeder.INTAKE_SPEED);
         }
     }
 
@@ -345,7 +346,11 @@ public class Shooter implements Subsystem {
         }
 
         if (handleOverrideFeeder()) {
-            feeder_.shootFeeder();
+            if (limelight_.getTargetReading().range < FAR_FEEDER_DISTANCE) {
+                feeder_.shootFeeder();
+            } else {
+                feeder_.runFeeder(Feeder.INTAKE_SPEED);
+            }
         }
     }
 
