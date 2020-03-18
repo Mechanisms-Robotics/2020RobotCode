@@ -20,6 +20,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Transform2d;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
@@ -53,7 +54,7 @@ public class Drive implements Subsystem {
 
     private static final String logName = "Drive";
 
-    private static double backupPosition_ = 0.0;
+    private static Pose2d backupPosition_ = new Pose2d();
 
     // This is the instance_ of the Drive object on the robot
     public static Drive instance_;
@@ -497,12 +498,12 @@ public class Drive implements Subsystem {
     }
 
     public synchronized void setBackupDistance(double targetPosition) {
-        backupPosition_ = getOdometryPose().getTranslation().getX() + targetPosition;
+        backupPosition_ = getOdometryPose().transformBy(new Transform2d(new Translation2d(targetPosition, 0.0), new Rotation2d()));
     }
 
     public synchronized void autoBackup() {
         double kP = 0.5; // TODO: Tune
-        double error = backupPosition_ - getOdometryPose().getTranslation().getX();
+        double error = backupPosition_.getTranslation().getDistance(getOdometryPose().getTranslation());
 
         DriveSignal autoBackupSignal = new DriveSignal(error*kP, error*kP, true);
 
