@@ -3,6 +3,7 @@ package frc2020.states;
 import frc2020.subsystems.*;
 import frc2020.util.Logger;
 import frc2020.subsystems.Climber;
+import frc2020.subsystems.ControlPanel;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Feeder;
 import frc2020.subsystems.Flywheel;
@@ -22,6 +23,7 @@ public class CommandState {
     public FeederDemand feederDemand;
     public IntakeDemand intakeDemand;
     public FlywheelDemand flywheelDemand;
+    public ControlPanelDemand controlPanelDemand;
     public ClimberDemand climberDemand;
     public boolean manualDemand = false;
     private TurretDemand turretDemand;
@@ -36,6 +38,7 @@ public class CommandState {
         public DemandType type = DemandType.OpenLoop;
         public boolean inLowGear = false;
         public boolean autoSteer = false;
+        public boolean autoBackup = false;
 
         /**
          * All possible demand types are inserted here
@@ -49,6 +52,14 @@ public class CommandState {
             DriveDemand demand = new DriveDemand();
             demand.signal = signal;
             demand.autoSteer = true;
+            demand.autoBackup = false;
+            return demand;
+        }
+
+        public static DriveDemand autoBackup() {
+            DriveDemand demand = new DriveDemand();
+            demand.autoSteer = false;
+            demand.autoBackup = true;
             return demand;
         }
 
@@ -78,6 +89,14 @@ public class CommandState {
 
     public static class FlywheelDemand {
         public boolean spin = false;
+    }
+
+    public static class ControlPanelDemand {
+        public boolean clockwise = false;
+        public boolean counterclockwise = false;
+        public boolean deploy = false;
+        public boolean rotation = false;
+        public boolean position = false;
     }
 
     public static class ClimberDemand {
@@ -130,6 +149,10 @@ public class CommandState {
         flywheelDemand = demand;
     }
 
+    public void setControlPanelDemand(ControlPanelDemand demand) {
+        controlPanelDemand = demand;
+    }
+
     public void setClimberDemand(ClimberDemand demand) {
         climberDemand = demand;
     }
@@ -157,11 +180,12 @@ public class CommandState {
      * @param drive An instance of the drive train subsystem
      */
     public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret,
-                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood, Shooter shooter) {
+                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood, Shooter shooter, ControlPanel controlPanel) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
         maybeUpdateClimber(climber);
+        maybeUpdateControlPanel(controlPanel);
         if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual) {
             maybeUpdateFeeder(feeder);
         }
@@ -183,6 +207,8 @@ public class CommandState {
             if (driveDemand.autoSteer) {
                 double average = (driveDemand.signal.getLeft() + driveDemand.signal.getRight()) / 2.0;
                 drive.autoSteer(limelight.getTargetReading().azimuth, average);
+            } else if (driveDemand.autoBackup) {
+                drive.autoBackup();
             } else if (driveDemand.type == DriveDemand.DemandType.Velocity) {
                 drive.driveVelocity(driveDemand.signal);
             } else {
@@ -256,6 +282,37 @@ public class CommandState {
                 flywheel.setOpenLoop(0.0);
             }
             flywheelDemand = null;
+        }
+    }
+
+    private void maybeUpdateControlPanel(ControlPanel controlPanel) {
+        if (controlPanelDemand != null) {
+            if (manualDemand) {
+                controlPanel.startManualControl();
+                if (controlPanelDemand.clockwise && controlPanelDemand.counterclockwise) {
+                    logger_.logInfo("Both control panel forward and reverse buttons pressed");
+                    controlPanel.stop();
+                } else if (controlPanelDemand.clockwise) {
+                    controlPanel.runPanelWheel(true);
+                } else if (controlPanelDemand.counterclockwise) {
+                    controlPanel.runPanelWheel(false);
+                } else {
+                    controlPanel.stop();
+                }
+            } else {
+                if (controlPanelDemand.rotation) {
+                    controlPanel.toggleRotationControl();
+                } else if (controlPanelDemand.position) {
+                    controlPanel.togglePositionControl();
+                }
+            }
+
+            if(controlPanelDemand.deploy) {
+                controlPanel.deployPanelArm();
+            } else {
+                controlPanel.stowPanelArm();
+            }
+            controlPanelDemand = null;
         }
     }
 

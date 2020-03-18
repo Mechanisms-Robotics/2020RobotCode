@@ -1,6 +1,10 @@
 package frc2020.auto;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import frc2020.auto.modes.Basic3Ball;
+import frc2020.auto.modes.CenterToTrench8;
+import frc2020.auto.modes.RightToTrench8;
+import frc2020.auto.modes.*;
 import frc2020.util.Logger;
 
 /**
@@ -14,7 +18,11 @@ public class AutoChooser {
      * All the possible auto modes will go in here
      */
     public enum AutoModeChoices {
-        NONE(null);
+        NONE(null),
+        BASIC_THREE_BALL(new Basic3Ball()),
+        CENTER_EIGHT_BALL(new CenterToTrench8()),
+        RIGHT_EIGHT_BALL(new RightToTrench8()),
+        INTAKE_TESTING(new IntakeTestingAuto());
 
         public AutoMode autoMode;
 
@@ -35,7 +43,7 @@ public class AutoChooser {
             return choice.autoMode;
         }
         logger_.logWarning("No auto mode selected");
-        return null;
+        return AutoModeChoices.BASIC_THREE_BALL.autoMode;
     }
 
     /**

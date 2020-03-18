@@ -12,13 +12,13 @@ public class Feeder extends SingleMotorSubsystem {
 
     private static Feeder instance_;
 
-    private final static int INTAKE_SPEED = 3500; // rpm
-    private final static int OUTTAKE_SPEED = -3500; // rpm
-    private final static int PRIME_SPEED = -2000; // rpm TODO: Tune value
-    private final static int SHOOTING_SPEED = 3500; // rpm TODO: Tune value
+    public final static int INTAKE_SPEED = 4500; // rpm // changed from 3500
+    private final static int OUTTAKE_SPEED = -4500; // rpm // changed from 3500
+    private final static int PRIME_SPEED = -2000; // rpm
+    private final static int SHOOTING_SPEED = 11000; // rpm
 
-    private final static int INTAKE_BREAK_BEAM_CHANNEL = 0; // TODO: Change for robot	
-    private final static int TURRET_BREAK_BEAM_CHANNEL = 1; // TODO: Change for robot	
+    private final static int INTAKE_BREAK_BEAM_CHANNEL = 0;
+    private final static int TURRET_BREAK_BEAM_CHANNEL = 1;
 
     private DigitalInput intakeBreakBeam_;	
     private DigitalInput turretBreakBeam_;
@@ -105,6 +105,7 @@ public class Feeder extends SingleMotorSubsystem {
         return !intakeBreakBeam_.get();
     }
 
+
     /**
      * @return true if break beam is broken
      */
@@ -181,11 +182,8 @@ public class Feeder extends SingleMotorSubsystem {
         return false;
     }
 
-    /**
-     *
-     */
     private synchronized void intakeFeeder() {
-        if (getIntakeBreakBeamBroken()) {//&& !getShooterBreakBeamBroken()) {
+        if (getIntakeBreakBeamBroken() && !getShooterBreakBeamBroken()) {
             runFeeder(false);
         } else {
             super.stop();
@@ -200,7 +198,7 @@ public class Feeder extends SingleMotorSubsystem {
         }
     }
 
-    private synchronized void shootFeeder() {
+    public synchronized void shootFeeder() {
         runFeeder(SHOOTING_SPEED);
     }
 

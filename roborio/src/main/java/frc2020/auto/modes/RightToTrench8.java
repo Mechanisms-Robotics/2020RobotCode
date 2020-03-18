@@ -27,33 +27,80 @@ public class RightToTrench8 extends AutoMode {
     private static DifferentialDriveKinematics DRIVE_KINEMATICS = Drive.getInstance().getKinematics();
     private static SimpleMotorFeedforward FEEDFORWARD = Drive.getInstance().getFeedforward();
 
-    public static Trajectory rightToShoot = null;
+    public static Trajectory firstFive = null;
+    public static Trajectory nextThree = null;
+    public static Trajectory moveToShoot = null;
 
     public static void generateTrajectories() {
         var maxVoltage = 10.0; // volts
-        var maxAccel = 1.5; // meters / seconds*2
-        var maxVelocity = 1.5; // meters / seconds
-        Pose2d shootPose2d; //where bot stops to shoot balls
+
+        Pose2d firstPickup = new Pose2d(FieldConstants.FIRST_TRENCH_BALL_X,
+                                        FieldConstants.THIRD_TRENCH_BALL_Y, new Rotation2d());
+        Pose2d secondPickup = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X + 0.1,
+                                            FieldConstants.THIRD_TRENCH_BALL_Y, new Rotation2d());
         {
-            var startPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH/2, 
-             FieldConstants.RIGHT_POSITION_Y,
-                    new Rotation2d());
+            var maxAccel = 2.0; // meters / seconds*2
+            var maxVelocity = 2.0; // meters / seconds
+
+            var startPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH,
+                                        FieldConstants.RIGHT_POSITION_Y, new Rotation2d());
 
             List<Translation2d> midPoints = List.of(
-                new Translation2d(FieldConstants.THIRD_TRENCH_BALL_X - 0.9144 - Constants.ROBOT_LENGTH/2,
-                 FieldConstants.THIRD_TRENCH_BALL_Y - Constants.ROBOT_WIDTH*.25)
             );
 
-            shootPose2d = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - 0.9144, FieldConstants.THIRD_TRENCH_BALL_Y - 1.0668,
-             Rotation2d.fromDegrees(-90));
+            var endPose = firstPickup;
 
             var voltageConstraint = new DifferentialDriveVoltageConstraint(FEEDFORWARD, DRIVE_KINEMATICS, maxVoltage);
 
             var config = new TrajectoryConfig(maxVelocity, maxAccel).setKinematics(DRIVE_KINEMATICS)
                     .addConstraint(voltageConstraint);
 
-            rightToShoot = TrajectoryGenerator.generateTrajectory(
-                startPose, midPoints, shootPose2d, config);
+            firstFive = TrajectoryGenerator.generateTrajectory(
+                startPose, midPoints, endPose, config);
+
+        }
+
+        {
+            var maxAccel = 1.5; // meters / seconds*2
+            var maxVelocity = 1.5; // meters / seconds
+
+            var startPose = firstPickup;
+
+            List<Translation2d> midPoints = List.of(
+            );
+
+            var endPose = secondPickup;
+
+            var voltageConstraint = new DifferentialDriveVoltageConstraint(FEEDFORWARD, DRIVE_KINEMATICS, maxVoltage);
+
+            var config = new TrajectoryConfig(maxVelocity, maxAccel).setKinematics(DRIVE_KINEMATICS)
+                    .addConstraint(voltageConstraint);
+
+            nextThree = TrajectoryGenerator.generateTrajectory(
+                    startPose, midPoints, endPose, config);
+
+        }
+
+        {
+            var maxAccel = 3.5; // meters / seconds*2
+            var maxVelocity = 3.5; // meters / seconds
+
+            var startPose = secondPickup;
+
+            List<Translation2d> midPoints = List.of(
+            );
+
+            var endPose = new Pose2d(FieldConstants.SECOND_TRENCH_BALL_X + 0.5 - 1.0,
+                    FieldConstants.THIRD_TRENCH_BALL_Y - 0.2, Rotation2d.fromDegrees(15));
+
+            var voltageConstraint = new DifferentialDriveVoltageConstraint(FEEDFORWARD, DRIVE_KINEMATICS, maxVoltage);
+
+            var config = new TrajectoryConfig(maxVelocity, maxAccel).setKinematics(DRIVE_KINEMATICS)
+                    .addConstraint(voltageConstraint);
+            config.setReversed(true);
+
+            moveToShoot = TrajectoryGenerator.generateTrajectory(
+                    startPose, midPoints, endPose, config);
 
         }
             
@@ -62,11 +109,16 @@ public class RightToTrench8 extends AutoMode {
 
     @Override
     protected void routine() throws AutoModeEndedException {
-        if (rightToShoot == null) {
+        if (firstFive == null || nextThree == null || moveToShoot == null) {
             generateTrajectories();
         }
-        runCommand(new DriveTrajectory(rightToShoot, true));
-        runCommand(new WaitCommand(2.0));
+        runCommand(new IntakeCommand(true));
+        runCommand(new DriveTrajectory(firstFive, true));
+        runCommand(new Shoot(5));
+        runCommand(new DriveTrajectory(nextThree));
+        runCommand(new WaitCommand(0.5));
+        runCommand(new DriveTrajectory(moveToShoot));
+        runCommand(new Shoot(5));
 
     }
 }

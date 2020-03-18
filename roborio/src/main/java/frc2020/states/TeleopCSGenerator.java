@@ -8,6 +8,7 @@ import frc2020.states.CommandState.*;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Shooter;
+import frc2020.subsystems.Shooter.ShooterState;
 import frc2020.util.*;
 
 /**
@@ -20,12 +21,17 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftSecondJoystick_;
     private Joystick rightSecondJoystick_;
 
+    private Drive drive_;
+
     // ONLY PERSISTENT VALUES SHOULD BE STORED HERE
     private final double JOYSTICK_DEADBAND = 0.01;
     private LatchedBoolean driveShiftLatch;
     private boolean autoSteerBall = false;
     private boolean autoSteerStation = false;
     private boolean driveLowGear = false;
+    private LatchedBoolean autoBackupLatch;
+    private boolean autoBackup = false;
+    private boolean autoBackupLatchBoolean = false;
 
     private LatchedBoolean manualControlLatch;
     private boolean manualControl = false;
@@ -34,6 +40,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private LatchedBoolean spinFlywheelLatch;
     private boolean spinFlywheel = false;
+
+    private LatchedBoolean deployControlPanelLatch;
+    private boolean deployControlPanel = false;
+    private LatchedBoolean controlPanelRotationLatch;
+    private LatchedBoolean controlPanelPositionLatch;
 
     private LatchedBoolean deployClimberLatch;
     private boolean deployClimber = false;
@@ -46,11 +57,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private LatchedBoolean getStowAimingLatch;
     private LatchedBoolean getShooterLatch;
+    private LatchedBoolean getTrenchLatch;
+    private boolean getTrench = false;
 
     private boolean isFeederDemand = false;
 
     private Shooter shooter_ = Shooter.getInstance();
-    private Drive drive_;
 
     private CheesyDriveHelper cheesyHelper_;
 
@@ -75,23 +87,27 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         leftSecondJoystick_ = new Joystick(lJoySecPort);
         rightSecondJoystick_ = new Joystick(rJoySecPort);
         driveShiftLatch = new LatchedBoolean();
+        autoBackupLatch = new LatchedBoolean();
         manualControlLatch = new LatchedBoolean();
         deployIntakeLatch = new LatchedBoolean();
         deployClimberLatch = new LatchedBoolean();
         lockClimberLatch = new LatchedBoolean();
         spinFlywheelLatch = new LatchedBoolean();
-        
+        deployControlPanelLatch = new LatchedBoolean();
+        controlPanelRotationLatch = new LatchedBoolean();
+        controlPanelPositionLatch = new LatchedBoolean();
+
         drive_ = Drive.getInstance();
         cheesyHelper_ = new CheesyDriveHelper();
-        deployClimberLatch = new LatchedBoolean();
-        lockClimberLatch = new LatchedBoolean();
         deployHoodLatch = new LatchedBoolean();
         getStowAimingLatch = new LatchedBoolean();
         getShooterLatch = new LatchedBoolean();
+        getTrenchLatch = new LatchedBoolean();
+
         climberSplitLatch = new LatchedBoolean();
         driveChooser = new SendableChooser<>();
-        driveChooser.setDefaultOption(DriveMode.Tank.toString(), DriveMode.Tank);
-        driveChooser.addOption(DriveMode.Arcade.toString(), DriveMode.Arcade);
+        driveChooser.setDefaultOption(DriveMode.Arcade.toString(), DriveMode.Arcade);
+        driveChooser.addOption(DriveMode.Tank.toString(), DriveMode.Tank);
         driveChooser.addOption(DriveMode.Cheesy.toString(), DriveMode.Cheesy);
         SmartDashboard.putData("Drive Chooser", driveChooser);
     }
@@ -106,6 +122,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         // Whether to auto target to station
         autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
+        // Whether to run the power port backup sequence
+        boolean autoBackupSharedBoolean  = autoBackupLatch.update(rightJoystick_.getRawButton(Constants.POWER_PORT_BACKUP_BUTTON));
+        autoBackup = autoBackupSharedBoolean != autoBackup;
+        autoBackupLatchBoolean = autoBackupSharedBoolean;
 
         // Whether to use manual control or not
         manualControl = manualControlLatch.update(leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) &&
@@ -120,6 +140,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setClimberDemand(generateClimberDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFeederDemand(generateFeederDemand());
+        state.setControlPanelDemand(generateControlPanelDemand());
         if (manualControl) {
             state.setFlywheelDemand(generateFlywheelDemand());
             state.setTurretDemand(generateTurretDemand());
@@ -127,7 +148,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else {
             resetManualControl();
         }
-
         return state;
     }
 
@@ -136,11 +156,15 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
+        final double BACKUP_DISTANCE = 0.59;
+        //Drive
+        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+
         final double DEADBAND = 0.01;
 
         double leftDrive = 0.0;
         double rightDrive = 0.0;
-        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+
         var driveMode = driveChooser.getSelected();
         var povDir = leftJoystick_.getPOV();
         var quickTurn = povDir == 0 || povDir == 45 || povDir == 315;
@@ -177,6 +201,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         DriveSignal signal = new DriveSignal(leftDrive, rightDrive, true);
         if (autoSteerBall || autoSteerStation) {
             return DriveDemand.autoSteer(signal);
+        }
+        if (autoBackup) {
+            if (autoBackupLatchBoolean) {
+                drive_.setBackupDistance(BACKUP_DISTANCE);
+            }
+            return DriveDemand.autoBackup();
         }
         return DriveDemand.fromSignal(signal, driveLowGear);
     }
@@ -215,7 +245,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private IntakeDemand generateIntakeDemand() {
         deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
-        boolean intakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_INTAKE_BUTTON);
         boolean outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
 
         // This is so that if they press intake/outake and it is not deployed it will deploy
@@ -260,8 +289,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
         rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
 
-        double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -leftSecondJoystick_.getY();
-        double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : -rightSecondJoystick_.getY();
+        double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY();
+        double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : rightSecondJoystick_.getY();
 
         climberSplit = climberSplitLatch.update(rightSecondJoystick_.getTrigger()) != climberSplit;
         deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
@@ -273,16 +302,46 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         return demand;
     }
 
+    private ControlPanelDemand generateControlPanelDemand() {
+        ControlPanelDemand demand = new ControlPanelDemand();
+
+        deployControlPanel = deployControlPanelLatch.update(rightSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
+        boolean controlPanelRotation = controlPanelRotationLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
+        boolean controlPanelPosition = controlPanelPositionLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
+        controlPanelPosition = false; //TODO: REMOVE WHEN WORKING
+
+        boolean counterClockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT;
+        boolean clockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_CLOCKWISE_HAT;
+
+        if (clockwiseControlPanel && counterClockwiseControlPanel) {
+            logger_.logInfo("Counterclockwise and clockwise control panel buttons pressed at same time", logName);
+        } else if (clockwiseControlPanel) {
+            demand.clockwise = true;
+        } else if (counterClockwiseControlPanel) {
+            demand.counterclockwise = true;
+        }
+
+        if (!(controlPanelPosition && controlPanelRotation)) {
+            if (controlPanelRotation) {
+                demand.rotation = true;
+            } else if (controlPanelPosition) {
+                demand.position = true;
+            }
+        }
+
+        demand.deploy = deployControlPanel;
+        return demand;
+    }
     private HoodDemand generateHoodDemand() {
         HoodDemand demand = new HoodDemand();
         final double MAX_SPEED = 0.1;
-        
+
         deployHood = deployHoodLatch.update(leftSecondJoystick_.getTrigger()) != deployHood;
 
         demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY(),
                                     -MAX_SPEED, MAX_SPEED);
         demand.deploy = deployHood;
-        return demand;   
+        return demand;
     }
 
     private ShooterDemand generateShooterDemand() {
@@ -291,20 +350,47 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         boolean getStowAiming = getStowAimingLatch.update(leftJoystick_.getRawButton(Constants.SHOOTER_SET_STOWED_AIMING));
         boolean getShooter = getShooterLatch.update(leftJoystick_.getTrigger());
+
+        getTrench = getTrenchLatch.update(rightJoystick_.getRawButton(Constants.TRENCH_BUTTON)) != getTrench;
+
         if (manualControl) {
-            demand.state = Shooter.ShooterState.Manual;
+            demand.state = ShooterState.Manual;
         } else {
-            if (shooter_.getWantedState() == Shooter.ShooterState.Aiming || shooter_.getWantedState() == Shooter.ShooterState.Shooting) {
+            if (shooter_.getWantedState() == ShooterState.Aiming || shooter_.getWantedState() == ShooterState.Shooting) {
                 if (getStowAiming) {
-                    demand.state = Shooter.ShooterState.Stowed;
+                    demand.state = ShooterState.Stowed;
                 } else if (getShooter) {
-                    demand.state = Shooter.ShooterState.Shooting;
+                    if (shooter_.getWantedState() != ShooterState.Shooting) {
+                        demand.state = ShooterState.Shooting;
+                    } else {
+                        demand.state = ShooterState.Stowed;
+                    }
                 } else {
                     demand.state = shooter_.getWantedState();
                 }
+            } else if (shooter_.getWantedState() == ShooterState.PowerPort) {
+                if (!autoBackup || getStowAiming) {
+                    demand.state = ShooterState.Stowed;
+                    autoBackup = false;
+                } else {
+                    demand.state = ShooterState.PowerPort;
+                }
+            } else if (shooter_.getWantedState() == ShooterState.Trench) {
+                if (!getTrench || getStowAiming) {
+                    demand.state = ShooterState.Stowed;
+                    getTrench = false;
+                } else {
+                    demand.state = ShooterState.Trench;
+                }
             } else {
                 if (getStowAiming) {
-                    demand.state = Shooter.ShooterState.Aiming;
+                    demand.state = ShooterState.Aiming;
+                } else if (getShooter) {
+                    demand.state = ShooterState.Shooting;
+                } else if (autoBackupLatchBoolean) {
+                    demand.state = ShooterState.PowerPort;
+                } else if (getTrench) {
+                    demand.state = ShooterState.Trench;
                 }
             }
         }
@@ -318,5 +404,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         manualControl = false;
         deployHood = false;
         spinFlywheel = false;
+    }
+
+    public synchronized void resetPresetPositions() {
+        autoBackup = false;
+        getTrench = false;
+        lockClimber = false; // forces climb to unlock upon enable
     }
 }

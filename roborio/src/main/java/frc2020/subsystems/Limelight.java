@@ -12,7 +12,8 @@ import frc2020.util.Logger;
  * Subsystem for interacting with the Limelight 2
  * 
  * This class does not explicitly track the targets, rather interfaces with the LimeLight
- * and simply determines whether or not target data received is reliable.
+ * and simply determines whether or not target data received is reliable. Limelight Turret X Crosshair
+ * tuned to 0.04
  */
 public class Limelight implements Subsystem {
     private final static int DEFAULT_PIPELINE = 0;

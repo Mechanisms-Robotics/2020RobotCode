@@ -33,16 +33,22 @@ public class Basic13Ball extends AutoMode {
 
     public static Trajectory midToRendezvous = null;
     public static Trajectory rendezvousToTrench = null;
+    public static Trajectory trenchToShoot = null;
 
     public static void generateTrajectories() {
         var maxVoltage = 10.0; // volts
         var maxAccel = 2.0; // m/s^2
         var maxVelocity = 2.0; // m/s
 
+        // Arbitrary shooting position past rendezvous
         Pose2d rendezvousPose = new Pose2d(FieldConstants.BALL_FIVE_X - 0.1524, FieldConstants.CENTER_POWER_PORT_Y,
-        Rotation2d.fromDegrees(90));
-        Pose2d trenchPose = new Pose2d(FieldConstants.FOURTH_TRENCH_BALL_X - Constants.ROBOT_LENGTH/2,
+        Rotation2d.fromDegrees(45));
+        // Pickup for balls 4 and 5
+        Pose2d trenchPose = new Pose2d(FieldConstants.FOURTH_TRENCH_BALL_X - Constants.ROBOT_LENGTH/2 - Constants.INTAKE_LENGTH,
         FieldConstants.THIRD_TRENCH_BALL_Y, new Rotation2d());
+        // Second trench ball
+        var secondTrenchBallPickup = new Pose2d(FieldConstants.SECOND_TRENCH_BALL_X - Constants.ROBOT_LENGTH*.5 - Constants.INTAKE_LENGTH,
+                                                FieldConstants.THIRD_TRENCH_BALL_Y, new Rotation2d());
         {
             var startPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + .5 * Constants.ROBOT_LENGTH,
                     FieldConstants.BALL_ONE_Y, new Rotation2d());
@@ -76,27 +82,39 @@ public class Basic13Ball extends AutoMode {
                 midPoint1
             );
 
-            var endPose = trenchPose;
-
             var voltageConstraint = new DifferentialDriveVoltageConstraint(FEEDFORWARD, DRIVE_KINEMATICS, maxVoltage);
 
             var config = new TrajectoryConfig(maxVelocity, maxAccel).setKinematics(DRIVE_KINEMATICS)
                         .addConstraint(voltageConstraint);
     
-            rendezvousToTrench = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
+            rendezvousToTrench = TrajectoryGenerator.generateTrajectory(startPose, midPoints, trenchPose, config);
+        }
+
+        {
+            List<Translation2d> midPoints = List.of(
+            );
+
+            var voltageConstraint = new DifferentialDriveVoltageConstraint(FEEDFORWARD, DRIVE_KINEMATICS, maxVoltage);
+
+            var config = new TrajectoryConfig(maxVelocity, maxAccel).setKinematics(DRIVE_KINEMATICS)
+                        .addConstraint(voltageConstraint);
+            config.setReversed(true);
+    
+            trenchToShoot = TrajectoryGenerator.generateTrajectory(trenchPose, midPoints, secondTrenchBallPickup, config);
         }
     }
 
     @Override
     protected void routine() throws AutoModeEndedException {
         // TODO Auto-generated method stub
-        if (midToRendezvous == null || rendezvousToTrench == null) {
+        if (midToRendezvous == null || rendezvousToTrench == null || trenchToShoot == null) {
             generateTrajectories();
         }
 
         runCommand(new DriveTrajectory(midToRendezvous, true));
         runCommand(new WaitCommand(2.0));
         runCommand(new DriveTrajectory(rendezvousToTrench));
+        runCommand(new DriveTrajectory(trenchToShoot));
 
     }
 }
