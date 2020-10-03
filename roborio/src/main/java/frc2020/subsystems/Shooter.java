@@ -38,7 +38,7 @@ public class Shooter implements Subsystem {
 
     private LatchedBoolean seekTurretLatch_;
 
-    private InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> hoodAngleRangeInterpolator;
+    private double[][] hoodAngleRangePoints_;
 
     public enum ShooterState {
         Manual,
@@ -63,7 +63,6 @@ public class Shooter implements Subsystem {
         turret_ = Turret.getInstance();
 
         seekTurretLatch_ = new LatchedBoolean();
-        hoodAngleRangeInterpolator = new InterpolatingTreeMap<>(100);
         loadHoodRangeAngleValues();
     }
 
@@ -243,7 +242,7 @@ public class Shooter implements Subsystem {
 
     private void autoHood() {
         double range = limelight_.getTargetReading().range;
-        double setpoint = hoodAngleRangeInterpolator.getInterpolated(new InterpolatingDouble(range)).value;
+        double setpoint = PolynomialFit.getValue(hoodAngleRangePoints_, range);
         hood_.setSmartPosition(setpoint);
     }
 
@@ -270,32 +269,33 @@ public class Shooter implements Subsystem {
             // TUNABLES
 
             // position robot just OUTSIDE of trench
-            final var BEGINNING_OF_TRENCH = new InterpolatingDouble(4.46);
-            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(3.10 - 0.02); // decrease to shoot higher
+            double BEGINNING_OF_TRENCH = 4.46;
+            double BEGINNING_OF_TRENCH_HOOD = 3.10 - 0.02; // decrease to shoot higher
 
             // position halfway between the two
-            final var MIDDLE_OF_TRENCH = new InterpolatingDouble(5.99); // (calculated, not measured)
-            final var MIDDLE_OF_TRENCH_HOOD = new InterpolatingDouble(3.23 - 0.02); // decrease to shoot higher
+            double MIDDLE_OF_TRENCH = 5.99; // (calculated, not measured)
+            double MIDDLE_OF_TRENCH_HOOD = 3.23 - 0.02; // decrease to shoot higher
 
             // position robot as far BACK in trench as possible
-            final var END_OF_TRENCH = new InterpolatingDouble(7.51);
-            final var END_OF_TRENCH_HOOD = new InterpolatingDouble(3.30 - 0.02); // decrease to shoot higher
+            double END_OF_TRENCH = 7.51;
+            double END_OF_TRENCH_HOOD = 3.30 - 0.02; // decrease to shoot higher
 
             // position robot BEYOND trench in front of power port
-            final var BEYOND_TRENCH = new InterpolatingDouble(10.0);
-            final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(2.48); // decrease to shoot a bit higher
-
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.12));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.69));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(3.07));
-            hoodAngleRangeInterpolator.put(BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD);
-            hoodAngleRangeInterpolator.put(MIDDLE_OF_TRENCH, MIDDLE_OF_TRENCH_HOOD);
-            hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);
-            hoodAngleRangeInterpolator.put(BEYOND_TRENCH, BEYOND_TRENCH_HOOD);
+            double BEYOND_TRENCH = 10.0;
+            double BEYOND_TRENCH_HOOD = 2.48; // decrease to shoot a bit higher
+            
+            hoodAngleRangePoints_ = new double[][]{{2.22, 2.12},
+                                                   {3.04, 2.69},
+                                                   {4.12, 3.07},
+                                                   {BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD},
+                                                   {MIDDLE_OF_TRENCH, MIDDLE_OF_TRENCH_HOOD},
+                                                   {END_OF_TRENCH, END_OF_TRENCH_HOOD},
+                                                   {BEYOND_TRENCH, BEYOND_TRENCH_HOOD}};
+            
         } else {
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.98), new InterpolatingDouble(3.476));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.31), new InterpolatingDouble(3.476));
+            hoodAngleRangePoints_ = new double[][]{{2.148, 1.571},
+                                                   {3.98, 3.476},
+                                                   {7.31, 3.476}};
         }
     }
 
