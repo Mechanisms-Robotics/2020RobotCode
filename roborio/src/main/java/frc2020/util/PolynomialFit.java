@@ -56,11 +56,10 @@ public class PolynomialFit {
         return solutionVector.toArray();
     }
 
-    public static double getValue(double[][] points, double x) {
-        double[] polynomialCoeffecients = PolynomialFit.fit(points);
+    public static double getValue(double[] coeffecients, double x) {
         double sum = 0.0;
-        for (int i = 0; i < polynomialCoeffecients.length; i++) {
-            sum += polynomialCoeffecients[i]*(Math.pow(x, polynomialCoeffecients.length-(i+1)));
+        for (int i = 0; i < coeffecients.length; i++) {
+            sum += coeffecients[i]*(Math.pow(x, coeffecients.length-(i+1)));
         }
         return sum;
     }

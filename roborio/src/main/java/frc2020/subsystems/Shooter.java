@@ -39,6 +39,7 @@ public class Shooter implements Subsystem {
     private LatchedBoolean seekTurretLatch_;
 
     private double[][] hoodAngleRangePoints_;
+    private double[] hoodAngleRangeCoeffecients_;
 
     public enum ShooterState {
         Manual,
@@ -242,7 +243,7 @@ public class Shooter implements Subsystem {
 
     private void autoHood() {
         double range = limelight_.getTargetReading().range;
-        double setpoint = PolynomialFit.getValue(hoodAngleRangePoints_, range);
+        double setpoint = PolynomialFit.getValue(hoodAngleRangeCoeffecients_, range);
         hood_.setSmartPosition(setpoint);
     }
 
@@ -291,11 +292,15 @@ public class Shooter implements Subsystem {
                                                    {MIDDLE_OF_TRENCH, MIDDLE_OF_TRENCH_HOOD},
                                                    {END_OF_TRENCH, END_OF_TRENCH_HOOD},
                                                    {BEYOND_TRENCH, BEYOND_TRENCH_HOOD}};
+
+            hoodAngleRangeCoeffecients_ = PolynomialFit.fit(hoodAngleRangePoints_);
             
         } else {
             hoodAngleRangePoints_ = new double[][]{{2.148, 1.571},
                                                    {3.98, 3.476},
                                                    {7.31, 3.476}};
+
+            hoodAngleRangeCoeffecients_ = PolynomialFit.fit(hoodAngleRangePoints_);
         }
     }
 
