@@ -301,9 +301,9 @@ public class CommandState {
                 }
             } else {
                 if (controlPanelDemand.rotation) {
-                    controlPanel.toggleRotationControl();
+                    //controlPanel.toggleRotationControl(); //ONLY FOR FIVES
                 } else if (controlPanelDemand.position) {
-                    controlPanel.togglePositionControl();
+                    //controlPanel.togglePositionControl(); // ONLY FOR FIVES
                 }
             }
 

@@ -8,7 +8,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc2020.loops.ILooper;
 import frc2020.loops.Loop;
 import frc2020.util.WheelWatcher;
-import frc2020.util.WheelWatcher.WheelColor;
+//import frc2020.util.WheelWatcher.WheelColor; // ONLY FOR FIVES
+
+/**
+ * A BUNCH OF STUFF IN THIS CLASS IS COMMENTED OUT BECAUSE FIVES DOES NOT HAVE A COLOR SENSOR.
+ * FOR SIXES PLEASE PUT THIS BACK IN!
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 
 public class ControlPanel extends SingleMotorSubsystem {
     private static ControlPanel instance_;
@@ -52,7 +66,7 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     private ControlPanelState state_ = ControlPanelState.IDLE;
 
-    private WheelColor goalColor_ = WheelColor.UNKNOWN;
+    //private WheelColor goalColor_ = WheelColor.UNKNOWN; // ONLY FOR FIVES
 
     private static enum ControlPanelState {
         IDLE, POSITION, ROTATION, MANUAL
@@ -120,103 +134,103 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     @Override
     public void zeroSensors() {
-        wheelWatcher_.reset();
+        //wheelWatcher_.reset();
     }
 
-    @Override
-    public void registerLoops(ILooper enabledLooper) {
-        super.registerLoops(enabledLooper);
-        enabledLooper.register(controlPanelLoop);
-    }
+    // @Override
+    // public void registerLoops(ILooper enabledLooper) {
+    //     super.registerLoops(enabledLooper);
+    //     enabledLooper.register(controlPanelLoop);
+    // }
 
-    private final Loop controlPanelLoop = new Loop() {
+    // private final Loop controlPanelLoop = new Loop() {
 
-        ControlPanelState lastState_ = ControlPanelState.IDLE;
+    //     ControlPanelState lastState_ = ControlPanelState.IDLE;
 
-        public void init() {
-            synchronized (ControlPanel.this) {
-                state_ = ControlPanelState.IDLE;
-                wheelWatcher_.init();
-            }
-        }
+    //     public void init() {
+    //         synchronized (ControlPanel.this) {
+    //             state_ = ControlPanelState.IDLE;
+    //             wheelWatcher_.init();
+    //         }
+    //     }
 
-        public void run() {
-            synchronized (ControlPanel.this) {
-                if (state_ != lastState_) {
-                    logger_.logInfo("Control Panel state changed to "+state_.toString(), logName_);
+    //     public void run() {
+    //         synchronized (ControlPanel.this) {
+    //             if (state_ != lastState_) {
+    //                 logger_.logInfo("Control Panel state changed to "+state_.toString(), logName_);
 
-                    lastState_ = state_;
-                }
+    //                 lastState_ = state_;
+    //             }
 
-                switch(state_) {
-                    case IDLE:
-                        break;
-                    case POSITION:
+    //             switch(state_) {
+    //                 case IDLE:
+    //                     break;
+    //                 case POSITION:
 
-                        if (goalColor_ == WheelColor.UNKNOWN) {
-                            state_ = ControlPanelState.IDLE;
-                            logger_.logWarning("Control Panel unknown goal color", logName_);
-                            break;
-                        }
+    //                     if (goalColor_ == WheelColor.UNKNOWN) {
+    //                         state_ = ControlPanelState.IDLE;
+    //                         logger_.logWarning("Control Panel unknown goal color", logName_);
+    //                         break;
+    //                     }
 
-                        WheelColor colorCompliment = wheelWatcher_.getColorAt90(goalColor_);
-                        WheelColor currentColor = wheelWatcher_.getWedgeColor();
+    //                     WheelColor colorCompliment = wheelWatcher_.getColorAt90(goalColor_);
+    //                     WheelColor currentColor = wheelWatcher_.getWedgeColor();
 
-                        if (currentColor == colorCompliment) {
-                            state_ = ControlPanelState.IDLE;
-                            stop();
-                            break;
-                        }
+    //                     if (currentColor == colorCompliment) {
+    //                         state_ = ControlPanelState.IDLE;
+    //                         stop();
+    //                         break;
+    //                     }
 
-                        runPanelWheel(true);
-                        break;
-                    case ROTATION:
+    //                     runPanelWheel(true);
+    //                     break;
+    //                 case ROTATION:
 
-                        if (wheelWatcher_.getEdgeCount() == GOAL_EDGE_COUNT) {
-                            state_ = ControlPanelState.IDLE;
-                            stop();
-                            break;
-                        }
+    //                     if (wheelWatcher_.getEdgeCount() == GOAL_EDGE_COUNT) {
+    //                         state_ = ControlPanelState.IDLE;
+    //                         stop();
+    //                         break;
+    //                     }
 
-                        runPanelWheel(true);
-                        break;
-                    case MANUAL:
-                        break;
-                    default:
-                        logger_.logWarning("Control Panel unexpected state "+state_.toString(), logName_);
-                        break;
-                }
-            }
-        }
+    //                     runPanelWheel(true);
+    //                     break;
+    //                 case MANUAL:
+    //                     break;
+    //                 default:
+    //                     logger_.logWarning("Control Panel unexpected state "+state_.toString(), logName_);
+    //                     break;
+    //             }
+    //         }
+    //     }
 
-        public void end() {
-            synchronized (ControlPanel.this) {
-                state_ = ControlPanelState.IDLE;
-                stop();
-            }
-        }
+    //     public void end() {
+    //         synchronized (ControlPanel.this) {
+    //             state_ = ControlPanelState.IDLE;
+    //             stop();
+    //         }
+    //     }
 
-    };
+    // };
 
 
-    public synchronized void togglePositionControl() {
-        if (state_ != ControlPanelState.POSITION) {
-            wheelWatcher_.reset();
-            goalColor_ = getFMSColor(gameData);
-            state_ = ControlPanelState.POSITION;
-        } else {
-            state_ = ControlPanelState.IDLE;
-        }
-    }
+    // public synchronized void togglePositionControl() {
+    //     if (state_ != ControlPanelState.POSITION) {
+    //         wheelWatcher_.reset();
+    //         goalColor_ = getFMSColor(gameData);
+    //         state_ = ControlPanelState.POSITION;
+    //     } else {
+    //         state_ = ControlPanelState.IDLE;
+    //     }
+    // }
 
-    public synchronized void toggleRotationControl() {
-        if (state_ != ControlPanelState.ROTATION) {
-            wheelWatcher_.reset();
-            state_ = ControlPanelState.ROTATION;
-        } else {
-            state_ = ControlPanelState.IDLE;
-        }
-    }
+    // public synchronized void toggleRotationControl() {
+    //     if (state_ != ControlPanelState.ROTATION) {
+    //         wheelWatcher_.reset();
+    //         state_ = ControlPanelState.ROTATION;
+    //     } else {
+    //         state_ = ControlPanelState.IDLE;
+    //     }
+    // }
 
     public synchronized void startManualControl() {
         if (state_ != ControlPanelState.MANUAL) {
@@ -224,27 +238,27 @@ public class ControlPanel extends SingleMotorSubsystem {
         }
     }
 
-    public static WheelColor getFMSColor(String gameData) {
-        gameData = DriverStation.getInstance().getGameSpecificMessage();
-        gameData = gameData.toUpperCase();
-        if (gameData.length() > 0) {
-           switch (gameData.charAt(0)) {
-               case 'R': return WheelColor.RED;
-               case 'B': return WheelColor.BLUE;
-               case 'G': return WheelColor.GREEN;
-               case 'Y': return WheelColor.YELLOW;
-           }
-        }
-        return WheelColor.UNKNOWN;
-    }
+    // public static WheelColor getFMSColor(String gameData) {
+    //     gameData = DriverStation.getInstance().getGameSpecificMessage();
+    //     gameData = gameData.toUpperCase();
+    //     if (gameData.length() > 0) {
+    //        switch (gameData.charAt(0)) {
+    //            case 'R': return WheelColor.RED;
+    //            case 'B': return WheelColor.BLUE;
+    //            case 'G': return WheelColor.GREEN;
+    //            case 'Y': return WheelColor.YELLOW;
+    //        }
+    //     }
+    //     return WheelColor.UNKNOWN;
+    // }
 
     @Override
     public void outputTelemetry() {
         super.outputTelemetry();
         SmartDashboard.putBoolean("Control Panel Deployed", isDeployed_);
-        SmartDashboard.putString("Control Panel Color", wheelWatcher_.getWedgeColor().toString());
+        //SmartDashboard.putString("Control Panel Color", wheelWatcher_.getWedgeColor().toString()); // ONLY FOR FIVES
         SmartDashboard.putString("Control Panel State", state_.toString());
-        SmartDashboard.putNumber("Control Panel Edge Count", wheelWatcher_.getEdgeCount());
+        //SmartDashboard.putNumber("Control Panel Edge Count", wheelWatcher_.getEdgeCount()); // ONLY FOR FIVES
     }
 
     @Override
@@ -266,7 +280,7 @@ public class ControlPanel extends SingleMotorSubsystem {
 
         isDeployed_ = flipper_.get() == DEPLOYED_VALUE;
         
-        wheelWatcher_.update();
+        //wheelWatcher_.update(); // ONLY FOR FIVES
     }
 
     @Override

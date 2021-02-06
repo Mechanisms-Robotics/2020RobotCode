@@ -98,8 +98,8 @@ public class Drive implements Subsystem {
     private CANPIDController rightVelocityPID_;
 
     // Encoders and Odometry
-    private CANCoder leftCanCoder;
-    private CANCoder rightCanCoder;
+    //private CANCoder leftCanCoder; // ONLY FOR FIVES
+    //private CANCoder rightCanCoder; // ONLY FOR FIVES
 
     private CANCoderConfiguration leftCoderConfig;
     private CANCoderConfiguration rightCoderConfig;
@@ -135,7 +135,7 @@ public class Drive implements Subsystem {
     private Drive() {
         if (Robot.isReal() && IS_ROBOT) {
             configSparkMaxs();
-            configCanCoders();
+            //configCanCoders();
 
             // Configure NavX
             gyro_ = new NavX(SerialPort.Port.kUSB);
@@ -165,66 +165,67 @@ public class Drive implements Subsystem {
      * Loads the CAN Coder Configuration files to the CAN Coders. Also reports magnet alignment and config errors
      * Encoder polarity, unit coefficients also managed here
      */
-    private void configCanCoders() {
-        leftCanCoder = new CANCoder(Constants.LEFT_CAN_CODER_ID);
-        rightCanCoder = new CANCoder(Constants.RIGHT_CAN_CODER_ID);
+    // ONLY FOR FIVES
+    // private void configCanCoders() {
+    //     leftCanCoder = new CANCoder(Constants.LEFT_CAN_CODER_ID);
+    //     rightCanCoder = new CANCoder(Constants.RIGHT_CAN_CODER_ID);
 
-        // Reports firmware version for logging purposes
-        logger_.logInfo("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion(), logName);
-        logger_.logInfo("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion(), logName);
+    //     // Reports firmware version for logging purposes
+    //     logger_.logInfo("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion(), logName);
+    //     logger_.logInfo("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion(), logName);
         
-        // Checks for alignment of magnet with encoder (the encoder light color)
-        MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
-        if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
-            logger_.logError("Left CAN Coder magnet in the red (out of range)", logName);
-        } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
-            logger_.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", logName);
-        } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            logger_.logInfo("Left CAN Coder magnet is green (healthy)", logName);
-        } else {
-            logger_.logError("Left CAN Coder magnet not detected", logName);
-        }
+    //     // Checks for alignment of magnet with encoder (the encoder light color)
+    //     MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
+    //     if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+    //         logger_.logError("Left CAN Coder magnet in the red (out of range)", logName);
+    //     } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+    //         logger_.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", logName);
+    //     } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
+    //         logger_.logInfo("Left CAN Coder magnet is green (healthy)", logName);
+    //     } else {
+    //         logger_.logError("Left CAN Coder magnet not detected", logName);
+    //     }
 
-        MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
-        if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
-            logger_.logError("Right CAN Coder magnet in the red (out of range)", logName);
-        } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
-            logger_.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", logName);
-        } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            logger_.logInfo("Right CAN Coder magnet is green (healthy)", logName);
-        } else {
-            logger_.logError("Right CAN Coder magnet not detected", logName);
-        }
+    //     MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
+    //     if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+    //         logger_.logError("Right CAN Coder magnet in the red (out of range)", logName);
+    //     } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+    //         logger_.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", logName);
+    //     } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
+    //         logger_.logInfo("Right CAN Coder magnet is green (healthy)", logName);
+    //     } else {
+    //         logger_.logError("Right CAN Coder magnet not detected", logName);
+    //     }
         
-        // CANCoder configuration objects
-        leftCoderConfig = new CANCoderConfiguration();
-        rightCoderConfig = new CANCoderConfiguration();
+    //     // CANCoder configuration objects
+    //     leftCoderConfig = new CANCoderConfiguration();
+    //     rightCoderConfig = new CANCoderConfiguration();
         
-        // Opposite values because of the orientation of the drives. Switch if the robot is reading distance backwards
-        leftCoderConfig.sensorDirection = true;
-        rightCoderConfig.sensorDirection = false;
+    //     // Opposite values because of the orientation of the drives. Switch if the robot is reading distance backwards
+    //     leftCoderConfig.sensorDirection = true;
+    //     rightCoderConfig.sensorDirection = false;
 
-        // This is used to directly convert from encoder units to meters. Note that this coefficient is in m/enc
-        double sensorCoefficient = Constants.WHEEL_DIAMETER * Math.PI / DRIVE_ENCODER_PPR;
+    //     // This is used to directly convert from encoder units to meters. Note that this coefficient is in m/enc
+    //     double sensorCoefficient = Constants.WHEEL_DIAMETER * Math.PI / DRIVE_ENCODER_PPR;
 
-        leftCoderConfig.sensorCoefficient = sensorCoefficient;
-        rightCoderConfig.sensorCoefficient = sensorCoefficient;
+    //     leftCoderConfig.sensorCoefficient = sensorCoefficient;
+    //     rightCoderConfig.sensorCoefficient = sensorCoefficient;
         
-        // Sets unit name
-        leftCoderConfig.unitString = "meters";
-        rightCoderConfig.unitString = "meters";
+    //     // Sets unit name
+    //     leftCoderConfig.unitString = "meters";
+    //     rightCoderConfig.unitString = "meters";
 
-        // Prints the stack if there are any errors in pushing the configuration objects
-        ErrorCode rv = leftCanCoder.configAllSettings(leftCoderConfig, Constants.CAN_TIMEOUT);
-        if (rv != ErrorCode.OK) {
-            logger_.logError("Left CAN coder config failed with error: " + rv.toString(), logName);
-        }
+    //     // Prints the stack if there are any errors in pushing the configuration objects
+    //     ErrorCode rv = leftCanCoder.configAllSettings(leftCoderConfig, Constants.CAN_TIMEOUT);
+    //     if (rv != ErrorCode.OK) {
+    //         logger_.logError("Left CAN coder config failed with error: " + rv.toString(), logName);
+    //     }
 
-        rv = rightCanCoder.configAllSettings(rightCoderConfig, Constants.CAN_TIMEOUT);
-        if (rv != ErrorCode.OK) {
-            logger_.logError("Right CAN coder config failed with error: " + rv.toString(), logName);
-        }
-    }
+    //     rv = rightCanCoder.configAllSettings(rightCoderConfig, Constants.CAN_TIMEOUT);
+    //     if (rv != ErrorCode.OK) {
+    //         logger_.logError("Right CAN coder config failed with error: " + rv.toString(), logName);
+    //     }
+    // }
 
     /**
      * Configures spark maxes by assigning port number and motor type, restores the factory
@@ -530,15 +531,16 @@ public class Drive implements Subsystem {
 
         if (Robot.isReal() && IS_ROBOT) {
             // Prints the stack if there are any errors in setting the position of the CAN Coders
-            ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
-            if (rv != ErrorCode.OK) {
-                logger_.logError("Left CAN coder reset failed with error: " + rv.toString(), logName);
-            }
+            // ONLY FOR FIVES
+            // ErrorCode rv = leftCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
+            // if (rv != ErrorCode.OK) {
+            //     logger_.logError("Left CAN coder reset failed with error: " + rv.toString(), logName);
+            // }
 
-            rv = rightCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
-            if (rv != ErrorCode.OK) {
-                logger_.logError("Right CAN coder reset failed with error: " + rv.toString(), logName);
-            }
+            // rv = rightCanCoder.setPosition(0, Constants.CAN_TIMEOUT);
+            // if (rv != ErrorCode.OK) {
+            //     logger_.logError("Right CAN coder reset failed with error: " + rv.toString(), logName);
+            // }
 
             // Sets the gyroscope to the desired rotation
             setHeading(rotation);
@@ -756,16 +758,16 @@ public class Drive implements Subsystem {
     public synchronized void readPeriodicInputs() {
         if (Robot.isReal() && IS_ROBOT) {
             // Get this from the CAN coders
-            io_.left_distance = leftCanCoder.getPosition();
-            io_.right_distance = rightCanCoder.getPosition();
+            //io_.left_distance = leftCanCoder.getPosition(); // ONLY FOR FIVES
+            //io_.right_distance = rightCanCoder.getPosition();
             io_.left_neo_distance = rotationsToMeters(leftMaster_.getEncoder().getPosition());
             io_.right_neo_distance = rotationsToMeters(rightMaster_.getEncoder().getPosition());
 
             // Get this from the Spark Maxes
             io_.left_velocity_rpm = leftMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
             io_.right_velocity_rpm = rightMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
-            io_.left_velocity_mps = leftCanCoder.getVelocity();
-            io_.right_velocity_mps = rightCanCoder.getVelocity();
+            //io_.left_velocity_mps = leftCanCoder.getVelocity(); // ONLY FOR FIVES
+            //io_.right_velocity_mps = rightCanCoder.getVelocity(); // ONLY FOR FIVES
             io_.gyro_heading = gyro_.getYaw();
 
             io_.left_temperature = leftMaster_.getMotorTemperature();
@@ -886,33 +888,34 @@ public class Drive implements Subsystem {
         logger_.logInfo("Checking encoder magnet strengths", logName);
 
         // Checks for alignment of magnet with encoder (the encoder light color)
-        MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
-        if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
-            logger_.logError("Left CAN Coder magnet in the red (out of range)", logName);
-            passedChecks = false;
-        } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
-            logger_.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", logName);
-            passedChecks = false;
-        } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            logger_.logInfo("Left CAN Coder magnet is green (healthy)", logName);
-        } else {
-            logger_.logError("Left CAN Coder magnet not detected", logName);
-            passedChecks = false;
-        }
+        // ONLY FOR FIVES
+        // MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
+        // if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+        //     logger_.logError("Left CAN Coder magnet in the red (out of range)", logName);
+        //     passedChecks = false;
+        // } else if (leftMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+        //     logger_.logWarning("Left CAN Coder magnet in the orange (slightly out of alignment)", logName);
+        //     passedChecks = false;
+        // } else if (leftMagStrength == MagnetFieldStrength.Good_GreenLED) {
+        //     logger_.logInfo("Left CAN Coder magnet is green (healthy)", logName);
+        // } else {
+        //     logger_.logError("Left CAN Coder magnet not detected", logName);
+        //     passedChecks = false;
+        // }
 
-        MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
-        if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
-            logger_.logError("Right CAN Coder magnet in the red (out of range)", logName);
-            passedChecks = false;
-        } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
-            logger_.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", logName);
-            passedChecks = false;
-        } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
-            logger_.logInfo("Right CAN Coder magnet is green (healthy)", logName);
-        } else {
-            logger_.logError("Right CAN Coder magnet not detected", logName);
-            passedChecks = false;
-        }
+        // MagnetFieldStrength rightMagStrength = rightCanCoder.getMagnetFieldStrength();
+        // if (rightMagStrength == MagnetFieldStrength.BadRange_RedLED) {
+        //     logger_.logError("Right CAN Coder magnet in the red (out of range)", logName);
+        //     passedChecks = false;
+        // } else if (rightMagStrength == MagnetFieldStrength.Adequate_OrangeLED) {
+        //     logger_.logWarning("Right CAN Coder magnet in the orange (slightly out of alignment)", logName);
+        //     passedChecks = false;
+        // } else if (rightMagStrength == MagnetFieldStrength.Good_GreenLED) {
+        //     logger_.logInfo("Right CAN Coder magnet is green (healthy)", logName);
+        // } else {
+        //     logger_.logError("Right CAN Coder magnet not detected", logName);
+        //     passedChecks = false;
+        // }
 
         logger_.logInfo("Checking NavX communications", logName);
 
@@ -980,8 +983,8 @@ public class Drive implements Subsystem {
             leftMotorHighGearRPM += leftMaster_.getEncoder().getVelocity();
             rightMotorHighGearRPM += rightMaster_.getEncoder().getVelocity();
 
-            leftOutputShaftHighGearRPM += metersPerSecondToRpm(leftCanCoder.getVelocity());
-            rightOutputShaftHighGearRPM += metersPerSecondToRpm(rightCanCoder.getVelocity());
+            //leftOutputShaftHighGearRPM += metersPerSecondToRpm(leftCanCoder.getVelocity()); // ONLY FOR FIVES
+            //rightOutputShaftHighGearRPM += metersPerSecondToRpm(rightCanCoder.getVelocity()); // ONLY FOR FIVES
 
             leftMotorHighGearCurrent += leftMaster_.getOutputCurrent();
             rightMotorHighGearCurrent += rightMaster_.getOutputCurrent();
@@ -1024,8 +1027,8 @@ public class Drive implements Subsystem {
             leftMotorLowGearRPM += leftMaster_.getEncoder().getVelocity();
             rightMotorLowGearRPM += rightMaster_.getEncoder().getVelocity();
 
-            leftOutputShaftLowGearRPM += metersPerSecondToRpm(leftCanCoder.getVelocity());
-            rightOutputShaftLowGearRPM += metersPerSecondToRpm(rightCanCoder.getVelocity());
+            //leftOutputShaftLowGearRPM += metersPerSecondToRpm(leftCanCoder.getVelocity()); // ONLY FOR FIVES
+            //rightOutputShaftLowGearRPM += metersPerSecondToRpm(rightCanCoder.getVelocity()); // ONLY FOR FIVES
 
             leftMotorLowGearCurrent += leftMaster_.getOutputCurrent();
             rightMotorLowGearCurrent += rightMaster_.getOutputCurrent();

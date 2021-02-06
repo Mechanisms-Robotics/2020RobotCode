@@ -97,16 +97,16 @@ public class Robot extends TimedRobot {
         manager_ = new SubsystemManager(
                 Arrays.asList(
                   Drive.getInstance(),
-                  limelight_turret_,
+                  //limelight_turret_, // ONLY FOR FIVES
                   limelight_low_,
                   // TODO: Put subystems here once tuned
                   Feeder.getInstance(),
                   Intake.getInstance(),
                   Climber.getInstance(),
                   Turret.getInstance(),
-                  Hood.getInstance(),
-                  Flywheel.getInstance(),
-                  Shooter.getInstance(),
+                  //Hood.getInstance(), // ONLY FOR FIVES
+                  //Flywheel.getInstance(), // ONLY FOR FIVES
+                  //Shooter.getInstance(), // ONLY FOR FIVES
                   ControlPanel.getInstance()
                 )
         );
