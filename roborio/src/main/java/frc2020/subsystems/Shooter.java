@@ -395,15 +395,15 @@ public class Shooter implements Subsystem {
 
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
         hood_.deployHood();
+        flywheel_.spinFlywheel(POWER_PORT_SPEED);
 
-        if(!turret_.atDemand() || !hood_.isDeployed()) {
+        if(!turret_.atDemand() || !hood_.isDeployed() || !flywheel_.atVelocity(POWER_PORT_SPEED)) {
             return;
         }
 
-        flywheel_.spinFlywheel(POWER_PORT_SPEED);
         hood_.setToStowPosition();
 
-        if(!flywheel_.atVelocity(POWER_PORT_SPEED) || !hood_.atDemand()) {
+        if(!hood_.atDemand()) {
             return;
         }
 
@@ -419,15 +419,15 @@ public class Shooter implements Subsystem {
 
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
         hood_.deployHood();
+        flywheel_.spinFlywheel();
 
-        if(!turret_.atDemand() || !hood_.isDeployed()) {
+        if(!turret_.atDemand() || !hood_.isDeployed() || !flywheel_.upToSpeed()) {
             return;
         }
 
-        flywheel_.spinFlywheel();
         hood_.setSmartPosition(TRENCH_HOOD_POSITION);
 
-        if(!flywheel_.upToSpeed() || !hood_.atDemand()) {
+        if(!hood_.atDemand()) {
             return;
         }
 
@@ -448,12 +448,16 @@ public class Shooter implements Subsystem {
             return;
         }
 
-        if (wantedState_ != ShooterState.Shooting) {
+        flywheel_.spinFlywheel();
 
-            flywheel_.stop();
+        if (!flywheel_.upToSpeed()) {
+            return;
+        }
+
+        if (wantedState_ != ShooterState.Shooting) {
             hood_.setToStowPosition();
 
-            if (!flywheel_.isStopped()) {
+            if (!hood_.atDemand()) {
                 return;
             }
 
@@ -462,8 +466,6 @@ public class Shooter implements Subsystem {
             if (!hood_.isStowed()) {
                 return;
             }
-
-            //flywheel_.spinFlywheel();
         }
 
         state_ = ShooterState.Aiming;
@@ -484,10 +486,9 @@ public class Shooter implements Subsystem {
             return;
         }
 
-        flywheel_.spinFlywheel();
         autoHood();
 
-        if (!flywheel_.atDemand() || !hood_.atDemand()) {
+        if (!hood_.atDemand()) {
             return;
         }
 
