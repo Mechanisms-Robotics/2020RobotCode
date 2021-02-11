@@ -26,12 +26,12 @@ public class Slalom extends AutoMode {
   private static SimpleMotorFeedforward FEEDFORWARD =
       Drive.getInstance().getFeedforward();
 
-  private static Trajectory autoLine = null;
+  private static Trajectory slalomTrajectory = null;
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Voltes
-    var maxAccel = 1.5; // m/s
-    var maxVelocity = 1.5; // m/s
+    var maxAccel = 0.7; // m/s
+    var maxVelocity = 0.7; // m/s
 
     var startPose = new Pose2d();
 
@@ -39,8 +39,21 @@ public class Slalom extends AutoMode {
     // Note if you use a Pose2d WPILib will
     // generate a quntic spline instead of a cubic
     // spline. (This may take longer)
+    var midPoint1 = new Translation2d(1.52, 0.76);
+    var midPoint2 = new Translation2d(2.29, 1.52);
+    var midPoint3 = new Translation2d(3.81, 1.83);
+    var midPoint4 = new Translation2d(4.11, 2.13);
+    var midPoint5 = new Translation2d(5.79, 2.44);
+    var midPoint6 = new Translation2d(6.1 , 0.3);
+
     var midPoints = new ArrayList<Translation2d>();
-    var endPose = new Pose2d(1.5, 0.0, Rotation2d.fromDegrees(0.0));
+    midPoints.add(midPoint1);
+    midPoints.add(midPoint2);
+    midPoints.add(midPoint3);
+    midPoints.add(midPoint4);
+    midPoints.add(midPoint5);
+    midPoints.add(midPoint6);
+    var endPose = new Pose2d(0.0, 1.52, Rotation2d.fromDegrees(180.0));
 
     // Define other constraintes
     var voltageConstraint =
@@ -55,16 +68,15 @@ public class Slalom extends AutoMode {
             .setKinematics(DRIVE_KINEMATICS)
             .addConstraint(voltageConstraint);
 
-    autoLine = TrajectoryGenerator.generateTrajectory(
+    slalomTrajectory = TrajectoryGenerator.generateTrajectory(
         startPose, midPoints, endPose, config);
   }
 
   @Override
   protected void routine() throws AutoModeEndedException {
-    if (autoLine == null) {
+    if (slalomTrajectory == null) {
       generateTrajectories();
     }
-    runCommand(new DriveTrajectory(autoLine));
-    runCommand(new Shoot(5.0));
+    runCommand(new DriveTrajectory(slalomTrajectory));
   }
 }
