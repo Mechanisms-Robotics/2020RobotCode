@@ -186,7 +186,8 @@ public class CommandState {
         maybeUpdateIntake(intake);
         maybeUpdateClimber(climber);
         maybeUpdateControlPanel(controlPanel);
-        if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual) {
+        if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual ||
+            feederDemand.intake || feederDemand.outtake) {
             maybeUpdateFeeder(feeder);
         }
         maybeUpdateShooter(shooter);
