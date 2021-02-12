@@ -8,6 +8,8 @@ public class Feeder extends SingleMotorSubsystem {
 
     private static Feeder instance_;
 
+    private FloodGate floodGate_;
+
     public final static int INTAKE_SPEED = 4500; // rpm // changed from 3500
     private final static int OUTTAKE_SPEED = -4500; // rpm // changed from 3500
     private final static int PRIME_SPEED = -2000; // rpm 
@@ -72,7 +74,9 @@ public class Feeder extends SingleMotorSubsystem {
 
     protected Feeder(SingleMotorSubsystemConstants constants) {
         super(constants);
-        
+
+        floodGate_ = FloodGate.getInstance();
+
         intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM_CHANNEL);	
         turretBreakBeam_ = new DigitalInput(TURRET_BREAK_BEAM_CHANNEL);
     }
@@ -143,7 +147,10 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     private synchronized void intakeFeeder() {
-        if (getIntakeBreakBeamBroken() && !getShooterBreakBeamBroken()) {
+        if (!floodGate_.isExtended()) {
+            floodGate_.extend();
+        }
+        if (getIntakeBreakBeamBroken()) {
             runFeeder(false);
         } else {
             super.stop();
@@ -152,6 +159,9 @@ public class Feeder extends SingleMotorSubsystem {
 
     private synchronized void primeFeeder() {
         if (getShooterBreakBeamBroken()) {
+            if (floodGate_.isExtended()) {
+                floodGate_.retract();
+            }
             runFeeder(PRIME_SPEED);
         } else {
             super.stop();

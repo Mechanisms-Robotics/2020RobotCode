@@ -47,6 +47,7 @@ public class Robot extends TimedRobot {
     private Hood hood_;
     private Shooter shooter_;
     private ControlPanel controlPanel_;
+    private FloodGate floodGate_;
 
     private Compressor compressor_;
     private DriverStation ds_;
@@ -108,7 +109,8 @@ public class Robot extends TimedRobot {
                   Hood.getInstance(),
                   Flywheel.getInstance(),
                   Shooter.getInstance(),
-                  ControlPanel.getInstance()
+                  ControlPanel.getInstance(),
+                  FloodGate.getInstance()
                 )
         );
 
@@ -120,6 +122,7 @@ public class Robot extends TimedRobot {
         climber_ = Climber.getInstance();
         hood_ = Hood.getInstance();
         controlPanel_ = ControlPanel.getInstance();
+        floodGate_ = FloodGate.getInstance();
         shooter_ = Shooter.getInstance();
         shooter_.setLimelight(limelight_turret_);
 
@@ -343,7 +346,8 @@ public class Robot extends TimedRobot {
                     climber_,
                     hood_,
                     shooter_,
-                    controlPanel_);
+                    controlPanel_,
+                    floodGate_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

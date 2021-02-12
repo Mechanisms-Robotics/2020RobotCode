@@ -119,6 +119,7 @@ public class Constants {
     public final static int MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT = 270; // right second
     public final static int MANUAL_CONTROL_PANEL_CLOCKWISE_HAT = 90; // right second
     public final static int CLIMBER_SPLIT_TOGGLE = 1; // right second (Not used just for reference)
+    public final static int FLOODGATE_TOGGLE = 2;
     // Right Second Y-Axis: Climber Winch Control
     // Right Second Twist: Manual Turret Control
 
