@@ -37,14 +37,18 @@ public class Slalom extends AutoMode {
 
     // This can be a list of Translation2d and Pose2d
     // Note if you use a Pose2d WPILib will
-    // generate a quntic spline instead of a cubic
+    // generate a quintic spline instead of a cubic
     // spline. (This may take longer)
-    var midPoint1 = new Translation2d(1.52, 0.76);
-    var midPoint2 = new Translation2d(2.29, 1.52);
-    var midPoint3 = new Translation2d(3.81, 1.83);
-    var midPoint4 = new Translation2d(4.11, 2.13);
-    var midPoint5 = new Translation2d(5.79, 2.44);
-    var midPoint6 = new Translation2d(6.1 , 0.3);
+    var midPoint1 = new Translation2d(1.27, 0.2032);
+    var midPoint2 = new Translation2d(2.286, 1.651);
+    var midPoint3 = new Translation2d(3.81, 2.032);
+    var midPoint4 = new Translation2d(5.588, 1.524);
+    var midPoint5 = new Translation2d(6.858, 0.2032);
+    var midPoint6 = new Translation2d(8.001 , -0.762);
+    var midPoint7 = new Translation2d(6.858 , 1.651);
+    var midPoint8 = new Translation2d(5.588 , 0.2032);
+    var midPoint9 = new Translation2d(3.81 , 0);
+    var midPoint10 = new Translation2d(2.286 , 0.2032);
 
     var midPoints = new ArrayList<Translation2d>();
     midPoints.add(midPoint1);
@@ -53,7 +57,11 @@ public class Slalom extends AutoMode {
     midPoints.add(midPoint4);
     midPoints.add(midPoint5);
     midPoints.add(midPoint6);
-    var endPose = new Pose2d(0.0, 1.52, Rotation2d.fromDegrees(180.0));
+    midPoints.add(midPoint7);
+    midPoints.add(midPoint8);
+    midPoints.add(midPoint9);
+    midPoints.add(midPoint10);
+    var endPose = new Pose2d(0.0, 1.524, Rotation2d.fromDegrees(180.0));
 
     // Define other constraintes
     var voltageConstraint =
