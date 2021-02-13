@@ -9,6 +9,7 @@ import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
 import frc2020.util.DriveSignal;
 import frc2020.util.Logger;
+import java.net.StandardSocketOptions;
 
 public class Climber implements Subsystem {
 
@@ -29,6 +30,9 @@ public class Climber implements Subsystem {
     private final static int WINCH_LOCK_REVERSE_PORT = 1;
     private boolean wantLock_ = false;
     private boolean isLocked_ = false;
+
+    private boolean wantFloodGateDeployed_ = false;
+    private boolean isFloodGateDeployed_ = false;
 
     private CANSparkMax leftClimb_;
     private CANSparkMax rightClimb_;
@@ -93,6 +97,18 @@ public class Climber implements Subsystem {
         wantDeploy_ = false;
     }
 
+    public void toggleFloodGate() {
+        wantFloodGateDeployed_ = !wantFloodGateDeployed_;
+    }
+
+    public void deployFloodGate() {
+        wantFloodGateDeployed_ = true;
+    }
+
+    public void retractFloodGate() {
+        wantFloodGateDeployed_ = false;
+    }
+
     public void lockWinch() {
         wantLock_ = true;
     }
@@ -100,6 +116,8 @@ public class Climber implements Subsystem {
     public void unlockWinch() {
         wantLock_ = false;
     }
+
+    public boolean isLocked() { return isLocked_; }
 
     public void controlWinch(DriveSignal demand) {
         setOpenLoop(demand);
@@ -168,6 +186,7 @@ public class Climber implements Subsystem {
 
         isDeployed_ = armFlipper_.get() == DEPLOYED_VALUE;
         isLocked_ = winchLock_.get() == LOCKED_VALUE;
+        isFloodGateDeployed_ = isLocked_;
     }
 
     @Override
@@ -182,13 +201,21 @@ public class Climber implements Subsystem {
 
         if(isDeployed_) {
             hasDeployed_ = true;
-        }
 
-        if(wantLock_ != isLocked_) {
-            if(wantLock_) {
-                winchLock_.set(LOCKED_VALUE);
-            } else {
-                winchLock_.set(UNLOCKED_VALUE);
+            if (wantLock_ != isLocked_) {
+                if (wantLock_) {
+                    winchLock_.set(LOCKED_VALUE);
+                } else {
+                    winchLock_.set(UNLOCKED_VALUE);
+                }
+            }
+        } else {
+            if (wantFloodGateDeployed_ != isFloodGateDeployed_) {
+                if (wantFloodGateDeployed_) {
+                    winchLock_.set(LOCKED_VALUE);
+                } else {
+                    winchLock_.set(UNLOCKED_VALUE);
+                }
             }
         }
 

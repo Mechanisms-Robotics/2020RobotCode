@@ -72,8 +72,8 @@ public class Feeder extends SingleMotorSubsystem {
 
     protected Feeder(SingleMotorSubsystemConstants constants) {
         super(constants);
-        
-        intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM_CHANNEL);	
+
+        intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM_CHANNEL);
         turretBreakBeam_ = new DigitalInput(TURRET_BREAK_BEAM_CHANNEL);
     }
 
@@ -143,7 +143,7 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     private synchronized void intakeFeeder() {
-        if (getIntakeBreakBeamBroken() && !getShooterBreakBeamBroken()) {
+        if (getIntakeBreakBeamBroken()) {
             runFeeder(false);
         } else {
             super.stop();
