@@ -55,6 +55,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean climberSplitLatch;
     private boolean climberSplit = false;
 
+    private LatchedBoolean toggleFloodGateLatch;
+    private boolean toggleFloodGate = false;
+
     private LatchedBoolean getStowAimingLatch;
     private LatchedBoolean getShooterLatch;
     private LatchedBoolean getTrenchLatch;
@@ -99,6 +102,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployControlPanelLatch = new LatchedBoolean();
         controlPanelRotationLatch = new LatchedBoolean();
         controlPanelPositionLatch = new LatchedBoolean();
+        toggleFloodGateLatch = new LatchedBoolean();
 
         drive_ = Drive.getInstance();
         cheesyHelper_ = new CheesyDriveHelper();
@@ -146,6 +150,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setIntakeDemand(generateIntakeDemand());
         state.setFeederDemand(generateFeederDemand());
         state.setControlPanelDemand(generateControlPanelDemand());
+        state.setFloodGateDemand(generateFloodGateDemand());
         if (manualControl) {
             state.setFlywheelDemand(generateFlywheelDemand());
             state.setTurretDemand(generateTurretDemand());
@@ -404,6 +409,15 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         }
 
         demand.overrideFeeder = isFeederDemand;
+
+        return demand;
+    }
+
+    private FloodGateDemand generateFloodGateDemand() {
+        FloodGateDemand demand = new FloodGateDemand();
+
+        toggleFloodGate = toggleFloodGateLatch.update(rightSecondJoystick_.getRawButton(Constants.FLOODGATE_TOGGLE));
+        demand.toggle = toggleFloodGate;
 
         return demand;
     }

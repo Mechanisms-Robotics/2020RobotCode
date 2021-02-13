@@ -29,6 +29,7 @@ public class CommandState {
     private TurretDemand turretDemand;
     private HoodDemand hoodDemand;
     private ShooterDemand shooterDemand;
+    private FloodGateDemand floodGateDemand;
 
     private Logger logger_ = Logger.getInstance();
 
@@ -122,6 +123,10 @@ public class CommandState {
         public boolean overrideFeeder = false;
     }
 
+    public static class FloodGateDemand {
+        public boolean toggle = false;
+    }
+
     public void setManualControl(boolean manualControl) {
         manualDemand = manualControl;
     }
@@ -167,6 +172,8 @@ public class CommandState {
     }
 
     public void setShooterDemand(ShooterDemand demand) { shooterDemand = demand; }
+
+    public void setFloodGateDemand(FloodGateDemand demand) { floodGateDemand = demand; }
     /**
      * Getter for each subsystem demand
      * @return
@@ -181,7 +188,8 @@ public class CommandState {
      * @param drive An instance of the drive train subsystem
      */
     public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret,
-                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood, Shooter shooter, ControlPanel controlPanel) {
+                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood,
+                                 Shooter shooter, ControlPanel controlPanel, FloodGate floodGate) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
@@ -191,6 +199,7 @@ public class CommandState {
             feederDemand.intake || feederDemand.outtake) {
             maybeUpdateFeeder(feeder);
         }
+        maybeUpdateFloodGate(floodGate);
         maybeUpdateShooter(shooter);
         if (shooter.getWantedState() == Shooter.ShooterState.Manual) {
             maybeUpdateTurret(turret);
@@ -369,6 +378,14 @@ public class CommandState {
             shooter.setOverrideFeeder(shooterDemand.overrideFeeder);
 
             shooterDemand = null;
+        }
+    }
+
+    private void maybeUpdateFloodGate(FloodGate floodGate) {
+        if (floodGateDemand != null) {
+            if (floodGateDemand.toggle) {
+                floodGate.toggle();
+            }
         }
     }
 }
