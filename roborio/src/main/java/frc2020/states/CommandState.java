@@ -79,6 +79,7 @@ public class CommandState {
     public static class FeederDemand {
         public boolean outtake = false;
         public boolean intake = false;
+        public boolean override = false;
     }
 
     public static class IntakeDemand {
@@ -249,6 +250,7 @@ public class CommandState {
             } else {
                 feeder.stop();
             }
+            feeder.setOverrideIntakeBreakBeam(feederDemand.override);
             feederDemand = null;
         }
     }

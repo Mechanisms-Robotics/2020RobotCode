@@ -60,6 +60,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean getTrenchLatch;
     private boolean getTrench = false;
 
+    private boolean overrideIntakeBreakBeam = false;
+    private LatchedBoolean overrideIntakeBreakBeamLatch;
+
     private boolean isFeederDemand = false;
 
     private Shooter shooter_ = Shooter.getInstance();
@@ -103,6 +106,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         getStowAimingLatch = new LatchedBoolean();
         getShooterLatch = new LatchedBoolean();
         getTrenchLatch = new LatchedBoolean();
+
+        overrideIntakeBreakBeamLatch = new LatchedBoolean();
 
         climberSplitLatch = new LatchedBoolean();
         driveChooser = new SendableChooser<>();
@@ -229,6 +234,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private FeederDemand generateFeederDemand() {
         boolean intakeFeeder = leftSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_INTAKE_HAT;
         boolean outtakeFeeder = leftSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
+        overrideIntakeBreakBeam = overrideIntakeBreakBeamLatch.update(leftSecondJoystick_.getRawButton(1)) != overrideIntakeBreakBeam;
 
         FeederDemand demand = new FeederDemand();
         if (intakeFeeder && outtakeFeeder) {
@@ -238,6 +244,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else if (outtakeFeeder) {
             demand.outtake = true;
         }
+
+        demand.override = overrideIntakeBreakBeam;
 
         isFeederDemand = intakeFeeder || outtakeFeeder;
         return demand;

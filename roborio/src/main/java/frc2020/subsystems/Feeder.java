@@ -16,6 +16,8 @@ public class Feeder extends SingleMotorSubsystem {
     private final static int INTAKE_BREAK_BEAM_CHANNEL = 0;	
     private final static int TURRET_BREAK_BEAM_CHANNEL = 1;	
 
+    private boolean overrideIntakeBreakBeam_ = false;
+
     private DigitalInput intakeBreakBeam_;	
     private DigitalInput turretBreakBeam_;
 
@@ -76,6 +78,8 @@ public class Feeder extends SingleMotorSubsystem {
         intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM_CHANNEL);	
         turretBreakBeam_ = new DigitalInput(TURRET_BREAK_BEAM_CHANNEL);
     }
+
+    public void setOverrideIntakeBreakBeam(boolean overrideIntakeBreakBeam) { overrideIntakeBreakBeam_ = overrideIntakeBreakBeam; }
 
     public synchronized boolean getIntakeBreakBeamBroken() {
         return !intakeBreakBeam_.get();
@@ -143,9 +147,9 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     private synchronized void intakeFeeder() {
-        if (getIntakeBreakBeamBroken() && !getShooterBreakBeamBroken()) {
+        if (getIntakeBreakBeamBroken() && !overrideIntakeBreakBeam_) {
             runFeeder(false);
-        } else {
+        } else if (!overrideIntakeBreakBeam_) {
             super.stop();
         }
     }
