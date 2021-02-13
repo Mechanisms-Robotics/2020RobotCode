@@ -473,6 +473,10 @@ public class Shooter implements Subsystem {
 
     private void handleShootingTransition() {
 
+        if (!flywheel_.atDemand()) {
+            flywheel_.spinFlywheel();
+        }
+
         if (state_ == ShooterState.Stowed) {
             handleAimingTransition();
         }
