@@ -62,7 +62,7 @@ public class Feeder extends SingleMotorSubsystem {
     }
 
     public void runFeeder(boolean outtake) {
-        runFeeder(outtake ? OUTTAKE_SPEED : INTAKE_SPEED);
+        runFeeder(outtake ? -SHOOTING_SPEED : SHOOTING_SPEED);
     }
 
     /**
