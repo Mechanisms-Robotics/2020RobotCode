@@ -496,10 +496,6 @@ public class Shooter implements Subsystem {
             return;
         }
 
-        if (!flywheel_.atDemand()) {
-            return;
-        }
-
         state_ = ShooterState.Shooting;
     }
 
