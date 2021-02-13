@@ -344,11 +344,7 @@ public class Shooter implements Subsystem {
         }
 
         if (handleOverrideFeeder()) {
-            if (limelight_.getTargetReading().range < FAR_FEEDER_DISTANCE) {
-                feeder_.shootFeeder();
-            } else {
-                feeder_.runFeeder(Feeder.INTAKE_SPEED);
-            }
+            feeder_.shootFeeder();
         }
     }
 
@@ -497,10 +493,6 @@ public class Shooter implements Subsystem {
         autoHood();
 
         if (!hood_.atDemand()) {
-            return;
-        }
-
-        if (!flywheel_.atDemand()) {
             return;
         }
 
