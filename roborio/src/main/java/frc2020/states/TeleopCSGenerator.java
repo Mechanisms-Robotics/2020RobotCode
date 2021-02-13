@@ -408,7 +408,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private FloodGateDemand generateFloodGateDemand() {
         FloodGateDemand demand = new FloodGateDemand();
 
-        toggleFloodGate = toggleFloodGateLatch.update(rightSecondJoystick_.getRawButton(Constants.FLOODGATE_TOGGLE)) != toggleFloodGate;
+        toggleFloodGate = toggleFloodGateLatch.update(rightSecondJoystick_.getRawButton(Constants.FLOODGATE_TOGGLE));
         demand.toggle = toggleFloodGate;
 
         return demand;

@@ -10,9 +10,6 @@ public class FloodGate implements Subsystem {
 
   private Climber climber_;
 
-  private boolean isExtended_ = false;
-  private boolean wantExtended_ = false;
-
   public static FloodGate getInstance() {
     return (instance_ == null) ? instance_ = new FloodGate() : instance_;
   }
@@ -22,36 +19,22 @@ public class FloodGate implements Subsystem {
   }
 
   public void toggle() {
-    wantExtended_ = !wantExtended_;
+    climber_.toggleFloodGate();
   }
 
   public void extend() {
-    wantExtended_ = true;
+    climber_.deployFloodGate();
   }
 
   public void retract() {
-    wantExtended_ = false;
-  }
-
-  public boolean isExtended() {
-    return isExtended_;
+    climber_.retractFloodGate();
   }
 
   @Override
-  public void writePeriodicOutputs() {
-    if (wantExtended_ != isExtended_) {
-      if (wantExtended_) {
-        climber_.lockWinch();
-      } else {
-        climber_.unlockWinch();
-      }
-    }
-  }
+  public void writePeriodicOutputs() {}
 
   @Override
-  public void readPeriodicInputs() {
-    isExtended_ = climber_.isLocked();
-  }
+  public void readPeriodicInputs() {}
 
   @Override
   public boolean runPassiveTests() {
@@ -67,9 +50,7 @@ public class FloodGate implements Subsystem {
   public void zeroSensors() {}
 
   @Override
-  public void stop() {
-
-  }
+  public void stop() {}
 
   @Override
   public void registerLoops(ILooper enableLooper) {}

@@ -240,7 +240,7 @@ public class Robot extends TimedRobot {
             drive_.openLoop(new DriveSignal(0, 0, false));
             limelight_turret_.setLed(LedMode.OFF);
             teleopCSGenerator_.resetManualControl();
-            climber_.resetHasDeployed();
+            climber_.lockWinch();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -276,6 +276,7 @@ public class Robot extends TimedRobot {
             autoRunner_ = new AutoModeRunner();
             autoRunner_.setAutoMode(AutoChooser.getAuto(autoChooser_.getSelected()));
             autoRunner_.start();
+            climber_.resetHasDeployed();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
