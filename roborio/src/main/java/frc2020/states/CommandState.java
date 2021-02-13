@@ -80,6 +80,7 @@ public class CommandState {
     public static class FeederDemand {
         public boolean outtake = false;
         public boolean intake = false;
+        public boolean override = false;
     }
 
     public static class IntakeDemand {
@@ -194,10 +195,11 @@ public class CommandState {
         maybeUpdateIntake(intake);
         maybeUpdateClimber(climber);
         maybeUpdateControlPanel(controlPanel);
-        maybeUpdateFloodGate(floodGate);
-        if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual) {
+        if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual ||
+            feederDemand.intake || feederDemand.outtake) {
             maybeUpdateFeeder(feeder);
         }
+        maybeUpdateFloodGate(floodGate);
         maybeUpdateShooter(shooter);
         if (shooter.getWantedState() == Shooter.ShooterState.Manual) {
             maybeUpdateTurret(turret);
@@ -257,6 +259,7 @@ public class CommandState {
             } else {
                 feeder.stop();
             }
+            feeder.setOverrideIntakeBreakBeam(feederDemand.override);
             feederDemand = null;
         }
     }
