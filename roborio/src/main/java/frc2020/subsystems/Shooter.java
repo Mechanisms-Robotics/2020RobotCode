@@ -223,7 +223,7 @@ public class Shooter implements Subsystem {
     };
 
     private void seekTurret() {
-        if (!hasStartedSeeking_) { 
+        if (!hasStartedSeeking_) {
             startingPosition = turret_.getPosition();
             hasStartedSeeking_ = true;
         }
@@ -333,10 +333,6 @@ public class Shooter implements Subsystem {
             hasStartedSeeking_ = false;
         } else {
             seekTurret();
-        }
-
-        if (handleOverrideFeeder()) {
-            feeder_.setState(FeederState.PRIMING);
         }
     }
 
@@ -449,12 +445,6 @@ public class Shooter implements Subsystem {
 
         // TODO: Aim turret in ball park
 
-        feeder_.setState(FeederState.PRIMING);
-
-        if (!feeder_.isPrimed()) {
-            return;
-        }
-
         flywheel_.spinFlywheel();
 
         if (!flywheel_.upToSpeed()) {
@@ -488,6 +478,12 @@ public class Shooter implements Subsystem {
         }
 
         floodGate_.retract();
+
+        feeder_.setState(FeederState.PRIMING);
+
+        if (!feeder_.isPrimed()) {
+            return;
+        }
 
         autoTurret();
 
