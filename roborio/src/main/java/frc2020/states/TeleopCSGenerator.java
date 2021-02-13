@@ -55,10 +55,16 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean climberSplitLatch;
     private boolean climberSplit = false;
 
+    private LatchedBoolean toggleFloodGateLatch;
+    private boolean toggleFloodGate = false;
+
     private LatchedBoolean getStowAimingLatch;
     private LatchedBoolean getShooterLatch;
     private LatchedBoolean getTrenchLatch;
     private boolean getTrench = false;
+
+    private boolean overrideIntakeBreakBeam = false;
+    private LatchedBoolean overrideIntakeBreakBeamLatch;
 
     private boolean isFeederDemand = false;
 
@@ -96,6 +102,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployControlPanelLatch = new LatchedBoolean();
         controlPanelRotationLatch = new LatchedBoolean();
         controlPanelPositionLatch = new LatchedBoolean();
+        toggleFloodGateLatch = new LatchedBoolean();
 
         drive_ = Drive.getInstance();
         cheesyHelper_ = new CheesyDriveHelper();
@@ -103,6 +110,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         getStowAimingLatch = new LatchedBoolean();
         getShooterLatch = new LatchedBoolean();
         getTrenchLatch = new LatchedBoolean();
+
+        overrideIntakeBreakBeamLatch = new LatchedBoolean();
 
         climberSplitLatch = new LatchedBoolean();
         driveChooser = new SendableChooser<>();
@@ -141,6 +150,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setIntakeDemand(generateIntakeDemand());
         state.setFeederDemand(generateFeederDemand());
         state.setControlPanelDemand(generateControlPanelDemand());
+        state.setFloodGateDemand(generateFloodGateDemand());
         if (manualControl) {
             state.setFlywheelDemand(generateFlywheelDemand());
             state.setTurretDemand(generateTurretDemand());
@@ -229,6 +239,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private FeederDemand generateFeederDemand() {
         boolean intakeFeeder = leftSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_INTAKE_HAT;
         boolean outtakeFeeder = leftSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
+        overrideIntakeBreakBeam = overrideIntakeBreakBeamLatch.update(leftSecondJoystick_.getRawButton(1)) != overrideIntakeBreakBeam;
 
         FeederDemand demand = new FeederDemand();
         if (intakeFeeder && outtakeFeeder) {
@@ -238,6 +249,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else if (outtakeFeeder) {
             demand.outtake = true;
         }
+
+        demand.override = overrideIntakeBreakBeam;
 
         isFeederDemand = intakeFeeder || outtakeFeeder;
         return demand;
@@ -396,6 +409,15 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         }
 
         demand.overrideFeeder = isFeederDemand;
+
+        return demand;
+    }
+
+    private FloodGateDemand generateFloodGateDemand() {
+        FloodGateDemand demand = new FloodGateDemand();
+
+        toggleFloodGate = toggleFloodGateLatch.update(rightSecondJoystick_.getRawButton(Constants.FLOODGATE_TOGGLE));
+        demand.toggle = toggleFloodGate;
 
         return demand;
     }

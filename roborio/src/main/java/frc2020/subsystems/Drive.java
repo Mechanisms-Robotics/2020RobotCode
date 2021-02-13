@@ -577,6 +577,7 @@ public class Drive implements Subsystem {
     }
 
     /**
+     *
      * Sets drive to low gear
      */
     public synchronized void setLowGear() {
