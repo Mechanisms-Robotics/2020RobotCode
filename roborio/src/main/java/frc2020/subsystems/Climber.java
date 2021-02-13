@@ -101,6 +101,8 @@ public class Climber implements Subsystem {
         wantLock_ = false;
     }
 
+    public boolean isLocked() { return isLocked_; }
+
     public void controlWinch(DriveSignal demand) {
         setOpenLoop(demand);
     }
