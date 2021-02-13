@@ -19,6 +19,7 @@ public class Shooter implements Subsystem {
     private Feeder feeder_;
     private Hood hood_;
     private Turret turret_;
+    private FloodGate floodGate_;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "Shooter";
@@ -61,6 +62,7 @@ public class Shooter implements Subsystem {
         feeder_ = Feeder.getInstance();
         hood_ = Hood.getInstance();
         turret_ = Turret.getInstance();
+        floodGate_ = FloodGate.getInstance();
 
         seekTurretLatch_ = new LatchedBoolean();
         hoodAngleRangeInterpolator = new InterpolatingTreeMap<>(100);
@@ -359,11 +361,13 @@ public class Shooter implements Subsystem {
         feeder_.stop();
         hood_.stop();
         turret_.stop();
+        floodGate_.extend();
         limelight_.setLed(Limelight.LedMode.ON);
         state_ = ShooterState.Manual;
     }
 
     private void handleStowedTransition() {
+        floodGate_.extend();
         flywheel_.stop();
 
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
@@ -387,6 +391,7 @@ public class Shooter implements Subsystem {
     }
 
     private void handlePowerPortTransition() {
+        floodGate_.retract();
         feeder_.setState(FeederState.PRIMING);
 
         if(!feeder_.isPrimed()) {
@@ -411,6 +416,7 @@ public class Shooter implements Subsystem {
     }
 
     private void handleTrenchTransition() {
+        floodGate_.retract();
         feeder_.setState(FeederState.PRIMING);
 
         if(!feeder_.isPrimed()) {
@@ -435,6 +441,7 @@ public class Shooter implements Subsystem {
     }
 
     private void handleAimingTransition () {
+        floodGate_.extend();
 
         hasStartedSeeking_ = false;
 
@@ -472,7 +479,6 @@ public class Shooter implements Subsystem {
     }
 
     private void handleShootingTransition() {
-
         if (!flywheel_.atDemand()) {
             flywheel_.spinFlywheel();
         }
@@ -480,6 +486,8 @@ public class Shooter implements Subsystem {
         if (state_ == ShooterState.Stowed) {
             handleAimingTransition();
         }
+
+        floodGate_.retract();
 
         autoTurret();
 
