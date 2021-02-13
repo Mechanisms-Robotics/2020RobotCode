@@ -19,6 +19,7 @@ public class Shooter implements Subsystem {
     private Feeder feeder_;
     private Hood hood_;
     private Turret turret_;
+    private FloodGate floodGate_;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "Shooter";
@@ -61,6 +62,7 @@ public class Shooter implements Subsystem {
         feeder_ = Feeder.getInstance();
         hood_ = Hood.getInstance();
         turret_ = Turret.getInstance();
+        floodGate_ = FloodGate.getInstance();
 
         seekTurretLatch_ = new LatchedBoolean();
         hoodAngleRangeInterpolator = new InterpolatingTreeMap<>(100);
@@ -221,7 +223,7 @@ public class Shooter implements Subsystem {
     };
 
     private void seekTurret() {
-        if (!hasStartedSeeking_) { 
+        if (!hasStartedSeeking_) {
             startingPosition = turret_.getPosition();
             hasStartedSeeking_ = true;
         }
@@ -332,10 +334,6 @@ public class Shooter implements Subsystem {
         } else {
             seekTurret();
         }
-
-        if (handleOverrideFeeder()) {
-            feeder_.setState(FeederState.PRIMING);
-        }
     }
 
     private void handleShooting() {
@@ -355,11 +353,13 @@ public class Shooter implements Subsystem {
         feeder_.stop();
         hood_.stop();
         turret_.stop();
+        floodGate_.extend();
         limelight_.setLed(Limelight.LedMode.ON);
         state_ = ShooterState.Manual;
     }
 
     private void handleStowedTransition() {
+        floodGate_.extend();
         flywheel_.stop();
 
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
@@ -383,6 +383,7 @@ public class Shooter implements Subsystem {
     }
 
     private void handlePowerPortTransition() {
+        floodGate_.retract();
         feeder_.setState(FeederState.PRIMING);
 
         if(!feeder_.isPrimed()) {
@@ -391,15 +392,15 @@ public class Shooter implements Subsystem {
 
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
         hood_.deployHood();
+        flywheel_.spinFlywheel(POWER_PORT_SPEED);
 
-        if(!turret_.atDemand() || !hood_.isDeployed()) {
+        if(!turret_.atDemand() || !hood_.isDeployed() || !flywheel_.atVelocity(POWER_PORT_SPEED)) {
             return;
         }
 
-        flywheel_.spinFlywheel(POWER_PORT_SPEED);
         hood_.setToStowPosition();
 
-        if(!flywheel_.atVelocity(POWER_PORT_SPEED) || !hood_.atDemand()) {
+        if(!hood_.atDemand()) {
             return;
         }
 
@@ -407,6 +408,7 @@ public class Shooter implements Subsystem {
     }
 
     private void handleTrenchTransition() {
+        floodGate_.retract();
         feeder_.setState(FeederState.PRIMING);
 
         if(!feeder_.isPrimed()) {
@@ -415,15 +417,15 @@ public class Shooter implements Subsystem {
 
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
         hood_.deployHood();
+        flywheel_.spinFlywheel();
 
-        if(!turret_.atDemand() || !hood_.isDeployed()) {
+        if(!turret_.atDemand() || !hood_.isDeployed() || !flywheel_.upToSpeed()) {
             return;
         }
 
-        flywheel_.spinFlywheel();
         hood_.setSmartPosition(TRENCH_HOOD_POSITION);
 
-        if(!flywheel_.upToSpeed() || !hood_.atDemand()) {
+        if(!hood_.atDemand()) {
             return;
         }
 
@@ -431,6 +433,7 @@ public class Shooter implements Subsystem {
     }
 
     private void handleAimingTransition () {
+        floodGate_.extend();
 
         hasStartedSeeking_ = false;
 
@@ -438,18 +441,16 @@ public class Shooter implements Subsystem {
 
         // TODO: Aim turret in ball park
 
-        feeder_.setState(FeederState.PRIMING);
+        flywheel_.spinFlywheel();
 
-        if (!feeder_.isPrimed()) {
+        if (!flywheel_.upToSpeed()) {
             return;
         }
 
         if (wantedState_ != ShooterState.Shooting) {
-
-            flywheel_.stop();
             hood_.setToStowPosition();
 
-            if (!flywheel_.isStopped()) {
+            if (!hood_.atDemand()) {
                 return;
             }
 
@@ -458,17 +459,26 @@ public class Shooter implements Subsystem {
             if (!hood_.isStowed()) {
                 return;
             }
-
-            //flywheel_.spinFlywheel();
         }
 
         state_ = ShooterState.Aiming;
     }
 
     private void handleShootingTransition() {
+        if (!flywheel_.atDemand()) {
+            flywheel_.spinFlywheel();
+        }
 
         if (state_ == ShooterState.Stowed) {
             handleAimingTransition();
+        }
+
+        floodGate_.retract();
+
+        feeder_.setState(FeederState.PRIMING);
+
+        if (!feeder_.isPrimed()) {
+            return;
         }
 
         autoTurret();
@@ -480,10 +490,13 @@ public class Shooter implements Subsystem {
             return;
         }
 
-        flywheel_.spinFlywheel();
         autoHood();
 
-        if (!flywheel_.atDemand() || !hood_.atDemand()) {
+        if (!hood_.atDemand()) {
+            return;
+        }
+
+        if (!flywheel_.atDemand()) {
             return;
         }
 
