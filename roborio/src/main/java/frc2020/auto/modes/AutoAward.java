@@ -120,8 +120,10 @@ public class AutoAward extends AutoMode {
     runCommand(new Aim());
     runCommand(new IntakeCommand(true));
     runCommand(new DriveTrajectory(part1));
-    runCommand(new ShootWhileDriving());
-    runCommand(new DriveTrajectory(part2));
+    ArrayList<Command> driveAndShoot = new ArrayList<>();
+    driveAndShoot.add(new ShootWhileDriving());
+    driveAndShoot.add(new DriveTrajectory(part2));
+    runCommand(new ParallelCommand(driveAndShoot));
     runCommand(new WaitCommand(3));
     runCommand(new StowShooter());
     runCommand(new DriveTrajectory(part3));
