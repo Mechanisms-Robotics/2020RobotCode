@@ -26,8 +26,6 @@ public class AutoAward extends AutoMode {
 
   private static Trajectory part1 = null;
   private static Trajectory part2 = null;
-  private static Trajectory part3 = null;
-  private static Trajectory part4 = null;
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Volts
@@ -53,28 +51,16 @@ public class AutoAward extends AutoMode {
       var midPoints = new ArrayList<Translation2d>();
 
       var midPoint1 = new Translation2d(0.762, 0.0);
-
-      midPoints.add(midPoint1);
-
-      var endPose = new Pose2d(1.524, 0.762, Rotation2d.fromDegrees(45.0));
-
-      part1 = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
-    }
-
-    {
-      var startPose = new Pose2d(1.524, 0.762, Rotation2d.fromDegrees(45.0));
-
-      var midPoints = new ArrayList<Translation2d>();
-
-      var midPoint1 = new Translation2d(2.286, 1.524);
-      var midPoint2 = new Translation2d(3.048, 1.524);
+      var midPoint2 = new Translation2d(2.286, 1.524);
+      var midPoint3 = new Translation2d(3.048, 1.524);
 
       midPoints.add(midPoint1);
       midPoints.add(midPoint2);
+      midPoints.add(midPoint3);
 
       var endPose = new Pose2d(3.81, 1.524, new Rotation2d());
 
-      part2 = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
+      part1 = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
     }
 
     {
@@ -86,49 +72,36 @@ public class AutoAward extends AutoMode {
       var midPoint2 = new Translation2d(5.344, 0.0);
       var midPoint3 = new Translation2d(6.096, 0.762);
       var midPoint4 = new Translation2d(6.096, 2.286);
+      var midPoint5 = new Translation2d(2.286, 2.286);
 
       midPoints.add(midPoint1);
       midPoints.add(midPoint2);
       midPoints.add(midPoint3);
       midPoints.add(midPoint4);
+      midPoints.add(midPoint5);
 
-      var endPose = new Pose2d(4.334, 2.286, Rotation2d.fromDegrees(180.0));
+      var endPose = new Pose2d(2.286, 2.286, new Rotation2d());
 
-      part3 = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
-    }
-
-    {
-      var startPose = new Pose2d(4.334, 2.286, Rotation2d.fromDegrees(180.0));
-
-      var midPoints = new ArrayList<Translation2d>();
-
-      var midPoint1 = new Translation2d(2.286, 2.286);
-
-      midPoints.add(midPoint1);
-
-      var endPose = new Pose2d(3.048, 1.524, new Rotation2d());
-
-      part4 = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
+      part2 = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
     }
   }
 
   @Override
   protected void routine() throws AutoModeEndedException {
-    if (part1 == null || part2 == null || part3 == null || part4 == null) {
+    if (part1 == null || part2 == null) {
       generateTrajectories();
     }
     runCommand(new Aim());
     runCommand(new IntakeCommand(true));
-    runCommand(new DriveTrajectory(part1));
     ArrayList<Command> driveAndShoot = new ArrayList<>();
     driveAndShoot.add(new ShootWhileDriving());
-    driveAndShoot.add(new DriveTrajectory(part2));
+    driveAndShoot.add(new DriveTrajectory(part1));
     runCommand(new ParallelCommand(driveAndShoot));
-    runCommand(new WaitCommand(3));
+    runCommand(new WaitCommand(2));
     runCommand(new StowShooter());
-    runCommand(new DriveTrajectory(part3));
+    runCommand(new DriveTrajectory(part2));
     runCommand(new IntakeCommand(false));
-    runCommand(new DriveTrajectory(part4));
     runCommand(new Shoot(3));
+    runCommand(new StowShooter());
   }
 }
