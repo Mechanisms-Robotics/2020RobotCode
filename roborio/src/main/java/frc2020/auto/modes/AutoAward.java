@@ -29,8 +29,8 @@ public class AutoAward extends AutoMode {
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Volts
-    var maxAccel = 1.5; // m/s
-    var maxVelocity = 1.5; // m/s
+    var maxAccel = 1.0; // m/s
+    var maxVelocity = 1.0; // m/s
 
     // Define other constraints
     var voltageConstraint =
@@ -46,43 +46,35 @@ public class AutoAward extends AutoMode {
             .addConstraint(voltageConstraint);
 
     {
-      var startPose = new Pose2d();
+      var waypoints = new ArrayList<Pose2d>();
 
-      var midPoints = new ArrayList<Translation2d>();
+      var waypoint1 = new Pose2d(0.0, 0.0, new Rotation2d());
+      var waypoint2 = new Pose2d(2.286, 1.524, new Rotation2d());
+      var waypoint3 = new Pose2d(3.81, 1.524, new Rotation2d());
 
-      var midPoint1 = new Translation2d(0.762, 0.0);
-      var midPoint2 = new Translation2d(2.286, 1.524);
-      var midPoint3 = new Translation2d(3.048, 1.524);
+      waypoints.add(waypoint1);
+      waypoints.add(waypoint2);
+      waypoints.add(waypoint3);
 
-      midPoints.add(midPoint1);
-      midPoints.add(midPoint2);
-      midPoints.add(midPoint3);
-
-      var endPose = new Pose2d(3.81, 1.524, new Rotation2d());
-
-      part1 = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
+      part1 = TrajectoryGenerator.generateTrajectory(waypoints, config);
     }
 
     {
-      var startPose = new Pose2d(3.81, 1.524, new Rotation2d());
+      var waypoints = new ArrayList<Pose2d>();
 
-      var midPoints = new ArrayList<Translation2d>();
+      var waypoint1 = new Pose2d(3.81, 1.524, new Rotation2d());
+      var waypoint2 = new Pose2d(6.096, 0.762, new Rotation2d().fromDegrees(90.0));
+      var waypoint3 = new Pose2d(6.096, 2.286, new Rotation2d().fromDegrees(180.0));
+      var waypoint4 = new Pose2d(2.286, 2.286, new Rotation2d().fromDegrees(180.0));
+      var waypoint5 = new Pose2d(2.286, 2.286, new Rotation2d());
 
-      var midPoint1 = new Translation2d(4.572, 0.762);
-      var midPoint2 = new Translation2d(5.344, 0.0);
-      var midPoint3 = new Translation2d(6.096, 0.762);
-      var midPoint4 = new Translation2d(6.096, 2.286);
-      var midPoint5 = new Translation2d(2.286, 2.286);
+      waypoints.add(waypoint1);
+      waypoints.add(waypoint2);
+      waypoints.add(waypoint3);
+      waypoints.add(waypoint4);
+      waypoints.add(waypoint5);
 
-      midPoints.add(midPoint1);
-      midPoints.add(midPoint2);
-      midPoints.add(midPoint3);
-      midPoints.add(midPoint4);
-      midPoints.add(midPoint5);
-
-      var endPose = new Pose2d(2.286, 2.286, new Rotation2d());
-
-      part2 = TrajectoryGenerator.generateTrajectory(startPose, midPoints, endPose, config);
+      part2 = TrajectoryGenerator.generateTrajectory(waypoints, config);
     }
   }
 
