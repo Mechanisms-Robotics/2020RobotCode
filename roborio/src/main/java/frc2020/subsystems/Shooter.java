@@ -361,6 +361,7 @@ public class Shooter implements Subsystem {
     private void handleStowedTransition() {
         floodGate_.extend();
         flywheel_.stop();
+        feeder_.setState(FeederState.INTAKING);
 
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
 
