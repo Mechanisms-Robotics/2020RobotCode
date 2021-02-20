@@ -139,6 +139,8 @@ public class Feeder extends SingleMotorSubsystem {
         }
     }
 
+    public boolean getOverrideIntakeBrakeBeam() { return overrideIntakeBreakBeam_; }
+
     public boolean isPrimed() {
         if (state_ == FeederState.PRIMING) {
             return !getShooterBreakBeamBroken();
