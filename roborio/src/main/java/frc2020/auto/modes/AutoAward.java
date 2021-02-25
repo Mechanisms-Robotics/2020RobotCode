@@ -29,8 +29,8 @@ public class AutoAward extends AutoMode {
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Volts
-    var maxAccel = 1.0; // m/s
-    var maxVelocity = 1.0; // m/s
+    var maxAccel = 1.5; // m/s
+    var maxVelocity = 1.5; // m/s
 
     // Define other constraints
     var voltageConstraint =
@@ -50,7 +50,7 @@ public class AutoAward extends AutoMode {
 
       var waypoint1 = new Pose2d(0.0, 0.0, new Rotation2d());
       var waypoint2 = new Pose2d(2.286, 1.524, new Rotation2d());
-      var waypoint3 = new Pose2d(3.81, 1.524, new Rotation2d());
+      var waypoint3 = new Pose2d(4.2, 1.524, new Rotation2d());
 
       waypoints.add(waypoint1);
       waypoints.add(waypoint2);
@@ -62,11 +62,11 @@ public class AutoAward extends AutoMode {
     {
       var waypoints = new ArrayList<Pose2d>();
 
-      var waypoint1 = new Pose2d(3.81, 1.524, new Rotation2d());
-      var waypoint2 = new Pose2d(6.096, 0.762, new Rotation2d().fromDegrees(90.0));
-      var waypoint3 = new Pose2d(6.096, 2.286, new Rotation2d().fromDegrees(180.0));
-      var waypoint4 = new Pose2d(2.286, 2.286, new Rotation2d().fromDegrees(180.0));
-      var waypoint5 = new Pose2d(2.286, 2.286, new Rotation2d());
+      var waypoint1 = new Pose2d(4.2, 1.524, new Rotation2d());
+      var waypoint2 = new Pose2d(6.096, 0.762, Rotation2d.fromDegrees(90.0));
+      var waypoint3 = new Pose2d(6.096, 2.286, Rotation2d.fromDegrees(180.0));
+      var waypoint4 = new Pose2d(2.286, 2.286, Rotation2d.fromDegrees(180.0));
+      var waypoint5 = new Pose2d(2.5, 2.8, new Rotation2d());
 
       waypoints.add(waypoint1);
       waypoints.add(waypoint2);
@@ -89,11 +89,11 @@ public class AutoAward extends AutoMode {
     driveAndShoot.add(new ShootWhileDriving());
     driveAndShoot.add(new DriveTrajectory(part1));
     runCommand(new ParallelCommand(driveAndShoot));
-    runCommand(new WaitCommand(2));
-    runCommand(new StowShooter());
+    runCommand(new WaitCommand(4));
+    runCommand(new StowShooter(false));
     runCommand(new DriveTrajectory(part2));
     runCommand(new IntakeCommand(false));
     runCommand(new Shoot(3));
-    runCommand(new StowShooter());
+    runCommand(new StowShooter(false));
   }
 }
