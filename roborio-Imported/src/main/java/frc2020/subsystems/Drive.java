@@ -488,12 +488,18 @@ public class Drive implements Subsystem {
         return doneWithTrajectory_;
     }
 
-    public synchronized void autoSteer(double targetBearing, double baseDutyCycle) {
+    public synchronized void autoSteer(double targetBearing, double baseDutyCycle, double targetArea) {
         double kP = 0.004;
+        double goalArea = 0.5;
+        double areaKP = .5;
+        double adjustedTargetError = (goalArea - targetArea);
+        double areaDutyCycle = areaKP * adjustedTargetError; 
         double adjustedDutyCycle = kP * targetBearing;
-        baseDutyCycle = Util.limit(baseDutyCycle, 0.75);
-        DriveSignal autoSteerSignal = new DriveSignal(baseDutyCycle + adjustedDutyCycle,
-                                                      baseDutyCycle - adjustedDutyCycle, true);
+        baseDutyCycle = Util.limit(baseDutyCycle, 0.50);
+        areaDutyCycle = Util.limit(baseDutyCycle, 0.50);
+        //logger_.logDebug("areaDutyCycle: " + areaDutyCycle);
+        DriveSignal autoSteerSignal = new DriveSignal(baseDutyCycle + adjustedDutyCycle /*+ areaDutyCycle*/,
+                                                      baseDutyCycle - adjustedDutyCycle /*- areaDutyCycle*/, true);
         openLoop(autoSteerSignal);
     }
 

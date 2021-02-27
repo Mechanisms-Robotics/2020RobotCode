@@ -213,6 +213,10 @@ public class Limelight implements Subsystem {
         return rawData_.yOffset;
     }
 
+    public synchronized double getRawArea() {
+        return rawData_.area;
+    }
+
     /**
      * getter
      */
