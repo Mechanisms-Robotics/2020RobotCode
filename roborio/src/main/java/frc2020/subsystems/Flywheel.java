@@ -9,7 +9,7 @@ public class Flywheel extends SingleMotorSubsystem {
 
     private static Flywheel instance_;
 
-    private static final int FLYWHEEL_SPEED = Constants.IS_COMP_BOT ? 5800 : 5000;
+    private static final int FLYWHEEL_SPEED = Constants.IS_COMP_BOT ? 4000 : 5000; // Change 4000 to 5800 once we replace NEOs
     private static final int LONG_RANGE_SPEED = 6000;
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS = 
