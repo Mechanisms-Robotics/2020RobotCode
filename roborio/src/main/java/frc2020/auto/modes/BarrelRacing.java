@@ -21,7 +21,7 @@ import java.util.ArrayList;
 /**
  * Test auto mode for just trying out different paths, velocities, accelerations, etc
  */
-public class TripleLoop extends AutoMode {
+public class BarrelRacing extends AutoMode {
     private static DifferentialDriveKinematics DRIVE_KINEMATICS = 
         Drive.getInstance().getKinematics();
     private static SimpleMotorFeedforward FEEDFORWARD = 
@@ -31,8 +31,8 @@ public class TripleLoop extends AutoMode {
     
     public static void generateTrajectories() {
         var maxVoltage = 10.0; // Voltes
-        var maxAccel = 0.5; // m/s
-        var maxVelocity = 0.5; // m/s
+        var maxAccel = 2.0; // m/s
+        var maxVelocity = 2.0; // m/s
 
         // This can be a list of Translation2d and Pose2d
         // Note if you use a Pose2d WPILib will
@@ -40,43 +40,43 @@ public class TripleLoop extends AutoMode {
         // spline. (This may take longer)
         var waypointStart = new Pose2d(0.0, 0.0, new Rotation2d());
 
-        var waypoint1 = new Pose2d(3.048, 0, new Rotation2d());
-        var waypoint2 = new Pose2d(3.429, -.762, new Rotation2d(90));
-        var waypoint3 = new Pose2d(3.048, -1.143, new Rotation2d(180));
-        var waypoint4 = new Pose2d(2.667, -.762, new Rotation2d(270));
-        var waypoint5 = new Pose2d(3.81, 0, new Rotation2d());
-        var waypoint6 = new Pose2d(4.953, 0, new Rotation2d());
-        var waypoint7 = new Pose2d(6.096, .762, new Rotation2d(260));
-        var waypoint8 = new Pose2d(5.334, 1.143, new Rotation2d(170));
-        var waypoint9 = new Pose2d(4.953, .762, new Rotation2d(85));
-        var waypoint10 = new Pose2d(4.953, 0, new Rotation2d(45));
-        var waypoint11 = new Pose2d(6.096, -1.143, new Rotation2d(30));
-        var waypoint12 = new Pose2d(6.858, -1.243, new Rotation2d(30));
-        var waypoint13 = new Pose2d(7.62, -.762, new Rotation2d(225));
-        var waypoint14 = new Pose2d(6.858, 0, new Rotation2d(180));
-        var waypoint15 = new Pose2d(4.953, 0, new Rotation2d(190));
-        var waypoint16 = new Pose2d(3.048, .381, new Rotation2d(180));
+        var waypoint1 = new Pose2d(3.048, 0, Rotation2d.fromDegrees(-45.0));
+        //var waypoint2 = new Pose2d(3.429, -.762, Rotation2d.fromDegrees(90));
+        var waypoint3 = new Pose2d(3.048, -1.643, Rotation2d.fromDegrees(180));
+        var waypoint4 = new Pose2d(2.157, -.762, Rotation2d.fromDegrees(90));
+       // var waypoint5 = new Pose2d(3.81, 0, new Rotation2d());
+        var waypoint6 = new Pose2d(4.953, 0, Rotation2d.fromDegrees(7));
+        var waypoint7 = new Pose2d(6.296, .762, Rotation2d.fromDegrees(105));
+        var waypoint8 = new Pose2d(5.334, 1.643, Rotation2d.fromDegrees(-170));
+        //var waypoint9 = new Pose2d(4.953, .762, Rotation2d.fromDegrees(85));
+        //var waypoint10 = new Pose2d(4.953, 0, Rotation2d.fromDegrees(45));
+        var waypoint11 = new Pose2d(6.096, -1.143, Rotation2d.fromDegrees(-30));
+        //var waypoint12 = new Pose2d(6.858, -1.243, Rotation2d.fromDegrees(30));
+        var waypoint13 = new Pose2d(8.02, -.762, Rotation2d.fromDegrees(90));
+        var waypoint14 = new Pose2d(6.558, 0.0, Rotation2d.fromDegrees(180));
+        //var waypoint15 = new Pose2d(4.953, 0, Rotation2d.fromDegrees(-170));
+        //var waypoint16 = new Pose2d(3.048, .381, Rotation2d.fromDegrees(180));
 
-        var wayPointEnd = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
+        var wayPointEnd = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(180.0));
         
         var waypoints = new ArrayList<Pose2d>();
         waypoints.add(waypointStart);
         waypoints.add(waypoint1);
-        waypoints.add(waypoint2);
+        //waypoints.add(waypoint2);
         waypoints.add(waypoint3);
         waypoints.add(waypoint4);
-        waypoints.add(waypoint5);
+        //waypoints.add(waypoint5);
         waypoints.add(waypoint6);
         waypoints.add(waypoint7);
         waypoints.add(waypoint8);
-        waypoints.add(waypoint9);
-        waypoints.add(waypoint10);
+        //waypoints.add(waypoint9);
+        //waypoints.add(waypoint10);
         waypoints.add(waypoint11);
-        waypoints.add(waypoint12);
+        //waypoints.add(waypoint12);
         waypoints.add(waypoint13);
         waypoints.add(waypoint14);
-        waypoints.add(waypoint15);
-        waypoints.add(waypoint16);
+        //waypoints.add(waypoint15);
+        //waypoints.add(waypoint16);
         waypoints.add(wayPointEnd);
         
         // Define other constraintes

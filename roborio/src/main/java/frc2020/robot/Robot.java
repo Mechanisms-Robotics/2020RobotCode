@@ -12,6 +12,7 @@ import frc2020.auto.modes.CenterToTrench8;
 import frc2020.auto.modes.IntakeTestingAuto;
 import frc2020.auto.modes.RightToTrench8;
 import frc2020.auto.modes.AutoAward;
+import frc2020.auto.modes.BarrelRacing;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
@@ -143,6 +144,7 @@ public class Robot extends TimedRobot {
         RightToTrench8.generateTrajectories();
         AutoAward.generateTrajectories();
         IntakeTestingAuto.generateTrajectories();
+        BarrelRacing.generateTrajectories();
 
         PeriodicEvent flushLog_ = new PeriodicEvent(){
             @Override
