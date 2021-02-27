@@ -39,22 +39,23 @@ public class TripleLoop extends AutoMode {
         // Note if you use a Pose2d WPILib will
         // generate a quntic spline instead of a cubic
         // spline. (This may take longer)
+        // Don't forget to input the degree orientation of the robot
 
-        var midPoint1 = new Translation2d(3.048, 0);
+        var midPoint1 = new Translation2d(3.048, 0.0);
         var midPoint2 = new Translation2d(3.429, -.762);
         var midPoint3 = new Translation2d(3.048, -1.143);
         var midPoint4 = new Translation2d(2.667, -.762);
-        var midPoint5 = new Translation2d(3.81, 0);
-        var midPoint6 = new Translation2d(4.953, 0);
+        var midPoint5 = new Translation2d(3.81, 0.0);
+        var midPoint6 = new Translation2d(4.953, 0.0);
         var midPoint7 = new Translation2d(6.096, .762);
         var midPoint8 = new Translation2d(5.334, 1.143);
         var midPoint9 = new Translation2d(4.953, .762);
-        var midPoint10 = new Translation2d(4.953, 0);
+        var midPoint10 = new Translation2d(4.953, 0.0);
         var midPoint11 = new Translation2d(6.096, -1.143);
         var midPoint12 = new Translation2d(6.858, -1.243);
         var midPoint13 = new Translation2d(7.62, -.762);
-        var midPoint14 = new Translation2d(6.858, 0);
-        var midPoint15 = new Translation2d(4.953, 0);
+        var midPoint14 = new Translation2d(6.858, 0.0);
+        var midPoint15 = new Translation2d(4.953, 0.0);
         var midPoint16 = new Translation2d(3.048, .381);
 
         var midPoints = new ArrayList<Translation2d>();
