@@ -22,6 +22,7 @@ public class AutoChooser {
         BASIC_THREE_BALL(new Basic3Ball()),
         CENTER_EIGHT_BALL(new CenterToTrench8()),
         RIGHT_EIGHT_BALL(new RightToTrench8()),
+        AUTO_AWARD(new AutoAward()),
         SLALOM(new Slalom()),
         INTAKE_TESTING(new IntakeTestingAuto());
 

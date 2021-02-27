@@ -11,6 +11,7 @@ import frc2020.auto.AutoModeRunner;
 import frc2020.auto.modes.CenterToTrench8;
 import frc2020.auto.modes.IntakeTestingAuto;
 import frc2020.auto.modes.RightToTrench8;
+import frc2020.auto.modes.AutoAward;
 import frc2020.auto.modes.Slalom;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
@@ -141,6 +142,7 @@ public class Robot extends TimedRobot {
         Basic3Ball.generateTrajectories();
         CenterToTrench8.generateTrajectories();
         RightToTrench8.generateTrajectories();
+        AutoAward.generateTrajectories();
         Slalom.generateTrajectories();
         IntakeTestingAuto.generateTrajectories();
 
