@@ -31,8 +31,8 @@ public class BouncePath extends AutoMode {
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Volts
-    var maxAccel = 0.7; // m/s
-    var maxVelocity = 0.7; // m/s
+    var maxAccel = 1.9; // m/s
+    var maxVelocity = 1.9; // m/s
 
     // Define other constraints
     var voltageConstraint =
@@ -59,11 +59,39 @@ public class BouncePath extends AutoMode {
 
       var waypoint1 = new Pose2d(0.0, 0.0, new Rotation2d());
       var waypoint2 = new Pose2d(0.762, 0.0, new Rotation2d());
-      var waypoint3 = new Pose2d(1.524, -1.524, Rotation2d.fromDegrees(90.0));
+      var waypoint3 = new Pose2d(1.524, 1.724, Rotation2d.fromDegrees(90.0));
+      var waypoint4 = new Pose2d(1.514, 1.424, Rotation2d.fromDegrees(-90.0));
+      var waypoint5 = new Pose2d(1.886, -0.181, Rotation2d.fromDegrees(-45.0));
+      var waypoint6 = new Pose2d(3.048, -1.524, new Rotation2d());
+      var waypoint7 = new Pose2d(4.21, -0.762, Rotation2d.fromDegrees(90.0));
+      var waypoint8 = new Pose2d(4.21, 1.724, Rotation2d.fromDegrees(90.0));
+      var waypoint9 = new Pose2d(4.11, 1.424, Rotation2d.fromDegrees(-90.0));
+      var waypoint10 = new Pose2d(4.21, -0.762, Rotation2d.fromDegrees(-90.0));
+      var waypoint11 = new Pose2d(5.334, -1.524, new Rotation2d());
+      var waypoint12 = new Pose2d(6.096, -1.524, new Rotation2d());
+      var waypoint13 = new Pose2d(6.658, -0.762, Rotation2d.fromDegrees(90.0));
+      var waypoint14 = new Pose2d(6.758, 1.724, Rotation2d.fromDegrees(90.0));
+      var waypoint15 = new Pose2d(6.758, 1.524, Rotation2d.fromDegrees(-80.0));
+      var waypoint16 = new Pose2d(6.758, 0.762, Rotation2d.fromDegrees(-90.0));
+      var waypoint17 = new Pose2d(7.858, 0.0, Rotation2d.fromDegrees(-20.0));
 
       waypoints.add(waypoint1);
       waypoints.add(waypoint2);
       waypoints.add(waypoint3);
+      waypoints.add(waypoint4);
+      waypoints.add(waypoint5);
+      waypoints.add(waypoint6);
+      waypoints.add(waypoint7);
+      waypoints.add(waypoint8);
+      waypoints.add(waypoint9);
+      waypoints.add(waypoint10);
+      waypoints.add(waypoint11);
+      waypoints.add(waypoint12);
+      waypoints.add(waypoint13);
+      waypoints.add(waypoint14);
+      waypoints.add(waypoint15);
+      waypoints.add(waypoint16);
+      waypoints.add(waypoint17);
 
       part1 = TrajectoryGenerator.generateTrajectory(waypoints, config1);
     }
@@ -71,28 +99,30 @@ public class BouncePath extends AutoMode {
     {
       var waypoints = new ArrayList<Pose2d>();
 
-      var waypoint1 = new Pose2d(1.524, -1.524, Rotation2d.fromDegrees(90.0));
-      var waypoint2 = new Pose2d(3.048, 1.524, new Rotation2d());
-      var waypoint3 = new Pose2d(3.81, 0.762, Rotation2d.fromDegrees(90.0));
-      var waypoint4 = new Pose2d(3.81, -1.524, Rotation2d.fromDegrees(90.0));
+      var waypoint1 = new Pose2d(1.524, 1.424, Rotation2d.fromDegrees(-90.0));
+      var waypoint2 = new Pose2d(1.886, -0.181, Rotation2d.fromDegrees(-45.0));
+      var waypoint3 = new Pose2d(3.048, -1.524, new Rotation2d());
+      var waypoint4 = new Pose2d(4.21, -0.762, Rotation2d.fromDegrees(90.0));
+      var waypoint5 = new Pose2d(4.21, 1.724, Rotation2d.fromDegrees(90.0));
 
       waypoints.add(waypoint1);
       waypoints.add(waypoint2);
       waypoints.add(waypoint3);
       waypoints.add(waypoint4);
+      waypoints.add(waypoint5);
 
-      part2 = TrajectoryGenerator.generateTrajectory(waypoints, config2);
+      part2 = TrajectoryGenerator.generateTrajectory(waypoints, config1);
     }
 
     {
       var waypoints = new ArrayList<Pose2d>();
 
-      var waypoint1 = new Pose2d(3.81, -1.524, Rotation2d.fromDegrees(90.0));
-      var waypoint2 = new Pose2d(3.81, 0.762, Rotation2d.fromDegrees(90.0));
-      var waypoint3 = new Pose2d(5.334, 1.524, new Rotation2d());
-      var waypoint4 = new Pose2d(6.096, 1.524, new Rotation2d());
-      var waypoint5 = new Pose2d(6.858, 0.762, Rotation2d.fromDegrees(90.0));
-      var waypoint6 = new Pose2d(6.858, -1.524, Rotation2d.fromDegrees(90.0));
+      var waypoint1 = new Pose2d(4.21, 1.424, Rotation2d.fromDegrees(-90.0));
+      var waypoint2 = new Pose2d(4.21, -0.762, Rotation2d.fromDegrees(-90.0));
+      var waypoint3 = new Pose2d(5.334, -1.524, new Rotation2d());
+      var waypoint4 = new Pose2d(6.096, -1.524, new Rotation2d());
+      var waypoint5 = new Pose2d(6.558, -0.762, Rotation2d.fromDegrees(90.0));
+      var waypoint6 = new Pose2d(6.758, 1.724, Rotation2d.fromDegrees(90.0));
 
       waypoints.add(waypoint1);
       waypoints.add(waypoint2);
@@ -107,15 +137,15 @@ public class BouncePath extends AutoMode {
     {
       var waypoints = new ArrayList<Pose2d>();
 
-      var waypoint1 = new Pose2d(6.858, -1.524, Rotation2d.fromDegrees(90.0));
-      var waypoint2 = new Pose2d(6.858, -0.762, Rotation2d.fromDegrees(90.0));
+      var waypoint1 = new Pose2d(6.758, 1.524, Rotation2d.fromDegrees(-80.0));
+      var waypoint2 = new Pose2d(6.758, 0.362, Rotation2d.fromDegrees(-90.0));
       var waypoint3 = new Pose2d(8.382, 0.0, new Rotation2d());
 
       waypoints.add(waypoint1);
       waypoints.add(waypoint2);
       waypoints.add(waypoint3);
 
-      part4 = TrajectoryGenerator.generateTrajectory(waypoints, config2);
+      part4 = TrajectoryGenerator.generateTrajectory(waypoints, config1);
 
     }
   }
@@ -127,8 +157,8 @@ public class BouncePath extends AutoMode {
     }
 
     runCommand(new DriveTrajectory(part1, true));
-    runCommand(new DriveTrajectory(part2));
-    runCommand(new DriveTrajectory(part3));
-    runCommand(new DriveTrajectory(part4));
+    // runCommand(new DriveTrajectory(part2));
+    // runCommand(new DriveTrajectory(part3));
+    // runCommand(new DriveTrajectory(part4));
   }
 }
