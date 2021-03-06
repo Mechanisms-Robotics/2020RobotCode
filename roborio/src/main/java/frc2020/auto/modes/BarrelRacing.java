@@ -31,8 +31,8 @@ public class BarrelRacing extends AutoMode {
     
     public static void generateTrajectories() {
         var maxVoltage = 10.0; // Voltes
-        var maxAccel = 2.0; // m/s
-        var maxVelocity = 2.0; // m/s
+        var maxAccel = 2.3; // m/s
+        var maxVelocity = 2.3; // m/s
 
         // This can be a list of Translation2d and Pose2d
         // Note if you use a Pose2d WPILib will
