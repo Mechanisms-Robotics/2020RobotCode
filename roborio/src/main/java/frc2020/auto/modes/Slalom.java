@@ -30,38 +30,29 @@ public class Slalom extends AutoMode {
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Voltes
-    var maxAccel = 0.7; // m/s
-    var maxVelocity = 0.7; // m/s
+    var maxAccel = 1.5; // m/s
+    var maxVelocity = 1.5; // m/s
 
-    var startPose = new Pose2d();
+    var waypoints = new ArrayList<Pose2d>();
+    var waypoint1 = new Pose2d(0.0, 0.0, new Rotation2d());
+    var waypoint2 = new Pose2d(1.163, 0.762, Rotation2d.fromDegrees(45.0));
+    var waypoint3 = new Pose2d(3.429, 1.524, new Rotation2d());
+    var waypoint4 = new Pose2d(6.150, 0.762, Rotation2d.fromDegrees(-60.0));
+    var waypoint5 = new Pose2d(7.989, 0.962, Rotation2d.fromDegrees(90.0));
+    var waypoint6 = new Pose2d(6.625, 0.762, Rotation2d.fromDegrees(-110.0));
+    var waypoint7 = new Pose2d(3.429, 0.0, Rotation2d.fromDegrees(-180.0));
+    var waypoint8 = new Pose2d(1.824, 0.762, Rotation2d.fromDegrees(105.0));
+    var waypoint9 = new Pose2d(0.0, 1.524, Rotation2d.fromDegrees(180.0));
 
-    // This can be a list of Translation2d and Pose2d
-    // Note if you use a Pose2d WPILib will
-    // generate a quintic spline instead of a cubic
-    // spline. (This may take longer)
-    var midPoint1 = new Translation2d(1.27, 0.2032);
-    var midPoint2 = new Translation2d(2.286, 1.651);
-    var midPoint3 = new Translation2d(3.81, 2.032);
-    var midPoint4 = new Translation2d(5.588, 1.524);
-    var midPoint5 = new Translation2d(6.858, 0.2032);
-    var midPoint6 = new Translation2d(8.001 , -0.762);
-    var midPoint7 = new Translation2d(6.858 , 1.651);
-    var midPoint8 = new Translation2d(5.588 , 0.2032);
-    var midPoint9 = new Translation2d(3.81 , 0);
-    var midPoint10 = new Translation2d(2.286 , 0.2032);
-
-    var midPoints = new ArrayList<Translation2d>();
-    midPoints.add(midPoint1);
-    midPoints.add(midPoint2);
-    midPoints.add(midPoint3);
-    midPoints.add(midPoint4);
-    midPoints.add(midPoint5);
-    midPoints.add(midPoint6);
-    midPoints.add(midPoint7);
-    midPoints.add(midPoint8);
-    midPoints.add(midPoint9);
-    midPoints.add(midPoint10);
-    var endPose = new Pose2d(0.0, 1.524, Rotation2d.fromDegrees(180.0));
+    waypoints.add(waypoint1);
+    waypoints.add(waypoint2);
+    waypoints.add(waypoint3);
+    waypoints.add(waypoint4);
+    waypoints.add(waypoint5);
+    waypoints.add(waypoint6);
+    waypoints.add(waypoint7);
+    waypoints.add(waypoint8);
+    waypoints.add(waypoint9);
 
     // Define other constraintes
     var voltageConstraint =
@@ -77,7 +68,7 @@ public class Slalom extends AutoMode {
             .addConstraint(voltageConstraint);
 
     slalomTrajectory = TrajectoryGenerator.generateTrajectory(
-        startPose, midPoints, endPose, config);
+        waypoints, config);
   }
 
   @Override
