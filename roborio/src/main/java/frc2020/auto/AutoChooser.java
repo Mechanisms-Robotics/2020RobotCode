@@ -24,7 +24,9 @@ public class AutoChooser {
         RIGHT_EIGHT_BALL(new RightToTrench8()),
         AUTO_AWARD(new AutoAward()),
         BOUNCE_PATH(new BouncePath()),
-        INTAKE_TESTING(new IntakeTestingAuto());
+        INTAKE_TESTING(new IntakeTestingAuto()),
+        BARREL_RACING(new BarrelRacing()),
+        SLALOM(new Slalom());
 
         public AutoMode autoMode;
 
