@@ -12,6 +12,7 @@ import frc2020.auto.modes.CenterToTrench8;
 import frc2020.auto.modes.IntakeTestingAuto;
 import frc2020.auto.modes.RightToTrench8;
 import frc2020.auto.modes.AutoAward;
+import frc2020.auto.modes.BouncePath;
 import frc2020.auto.modes.BarrelRacing;
 import frc2020.auto.modes.Slalom;
 import frc2020.loops.*;
@@ -144,6 +145,7 @@ public class Robot extends TimedRobot {
         CenterToTrench8.generateTrajectories();
         RightToTrench8.generateTrajectories();
         AutoAward.generateTrajectories();
+        BouncePath.generateTrajectories();
         Slalom.generateTrajectories();
         IntakeTestingAuto.generateTrajectories();
         BarrelRacing.generateTrajectories();

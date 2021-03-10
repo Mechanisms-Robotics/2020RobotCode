@@ -23,6 +23,7 @@ public class AutoChooser {
         CENTER_EIGHT_BALL(new CenterToTrench8()),
         RIGHT_EIGHT_BALL(new RightToTrench8()),
         AUTO_AWARD(new AutoAward()),
+        BOUNCE_PATH(new BouncePath()),
         INTAKE_TESTING(new IntakeTestingAuto()),
         BARREL_RACING(new BarrelRacing()),
         SLALOM(new Slalom());
