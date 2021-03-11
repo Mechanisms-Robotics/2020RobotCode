@@ -26,6 +26,7 @@ public class AutoChooser {
         BOUNCE_PATH(new BouncePath()),
         INTAKE_TESTING(new IntakeTestingAuto()),
         BARREL_RACING(new BarrelRacing()),
+        GALACTIC_SEARCH(new GalacticSearch()),
         SLALOM(new Slalom());
 
         public AutoMode autoMode;

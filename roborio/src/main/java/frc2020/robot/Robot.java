@@ -9,6 +9,7 @@ import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
 import frc2020.auto.modes.CenterToTrench8;
+import frc2020.auto.modes.GalacticSearch;
 import frc2020.auto.modes.IntakeTestingAuto;
 import frc2020.auto.modes.RightToTrench8;
 import frc2020.auto.modes.AutoAward;
@@ -149,6 +150,7 @@ public class Robot extends TimedRobot {
         Slalom.generateTrajectories();
         IntakeTestingAuto.generateTrajectories();
         BarrelRacing.generateTrajectories();
+        GalacticSearch.generateTrajectories(limelight_low_);
 
         PeriodicEvent flushLog_ = new PeriodicEvent(){
             @Override
@@ -298,7 +300,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousPeriodic() {
-
+        
     }
 
     /**
