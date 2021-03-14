@@ -15,7 +15,7 @@ public class Intake extends SingleMotorSubsystem {
     private final static int FLIPPER_REVERSE_PORT = 5;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
-    private final static double INTAKE_RPM = Constants.IS_COMP_BOT ? 5600 : 5400;
+    private final static double INTAKE_RPM = Constants.IS_COMP_BOT ? 5700 : 5400; // 5600 comp bot before
     private final static double REVERSE_RPM = -INTAKE_RPM;
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
@@ -67,12 +67,13 @@ public class Intake extends SingleMotorSubsystem {
      * we are intaking from above or outtaking from below
      */
     public void runIntake(boolean reverse) {
+        // TODO: Tune percentage then find RPM
         if (reverse) {
-            runIntake(REVERSE_RPM);
-            //super.setOpenLoop(-0.55);
+            //runIntake(REVERSE_RPM);
+            super.setOpenLoop(1.0);
         } else {
-            runIntake(INTAKE_RPM);
-            //super.setOpenLoop(0.55);
+            //runIntake(INTAKE_RPM);
+            super.setOpenLoop(1.0);
         }
     }
 

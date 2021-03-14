@@ -1,16 +1,20 @@
 package frc2020.robot;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.auto.modes.Basic3Ball;
 import frc2020.util.*;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Limelight.LedMode;
 import frc2020.auto.AutoChooser;
 import frc2020.auto.AutoMode;
 import frc2020.auto.AutoModeRunner;
-import frc2020.auto.modes.Basic13Ball;
 import frc2020.auto.modes.CenterToTrench8;
+import frc2020.auto.modes.IntakeTestingAuto;
 import frc2020.auto.modes.RightToTrench8;
-import frc2020.auto.modes.Basic3Ball;
+import frc2020.auto.modes.AutoAward;
+import frc2020.auto.modes.BouncePath;
+import frc2020.auto.modes.BarrelRacing;
+import frc2020.auto.modes.Slalom;
 import frc2020.loops.*;
 import frc2020.states.TeleopCSGenerator;
 import frc2020.subsystems.*;
@@ -47,8 +51,10 @@ public class Robot extends TimedRobot {
     private Hood hood_;
     private Shooter shooter_;
     private ControlPanel controlPanel_;
+    private FloodGate floodGate_;
 
     private Compressor compressor_;
+    private DriverStation ds_;
     private AutoMode currentAutoMode_;
 
     private TeleopCSGenerator teleopCSGenerator_;
@@ -107,7 +113,8 @@ public class Robot extends TimedRobot {
                   Hood.getInstance(),
                   Flywheel.getInstance(),
                   Shooter.getInstance(),
-                  ControlPanel.getInstance()
+                  ControlPanel.getInstance(),
+                  FloodGate.getInstance()
                 )
         );
 
@@ -119,10 +126,12 @@ public class Robot extends TimedRobot {
         climber_ = Climber.getInstance();
         hood_ = Hood.getInstance();
         controlPanel_ = ControlPanel.getInstance();
+        floodGate_ = FloodGate.getInstance();
         shooter_ = Shooter.getInstance();
         shooter_.setLimelight(limelight_turret_);
 
         compressor_ = new Compressor();
+        ds_ = DriverStation.getInstance();
         //PDP = new PowerDistributionPanel();
         //CSGenerators are defined here, one for teleop, one for auto (TBI)
         teleopCSGenerator_ = new TeleopCSGenerator(Constants.LEFT_DRIVER_JOYSTICK_PORT, Constants.RIGHT_DRIVER_JOYSTICK_PORT,
@@ -131,10 +140,15 @@ public class Robot extends TimedRobot {
         SmartDashboard.putData("Auto Chooser", autoChooser_);
 
         // Pre-Generate Trajectories
-        //Basic3Ball.generateTrajectories();
         //Basic13Ball.generateTrajectories();
+        Basic3Ball.generateTrajectories();
         CenterToTrench8.generateTrajectories();
         RightToTrench8.generateTrajectories();
+        AutoAward.generateTrajectories();
+        BouncePath.generateTrajectories();
+        Slalom.generateTrajectories();
+        IntakeTestingAuto.generateTrajectories();
+        BarrelRacing.generateTrajectories();
 
         PeriodicEvent flushLog_ = new PeriodicEvent(){
             @Override
@@ -202,6 +216,7 @@ public class Robot extends TimedRobot {
             periodicEventManager_.run();
             manager_.outputToSmartDashboard();
             SmartDashboard.putBoolean("IsCompBot: ", Constants.IS_COMP_BOT);
+            SmartDashboard.putNumber("MATCH TIME", ds_.getMatchTime());
 //            Pose2d target = targetTracker_.getRobotToVisionTarget();
 //            if (target != null) {
 //                SmartDashboard.putNumber("Distance", target.getTranslation().getX());
@@ -233,7 +248,7 @@ public class Robot extends TimedRobot {
             drive_.openLoop(new DriveSignal(0, 0, false));
             limelight_turret_.setLed(LedMode.OFF);
             teleopCSGenerator_.resetManualControl();
-            climber_.resetHasDeployed();
+            climber_.lockWinch();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -269,6 +284,7 @@ public class Robot extends TimedRobot {
             autoRunner_ = new AutoModeRunner();
             autoRunner_.setAutoMode(AutoChooser.getAuto(autoChooser_.getSelected()));
             autoRunner_.start();
+            climber_.resetHasDeployed();
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -339,7 +355,8 @@ public class Robot extends TimedRobot {
                     climber_,
                     hood_,
                     shooter_,
-                    controlPanel_);
+                    controlPanel_,
+                    floodGate_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

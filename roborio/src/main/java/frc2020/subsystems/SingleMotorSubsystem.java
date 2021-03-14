@@ -105,7 +105,6 @@ public abstract class SingleMotorSubsystem implements Subsystem {
     protected final String logName_;
 
     // TODO: Add error handling where needed
-    // TODO: Implement brake modes
     protected SingleMotorSubsystem(final SingleMotorSubsystemConstants constants) {
         constants_ = constants;
         forwardSoftLimitTicks_ = (int)(constants_.maxUnitsLimit_ - constants_.homePosition_);

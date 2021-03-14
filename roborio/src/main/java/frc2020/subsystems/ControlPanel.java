@@ -13,7 +13,6 @@ import frc2020.util.WheelWatcher.WheelColor;
 public class ControlPanel extends SingleMotorSubsystem {
     private static ControlPanel instance_;
 
-    //TODO: change on actual robot
     private final static int FLIPPER_PCM_ID = 1;
     private final static int FLIPPER_FORWARD_PORT = 2; 
     private final static int FLIPPER_REVERSE_PORT = 3;
@@ -31,7 +30,7 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     static {
         var masterConstants = new MotorConstants();
-        masterConstants.id_ = 6; //TODO: change on actual robot
+        masterConstants.id_ = 6;
         masterConstants.invertMotor_ = false;
         
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
