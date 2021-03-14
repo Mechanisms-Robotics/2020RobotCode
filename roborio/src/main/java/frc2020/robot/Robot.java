@@ -102,23 +102,24 @@ public class Robot extends TimedRobot {
 
         manager_ = new SubsystemManager(
                 Arrays.asList(
-                  Drive.getInstance(),
-                  limelight_turret_,
-                  limelight_low_,
+                  Drive.getInstance()
+                  //limelight_turret_,
+                  //limelight_low_,
                   // TODO: Put subystems here once tuned
-                  Feeder.getInstance(),
-                  Intake.getInstance(),
-                  Climber.getInstance(),
-                  Turret.getInstance(),
-                  Hood.getInstance(),
-                  Flywheel.getInstance(),
-                  Shooter.getInstance(),
-                  ControlPanel.getInstance(),
-                  FloodGate.getInstance()
+                  //Feeder.getInstance(),
+                  //Intake.getInstance(),
+                  //Climber.getInstance(),
+                  //Turret.getInstance(),
+                  //Hood.getInstance(),
+                  //Flywheel.getInstance(),
+                  //Shooter.getInstance(),
+                  //ControlPanel.getInstance(),
+                  //FloodGate.getInstance()
                 )
         );
 
         drive_ = Drive.getInstance();
+        /*
         intake_ = Intake.getInstance();
         feeder_ = Feeder.getInstance();
         turret_ = Turret.getInstance();
@@ -129,6 +130,7 @@ public class Robot extends TimedRobot {
         floodGate_ = FloodGate.getInstance();
         shooter_ = Shooter.getInstance();
         shooter_.setLimelight(limelight_turret_);
+        */
 
         compressor_ = new Compressor();
         ds_ = DriverStation.getInstance();
@@ -317,15 +319,19 @@ public class Robot extends TimedRobot {
             drive_.zeroSensors();
             drive_.openLoop(new DriveSignal(0, 0));
             drive_.setHighGear();
+            /*
             climber_.resetHasDeployed();
             climber_.unlockWinch();
+            */
             if (autoRunner_ != null) {
                 autoRunner_.stop();
                 autoRunner_ = null;
             }
             teleopCSGenerator_.resetManualControl();
             teleopCSGenerator_.resetPresetPositions();
+            /*
             shooter_.handleReenable();
+            */
         } catch(LoggerNotStartedException e) {
             logger_.setFileLogging(false);
             DriverStation.reportError(
@@ -345,18 +351,7 @@ public class Robot extends TimedRobot {
         try {
             //This one line of code handles all teleoperated control
             //Add subsystems to the updateSubsystems method to expand as needed
-            teleopCSGenerator_.getCommandState().updateSubsystems(
-                    drive_,
-                    limelight_low_,
-                    feeder_,
-                    turret_,
-                    intake_,
-                    flywheel_,
-                    climber_,
-                    hood_,
-                    shooter_,
-                    controlPanel_,
-                    floodGate_);
+            teleopCSGenerator_.getCommandState().updateSubsystems(drive_);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

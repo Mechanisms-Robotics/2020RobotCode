@@ -9,7 +9,6 @@ import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
 import frc2020.util.DriveSignal;
 import frc2020.util.Logger;
-import java.net.StandardSocketOptions;
 
 public class Climber implements Subsystem {
 

@@ -1,6 +1,5 @@
 package frc2020.subsystems;
 
-import edu.wpi.first.wpilibj.geometry.Translation2d;
 import frc2020.robot.Robot;
 import frc2020.util.*;
 import frc2020.util.drivers.NavX;
@@ -14,7 +13,6 @@ import com.ctre.phoenix.sensors.*;
 import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
-import com.revrobotics.SparkMax;
 import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
