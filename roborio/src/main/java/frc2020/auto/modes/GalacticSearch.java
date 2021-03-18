@@ -18,6 +18,7 @@ import frc2020.auto.commands.*;
 import frc2020.robot.Constants;
 import frc2020.util.Util;
 import frc2020.subsystems.Limelight;
+import frc2020.subsystems.Limelight.LimelightRawData;
 
 import java.util.ArrayList;
 
@@ -29,12 +30,12 @@ public class GalacticSearch extends AutoMode {
       Drive.getInstance().getFeedforward();
 
     private static Limelight limelight_ = null;
+    private static LimelightRawData data_ = null;
 
     private static Trajectory redPathA = null;
     private static Trajectory redPathB = null;
     private static Trajectory bluePathA = null;
     private static Trajectory bluePathB = null;
-    private static Trajectory goForward = null;
 
     public static void generateTrajectories(Limelight lowLimelight) {
         limelight_ = lowLimelight;
@@ -55,14 +56,28 @@ public class GalacticSearch extends AutoMode {
                                  maxAccel)
                 .setKinematics(DRIVE_KINEMATICS)
                 .addConstraint(voltageConstraint);
+        
+        var forwardConfig =
+            new TrajectoryConfig(maxVelocity,
+                                 maxAccel)
+                .setKinematics(DRIVE_KINEMATICS)
+                .addConstraint(voltageConstraint)
+                .setEndVelocity(1.0);
+
+        var afterForwardConfig =
+        new TrajectoryConfig(maxVelocity,
+                             maxAccel)
+                .setKinematics(DRIVE_KINEMATICS)
+                .addConstraint(voltageConstraint)
+                .setStartVelocity(1.0);
 
         {
             var point1 = new Pose2d();
 
-            var point2 = new Pose2d(1.524, -0.762, Rotation2d.fromDegrees(-30.0));
-            var point3 = new Pose2d(3.048, -1.524, Rotation2d.fromDegrees(-30.0));
-            var point4 = new Pose2d(3.81, 0.6, new Rotation2d());
-            var point5 = new Pose2d(8.02, 0.6, new Rotation2d());
+            var point2 = new Pose2d(1.524, -0.381, Rotation2d.fromDegrees(-30.0));
+            var point3 = new Pose2d(3.048, -1.143, Rotation2d.fromDegrees(-30.0));
+            var point4 = new Pose2d(3.81, 0.981, new Rotation2d());
+            var point5 = new Pose2d(8.02, 0.981, new Rotation2d());
 
             waypoints.add(point1);
             waypoints.add(point2);
@@ -77,10 +92,10 @@ public class GalacticSearch extends AutoMode {
         {
             var point1 = new Pose2d();
 
-            var point2 = new Pose2d(1.524, 0.0, new Rotation2d());
-            var point3 = new Pose2d(3.048, -1.524, Rotation2d.fromDegrees(-45.0));
-            var point4 = new Pose2d(4.572, 0.0, new Rotation2d());
-            var point5 = new Pose2d(8.02, 0.0, new Rotation2d());
+            var point2 = new Pose2d(1.524, 0.381, new Rotation2d());
+            var point3 = new Pose2d(3.048, -1.143, Rotation2d.fromDegrees(-45.0));
+            var point4 = new Pose2d(4.572, 0.3, new Rotation2d());
+            var point5 = new Pose2d(8.02, 0.381, new Rotation2d());
 
             waypoints.add(point1);
             waypoints.add(point2);
@@ -95,17 +110,37 @@ public class GalacticSearch extends AutoMode {
         {
             var point1 = new Pose2d();
 
-            var point2 = new Pose2d(2.286, 0.0, new Rotation2d());
-            
+            var point2 = new Pose2d(3.81, -0.381, Rotation2d.fromDegrees(-10.0));
+            var point3 = new Pose2d(4.802, 1.905, Rotation2d.fromDegrees(71.0));
+            var point4 = new Pose2d(6.096, 1.343, new Rotation2d());
+            var point5 = new Pose2d(8.02, 1.343, new Rotation2d());
+
             waypoints.add(point1);
             waypoints.add(point2);
+            waypoints.add(point3);
+            waypoints.add(point4);
+            waypoints.add(point5);
 
-            goForward = TrajectoryGenerator.generateTrajectory(waypoints, config);
+            bluePathA = TrajectoryGenerator.generateTrajectory(waypoints, afterForwardConfig);
             waypoints.clear();
         }
 
         {
-            var point1 = new Pose2d(2.286, 0.0, new Rotation2d());
+            var point1 = new Pose2d();
+
+            var point2 = new Pose2d(3.81, 0.381, Rotation2d.fromDegrees(10.0));
+            var point3 = new Pose2d(5.334, 1.905, Rotation2d.fromDegrees(45.0));
+            var point4 = new Pose2d(6.858, 0.381, Rotation2d.fromDegrees(-45.0));
+            var point5 = new Pose2d(8.001, -0.762, Rotation2d.fromDegrees(-45.0));
+
+            waypoints.add(point1);
+            waypoints.add(point2);
+            waypoints.add(point3);
+            waypoints.add(point4);
+            waypoints.add(point5);
+
+            bluePathB = TrajectoryGenerator.generateTrajectory(waypoints, afterForwardConfig);
+            waypoints.clear();
         }
 
         
@@ -115,21 +150,46 @@ public class GalacticSearch extends AutoMode {
 	protected void routine() throws AutoModeEndedException {
         limelight_.setPipeline(Constants.POWER_CELL_PIPELINE);
         runCommand(new IntakeCommand(true));
-        runCommand(new WaitCommand(0.3));
-        if (limelight_.getRawData().area > 0.1) {
-            if (Util.epsilonEquals(limelight_.getTargetReading().azimuth, 0.0, 5.0)) {
+
+        /**
+         * At the end of this the limelight should have a good set of data.
+         */
+        data_ = limelight_.getRawData();
+        while (!data_.hasTarget) {
+            data_ = limelight_.getRawData();
+        }
+
+        /**
+         * If the area of the target is less than 0.1, then target is too far away so the robot must
+         * run the blue paths. If the area is greater than 0.1, then the power cells are close so the
+         * robot should run the red paths.
+         */
+        if (data_.area > 0.1) {
+
+            /**
+             * The robot starts in the same starting position and orientation for the red paths.
+             * If the ball is straight ahead then the robot runs Red Path B; if else, it should
+             * run Red Path A.
+             */
+            if (data_.xOffset < 0.0 || data_.area < 0.5) {
+                logger_.logDebug("//////////////////////////////////////////RED PATH B");
                 runCommand(new DriveTrajectory(redPathB));
             } else {
+                logger_.logDebug("//////////////////////////////////////////RED PATH A");
                 runCommand(new DriveTrajectory(redPathA));
             }
         } else {
-            runCommand(new DriveTrajectory(goForward));
-            if (limelight_.getTargetReading().azimuth < 0) {
-                logger_.logDebug("Running Path B");
-                //runCommand(new DriveTrajectory(bluePathB));
+
+            /**
+             * If the target is to the left of the robot, then the robot runs Blue Path B;
+             * if else, it should run Blue Path A.
+             */
+            if (data_.xOffset < 0 && data_.xOffset > -10.0) {
+                logger_.logDebug("//////////////////////////////////////////BLUE PATH B");
+                runCommand(new DriveTrajectory(bluePathB));
             } else {
-                logger_.logDebug("Running Path A");
-                //runCommand(new DriveTrajectory(bluePathA));
+                logger_.logDebug("//////////////////////////////////////////BLUE PATH A");
+                runCommand(new DriveTrajectory(bluePathA));
             }
         }
         runCommand(new IntakeCommand(false));
