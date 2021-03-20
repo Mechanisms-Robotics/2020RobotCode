@@ -56,20 +56,6 @@ public class GalacticSearch extends AutoMode {
                                  maxAccel)
                 .setKinematics(DRIVE_KINEMATICS)
                 .addConstraint(voltageConstraint);
-        
-        var forwardConfig =
-            new TrajectoryConfig(maxVelocity,
-                                 maxAccel)
-                .setKinematics(DRIVE_KINEMATICS)
-                .addConstraint(voltageConstraint)
-                .setEndVelocity(1.0);
-
-        var afterForwardConfig =
-        new TrajectoryConfig(maxVelocity,
-                             maxAccel)
-                .setKinematics(DRIVE_KINEMATICS)
-                .addConstraint(voltageConstraint)
-                .setStartVelocity(1.0);
 
         {
             var point1 = new Pose2d();
@@ -121,7 +107,7 @@ public class GalacticSearch extends AutoMode {
             waypoints.add(point4);
             waypoints.add(point5);
 
-            bluePathA = TrajectoryGenerator.generateTrajectory(waypoints, afterForwardConfig);
+            bluePathA = TrajectoryGenerator.generateTrajectory(waypoints, config);
             waypoints.clear();
         }
 
@@ -139,7 +125,7 @@ public class GalacticSearch extends AutoMode {
             waypoints.add(point4);
             waypoints.add(point5);
 
-            bluePathB = TrajectoryGenerator.generateTrajectory(waypoints, afterForwardConfig);
+            bluePathB = TrajectoryGenerator.generateTrajectory(waypoints, config);
             waypoints.clear();
         }
 
