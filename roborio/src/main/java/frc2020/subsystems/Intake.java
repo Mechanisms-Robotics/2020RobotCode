@@ -70,10 +70,10 @@ public class Intake extends SingleMotorSubsystem {
         // TODO: Tune percentage then find RPM
         if (reverse) {
             //runIntake(REVERSE_RPM);
-            super.setOpenLoop(1.0);
+            super.setOpenLoop(-0.7);
         } else {
             //runIntake(INTAKE_RPM);
-            super.setOpenLoop(1.0);
+            super.setOpenLoop(0.7);
         }
     }
 
