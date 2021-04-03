@@ -62,7 +62,7 @@ public class GalacticSearch extends AutoMode {
 
             var point2 = new Pose2d(1.524, -0.381, Rotation2d.fromDegrees(-30.0));
             var point3 = new Pose2d(3.048, -1.143, Rotation2d.fromDegrees(-30.0));
-            var point4 = new Pose2d(3.81, 0.981, new Rotation2d());
+            var point4 = new Pose2d(3.81, 0.881, new Rotation2d());
             var point5 = new Pose2d(8.02, 0.981, new Rotation2d());
 
             waypoints.add(point1);
@@ -80,8 +80,8 @@ public class GalacticSearch extends AutoMode {
 
             var point2 = new Pose2d(1.524, 0.381, new Rotation2d());
             var point3 = new Pose2d(3.048, -1.143, Rotation2d.fromDegrees(-45.0));
-            var point4 = new Pose2d(4.572, 0.3, new Rotation2d());
-            var point5 = new Pose2d(8.02, 0.381, new Rotation2d());
+            var point4 = new Pose2d(4.572, 0.2, new Rotation2d());
+            var point5 = new Pose2d(8.02, 0.2, new Rotation2d());
 
             waypoints.add(point1);
             waypoints.add(point2);
@@ -115,9 +115,9 @@ public class GalacticSearch extends AutoMode {
             var point1 = new Pose2d();
 
             var point2 = new Pose2d(3.81, 0.381, Rotation2d.fromDegrees(10.0));
-            var point3 = new Pose2d(5.334, 1.905, Rotation2d.fromDegrees(45.0));
-            var point4 = new Pose2d(6.858, 0.381, Rotation2d.fromDegrees(-45.0));
-            var point5 = new Pose2d(8.001, -0.762, Rotation2d.fromDegrees(-45.0));
+            var point3 = new Pose2d(5.534, 1.705, Rotation2d.fromDegrees(35.0));
+            var point4 = new Pose2d(7.258, 0.681, new Rotation2d());
+            var point5 = new Pose2d(8.001, 0.681, new Rotation2d());
 
             waypoints.add(point1);
             waypoints.add(point2);
@@ -141,7 +141,7 @@ public class GalacticSearch extends AutoMode {
          * At the end of this the limelight should have a good set of data.
          */
         data_ = limelight_.getRawData();
-        while (!data_.hasTarget) {
+        while (!data_.hasTarget || (data_.hasTarget && data_.area <= 0.1 && data_.xOffset < -10.0)) {
             data_ = limelight_.getRawData();
         }
 
@@ -157,7 +157,7 @@ public class GalacticSearch extends AutoMode {
              * If the ball is straight ahead then the robot runs Red Path B; if else, it should
              * run Red Path A.
              */
-            if (data_.xOffset < 0.0 || data_.area < 0.5) {
+            if (data_.xOffset < 0.0) {
                 logger_.logDebug("//////////////////////////////////////////RED PATH B");
                 runCommand(new DriveTrajectory(redPathB));
             } else {
