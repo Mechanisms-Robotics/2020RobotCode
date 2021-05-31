@@ -23,6 +23,10 @@ public class Units {
         return Drive.metersToEncoderTicks(mps) / 10;
     }
 
+    public static int rpmToEncTicksPer100Ms(int rpm) {
+        return (rpm * 2048) / 600;
+    }
+
     public static double feet_to_meters(double feet) {
         return inches_to_meters(feet * 12.0);
     }
