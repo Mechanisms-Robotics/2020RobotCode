@@ -21,6 +21,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private Joystick leftSecondJoystick_;
     private Joystick rightSecondJoystick_;
 
+    private Joystick driverController_;
+
+    private boolean isController_ = false;
+
     private Drive drive_;
 
     // ONLY PERSISTENT VALUES SHOULD BE STORED HERE
@@ -122,17 +126,60 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     /**
+     * All ports and constants should be applied in here.
+     * Anything specific to this generator should be constructed here.
+     */
+    public TeleopCSGenerator(int controllerPort, int lJoySecPort, int rJoySecPort) {
+        isController_ = true;
+        driverController_ = new Joystick(controllerPort);
+        leftSecondJoystick_ = new Joystick(lJoySecPort);
+        rightSecondJoystick_ = new Joystick(rJoySecPort);
+        driveShiftLatch = new LatchedBoolean();
+        autoBackupLatch = new LatchedBoolean();
+        manualControlLatch = new LatchedBoolean();
+        deployIntakeLatch = new LatchedBoolean();
+        deployClimberLatch = new LatchedBoolean();
+        lockClimberLatch = new LatchedBoolean();
+        spinFlywheelLatch = new LatchedBoolean();
+        deployControlPanelLatch = new LatchedBoolean();
+        controlPanelRotationLatch = new LatchedBoolean();
+        controlPanelPositionLatch = new LatchedBoolean();
+        toggleFloodGateLatch = new LatchedBoolean();
+
+        drive_ = Drive.getInstance();
+        cheesyHelper_ = new CheesyDriveHelper();
+        deployHoodLatch = new LatchedBoolean();
+        getStowAimingLatch = new LatchedBoolean();
+        getShooterLatch = new LatchedBoolean();
+        getTrenchLatch = new LatchedBoolean();
+
+        overrideIntakeBreakBeamLatch = new LatchedBoolean();
+
+        climberSplitLatch = new LatchedBoolean();
+        driveChooser = new SendableChooser<>();
+        driveChooser.setDefaultOption(DriveMode.Arcade.toString(), DriveMode.Arcade);
+        driveChooser.addOption(DriveMode.Tank.toString(), DriveMode.Tank);
+        driveChooser.addOption(DriveMode.Cheesy.toString(), DriveMode.Cheesy);
+        SmartDashboard.putData("Drive Chooser", driveChooser);
+    }
+
+    /**
      * Implements the CommandStateGenerator interface
      * All generation of subsystem demands for the CommandState are done here
      */
     @Override
     public CommandState getCommandState() {
         // Whether to track a power cell
-        autoSteerBall = leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
+        autoSteerBall = isController_ ? driverController_.getRawButton(Constants.CONTROLLER_AUTO_STEER_BUTTON)
+                                      : leftJoystick_.getRawButton(Constants.AUTO_STEER_BUTTON);
         // Whether to auto target to station
-        autoSteerStation = leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
+        autoSteerStation = isController_ ? driverController_.getRawButton(Constants.CONTROLLER_AUTO_ALIGN_BUTTON)
+                                         : leftJoystick_.getRawButton(Constants.AUTO_ALIGN_BUTTON);
         // Whether to run the power port backup sequence
-        boolean autoBackupSharedBoolean  = autoBackupLatch.update(rightJoystick_.getRawButton(Constants.POWER_PORT_BACKUP_BUTTON));
+        boolean autoBackupSharedBoolean  = autoBackupLatch.update(
+            isController_ ? driverController_.getRawButton(Constants.CONTROLLER_POWER_PORT_BACKUP_BUTTON)
+                          : rightJoystick_.getRawButton(Constants.POWER_PORT_BACKUP_BUTTON)
+        );
         autoBackup = autoBackupSharedBoolean != autoBackup;
         autoBackupLatchBoolean = autoBackupSharedBoolean;
 
@@ -168,7 +215,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private DriveDemand generateDriveDemand() {
         final double BACKUP_DISTANCE = 0.59;
         //Drive
-        driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
+        driveLowGear = driveShiftLatch.update(isController_ ? driverController_.getRawButton(Constants.CONTROLLER_DRIVE_TOGGLE_SHIFT_BUTTON)
+                                                            : rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
 
         final double DEADBAND = 0.01;
 
@@ -176,12 +224,20 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double rightDrive = 0.0;
 
         var driveMode = driveChooser.getSelected();
-        var povDir = leftJoystick_.getPOV();
+        var povDir = isController_ ? driverController_.getPOV() : leftJoystick_.getPOV();
         var quickTurn = povDir == 0 || povDir == 45 || povDir == 315;
 
+        double leftY = isController_ ? driverController_.getRawAxis(Constants.CONTROLLER_LEFT_Y)
+                                     : leftJoystick_.getY();
+
+        double rightX = isController_ ? driverController_.getRawAxis(Constants.CONTROLLER_RIGHT_X)
+                                      : rightJoystick_.getX();
+        double rightY = isController_ ? driverController_.getRawAxis(Constants.CONTROLLER_RIGHT_Y)
+                                      : rightJoystick_.getY();
+
         if (driveMode == DriveMode.Tank) {
-            leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-            rightDrive = Math.abs(rightJoystick_.getY()) <= DEADBAND ? 0 : -rightJoystick_.getY();
+            leftDrive = Math.abs(leftY) <= DEADBAND ? 0 : -leftY;
+            rightDrive = Math.abs(rightY) <= DEADBAND ? 0 : -rightY;
             int lSign = 1;
             int rSign = 1;
             if (leftDrive < 0) {
@@ -194,13 +250,13 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             leftDrive = Math.pow(Math.abs(leftDrive), JOYSTICK_EXPONENT) * lSign;
             rightDrive = Math.pow(Math.abs(rightDrive), JOYSTICK_EXPONENT) * rSign;
         } else if (driveMode == DriveMode.Arcade) {
-            leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-            rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-            leftDrive += Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
-            rightDrive -= Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
+            leftDrive = Math.abs(leftY) <= DEADBAND ? 0 : -leftY;
+            rightDrive = Math.abs(leftY) <= DEADBAND ? 0 : -leftY;
+            leftDrive += Math.abs(rightX) <= DEADBAND ? 0 : rightX*0.75f;
+            rightDrive -= Math.abs(rightX) <= DEADBAND ? 0 : rightX*0.75f;
         } else if (driveMode == DriveMode.Cheesy){
-            double throttle = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-            double wheel = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX();
+            double throttle = Math.abs(leftY) <= DEADBAND ? 0 : -leftY;
+            double wheel = Math.abs(rightX) <= DEADBAND ? 0 : rightX;
             DriveSignal dSignal = cheesyHelper_.cheesyDrive(throttle, wheel, quickTurn, !driveLowGear);
             leftDrive = dSignal.getLeft();
             rightDrive = dSignal.getRight();
@@ -257,8 +313,12 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     private IntakeDemand generateIntakeDemand() {
-        deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
-        boolean outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
+        deployIntake = deployIntakeLatch.update(isController_
+            ? driverController_.getRawButton(Constants.CONTROLLER_INTAKE_DEPLOY_TOGGLE)
+            : rightJoystick_.getTrigger()) != deployIntake;
+        boolean outtakeIntake = isController_
+                                ? driverController_.getRawButton(Constants.CONTROLLER_INTAKE_OUTTAKE_BUTTON)
+                                : rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON);
 
         // This is so that if they press intake/outake and it is not deployed it will deploy
         //deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
@@ -361,10 +421,16 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         ShooterDemand demand = new ShooterDemand();
 
-        boolean getStowAiming = getStowAimingLatch.update(leftJoystick_.getRawButton(Constants.SHOOTER_SET_STOWED_AIMING));
-        boolean getShooter = getShooterLatch.update(leftJoystick_.getTrigger());
+        boolean getStowAiming = getStowAimingLatch.update(isController_
+            ? driverController_.getRawButton(Constants.CONTROLLER_SHOOTER_SET_STOWED_AIMING)
+            : leftJoystick_.getRawButton(Constants.SHOOTER_SET_STOWED_AIMING)
+        );
+        boolean getShooter = getShooterLatch.update(isController_
+            ? driverController_.getRawButton(Constants.CONTROLLER_SHOOTER_SET_SHOOTING)
+            : leftJoystick_.getTrigger()
+        );
 
-        getTrench = getTrenchLatch.update(rightJoystick_.getRawButton(Constants.TRENCH_BUTTON)) != getTrench;
+        getTrench = getTrenchLatch.update(isController_ ? false : rightJoystick_.getRawButton(Constants.TRENCH_BUTTON)) != getTrench;
 
         if (manualControl) {
             demand.state = ShooterState.Manual;

@@ -88,6 +88,7 @@ public class Constants {
     public final static int RIGHT_DRIVER_JOYSTICK_PORT = 1;
     public final static int LEFT_SECONDARY_DRIVER_JOYSTICK_PORT = 3;
     public final static int RIGHT_SECONDARY_DRIVER_JOYSTICK_PORT = 4;
+    public final static int DRIVER_CONTROLLER_PORT = 0;
 
     public final static int SHOOTER_SET_SHOOTING = 1; // left driver trigger
     public final static int AUTO_STEER_BUTTON = 2; // left driver
@@ -101,6 +102,22 @@ public class Constants {
     public final static int POWER_PORT_BACKUP_BUTTON = 2; // right driver
     public final static int TRENCH_BUTTON = 8; // right driver
     // Right Driver Y-Axis: Right Drive Control
+
+    // Controller Scheme
+    // TODO: Change to actual values
+    public final static int CONTROLLER_LEFT_X = 0;
+    public final static int CONTROLLER_LEFT_Y = 1;
+    public final static int CONTROLLER_RIGHT_X = 2;
+    public final static int CONTROLLER_RIGHT_Y = 3;
+    public final static int CONTROLLER_SHOOTER_SET_SHOOTING = 0; // R2
+    public final static int CONTROLLER_AUTO_STEER_BUTTON = 1; // Square
+    public final static int CONTROLLER_AUTO_ALIGN_BUTTON = 2; // Triangle
+    public final static int CONTROLLER_SHOOTER_SET_STOWED_AIMING = 3; // R1
+    public final static int CONTROLLER_INTAKE_DEPLOY_TOGGLE = 4; // L2
+    public final static int CONTROLLER_INTAKE_OUTTAKE_BUTTON = 5; // Circle
+    public final static int CONTROLLER_DRIVE_TOGGLE_SHIFT_BUTTON = 6; // L1
+    public final static int CONTROLLER_POWER_PORT_BACKUP_BUTTON = 7; // X
+    public final static int CONTROLLER_TRENCH_BUTTON = 8; // ??
 
     public final static int TOGGLE_HOOD_DEPLOY = 1; //left second trigger
     public final static int FLYWHEEL_SPIN_TOGGLE = 2; // left second
