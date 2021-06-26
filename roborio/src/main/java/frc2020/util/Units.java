@@ -27,6 +27,10 @@ public class Units {
         return (rpm * 2048) / 600;
     }
 
+    public static int encTicksPer100MsToRpm(int encTicks) {
+        return (encTicks * 600) / 2048;
+    }
+
     public static double feet_to_meters(double feet) {
         return inches_to_meters(feet * 12.0);
     }

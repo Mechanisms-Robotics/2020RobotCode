@@ -7,6 +7,7 @@ import frc2020.loops.ILooper;
 import frc2020.robot.Constants;
 import frc2020.util.Units;
 import frc2020.util.Logger;
+import frc2020.util.SmartDashboardUtil;
 import frc2020.util.Util;
 import frc2020.subsystems.SingleMotorSubsystem.PeriodicIO;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
@@ -14,41 +15,46 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
-import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 
 public class Flywheel implements Subsystem {
 
     private static Flywheel instance_;
 
-    private static final int FLYWHEEL_SPEED = Units.rpmToEncTicksPer100Ms(Constants.IS_COMP_BOT ? 6000 : 5000);
-    private static final int LONG_RANGE_SPEED = Units.rpmToEncTicksPer100Ms(6000);
+
+    private static final double PULLEY_RATIO = 1.0 / 1.5;
+    private static final int FLYWHEEL_SPEED = Units.rpmToEncTicksPer100Ms( (int) (6000 * PULLEY_RATIO));
+    private static final int LONG_RANGE_SPEED = Units.rpmToEncTicksPer100Ms( (int) (6000 * PULLEY_RATIO));
 
     private static int currentLimitStall_ = 30; // amps
-    private static double maxVoltage_ = 12.0;
+    private static double maxVoltage_ = 11.5;
 
     private WPI_TalonFX falconMaster_, falconSlave_;
 
     private PeriodicIO io_ = new PeriodicIO();
 
     private int masterId_ = 10;
-    private boolean masterInvertMotor_ = Constants.IS_COMP_BOT ? true : false;
+    private boolean masterInvertMotor_ = true;
 
     private int slaveId_ = 11;
     private boolean slaveInvertMotor_ = true;
     private String name_ = "Flywheel";
+
     private int velocityDeadBand_ = 200; // rpm
-    private double velocityKp_ = Constants.IS_COMP_BOT ? 0.01: 0.0006; //0.1583
+    private double velocityKp_ = Constants.IS_COMP_BOT ? 0.005: 0.0006; //0.1583
     private double velocityKi_ = 0.0;
     private double velocityKd_ = 0.0;
     private double velocityKf_ = Constants.IS_COMP_BOT ? 0.0 : 0.00019;
     private boolean useBrakeMode = true;
     private boolean useVoltageComp_ = true;
+    private final int VELOCITY_PID_SLOT = 0;
 
-    private SimpleMotorFeedforward feedforward_;
     private static final double KS = 0.0497;
     private static final double KV = 0.13;
     private static final double KA = 0.0357;
+
+    private static Logger logger_;
 
     protected Flywheel() {
         falconMaster_ = new WPI_TalonFX(masterId_);
@@ -61,19 +67,24 @@ public class Flywheel implements Subsystem {
         falconMaster_.configOpenloopRamp(0.0);
         falconMaster_.configClosedloopRamp(0.0);
         falconMaster_.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20);
-        falconMaster_.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, currentLimitStall_, 0.0, 0.02));
+        falconMaster_.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, currentLimitStall_, 50.0, 0.5));
 
         falconMaster_.configVoltageCompSaturation(maxVoltage_);
         falconMaster_.enableVoltageCompensation(true);
 
-        falconMaster_.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 10);
+        falconMaster_.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, VELOCITY_PID_SLOT, 10);
 
         falconSlave_.follow(falconMaster_);
 
         falconMaster_.setNeutralMode(NeutralMode.Coast);
         falconSlave_.setNeutralMode(NeutralMode.Coast);
 
-        feedforward_ = new SimpleMotorFeedforward(KS, KV, KA);
+        falconMaster_.config_kP(VELOCITY_PID_SLOT, velocityKp_);
+        falconMaster_.config_kI(VELOCITY_PID_SLOT, velocityKi_);
+        falconMaster_.config_kD(VELOCITY_PID_SLOT, velocityKd_);
+        falconMaster_.config_kF(VELOCITY_PID_SLOT, velocityKf_);
+
+        logger_ = Logger.getInstance();
     }
 
     public static Flywheel getInstance() {
@@ -81,28 +92,25 @@ public class Flywheel implements Subsystem {
     }
 
     public synchronized void setVelocity(double units) {
-        if (Constants.IS_COMP_BOT) {
-            double feedforward = feedforward_.calculate(units);
-            falconMaster_.set(ControlMode.Velocity, io_.demand, DemandType.ArbitraryFeedForward, feedforward);
-        } else {
-            falconMaster_.set(ControlMode.Velocity, io_.demand);
-        }
-
+        io_.demand = units;
+        double feedforward = 0.0;
+        falconMaster_.set(TalonFXControlMode.Velocity, io_.demand, DemandType.ArbitraryFeedForward, feedforward);
     }
 
     /**
      * Spins flywheel at set speed
      */
     public synchronized void spinFlywheel() {
-        spinFlywheel(FLYWHEEL_SPEED);
+        //setVelocity(FLYWHEEL_SPEED);
+        falconMaster_.set(TalonFXControlMode.PercentOutput, 0.75);
     }
 
     public synchronized void spinFlywheel(double velocity) {
-        falconMaster_.set(ControlMode.Velocity, velocity);
+        setVelocity(velocity);
     }
 
     public synchronized void spinLongRangeFlywheel() {
-        falconMaster_.set(ControlMode.Velocity, LONG_RANGE_SPEED);
+        falconMaster_.set(TalonFXControlMode.Velocity, LONG_RANGE_SPEED);
     }
 
     /**
@@ -128,7 +136,7 @@ public class Flywheel implements Subsystem {
         io_.outputPercent = falconMaster_.getMotorOutputPercent();
         io_.outputVoltage = io_.outputPercent * falconMaster_.getBusVoltage();
         io_.position = falconMaster_.getSelectedSensorPosition();
-        io_.velocity = falconMaster_.getSelectedSensorVelocity();
+        io_.velocity = falconMaster_.getSelectedSensorVelocity() / PULLEY_RATIO;
         io_.dutyCycle = falconMaster_.getMotorOutputPercent();
     }
 
@@ -139,9 +147,10 @@ public class Flywheel implements Subsystem {
     @Override
     public void outputTelemetry() {
         SmartDashboard.putNumber(name_ + " : Position", io_.position);
-        SmartDashboard.putNumber(name_ + " : Velocity", io_.velocity);
-        SmartDashboard.putNumber(name_ + " : Demand", io_.velocity);
+        SmartDashboard.putNumber(name_ + " : Velocity", Units.encTicksPer100MsToRpm((int) io_.velocity));
+        SmartDashboard.putNumber(name_ + " : Demand", Units.encTicksPer100MsToRpm((int) io_.velocity));
         SmartDashboard.putNumber(name_ + " : Duty Cycle", io_.dutyCycle);
+        SmartDashboard.putBoolean(name_ + " : Safety is Enabled", falconMaster_.isSafetyEnabled());
     }
 
     /**
