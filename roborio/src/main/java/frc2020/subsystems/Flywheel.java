@@ -16,6 +16,7 @@ import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.DemandType;
 
 public class Flywheel implements Subsystem {
@@ -24,8 +25,8 @@ public class Flywheel implements Subsystem {
 
 
     private static final double PULLEY_RATIO = 1.0 / 1.5;
-    private static final int FLYWHEEL_SPEED = Units.rpmToEncTicksPer100Ms( (int) (6000 * PULLEY_RATIO));
-    private static final int LONG_RANGE_SPEED = Units.rpmToEncTicksPer100Ms( (int) (6000 * PULLEY_RATIO));
+    private static final int FLYWHEEL_SPEED = Units.rpmToEncTicksPer100Ms( (int) (5500 * PULLEY_RATIO));
+    private static final int LONG_RANGE_SPEED = Units.rpmToEncTicksPer100Ms( (int) (5500 * PULLEY_RATIO));
 
     private static int currentLimitStall_ = 30; // amps
     private static double maxVoltage_ = 11.5;
@@ -42,10 +43,10 @@ public class Flywheel implements Subsystem {
     private String name_ = "Flywheel";
 
     private int velocityDeadBand_ = 200; // rpm
-    private double velocityKp_ = Constants.IS_COMP_BOT ? 0.005: 0.0006; //0.1583
+    private double velocityKp_ = 0.04; //0.1583
     private double velocityKi_ = 0.0;
     private double velocityKd_ = 0.0;
-    private double velocityKf_ = Constants.IS_COMP_BOT ? 0.0 : 0.00019;
+    private double velocityKf_ = 0.05;
     private boolean useBrakeMode = true;
     private boolean useVoltageComp_ = true;
     private final int VELOCITY_PID_SLOT = 0;
@@ -63,7 +64,7 @@ public class Flywheel implements Subsystem {
         falconMaster_.configFactoryDefault();
         falconSlave_.configFactoryDefault();
 
-        falconMaster_.setInverted(masterInvertMotor_);
+        falconMaster_.setInverted(TalonFXInvertType.Clockwise);
         falconMaster_.configOpenloopRamp(0.0);
         falconMaster_.configClosedloopRamp(0.0);
         falconMaster_.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20);
@@ -75,6 +76,14 @@ public class Flywheel implements Subsystem {
         falconMaster_.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, VELOCITY_PID_SLOT, 10);
 
         falconSlave_.follow(falconMaster_);
+        falconSlave_.setInverted(TalonFXInvertType.OpposeMaster);
+        falconSlave_.configOpenloopRamp(0.0);
+        falconSlave_.configClosedloopRamp(0.0);
+        falconSlave_.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20);
+        falconSlave_.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, currentLimitStall_, 50.0, 0.5));
+
+        falconSlave_.configVoltageCompSaturation(maxVoltage_);
+        falconSlave_.enableVoltageCompensation(true);
 
         falconMaster_.setNeutralMode(NeutralMode.Coast);
         falconSlave_.setNeutralMode(NeutralMode.Coast);
@@ -101,8 +110,7 @@ public class Flywheel implements Subsystem {
      * Spins flywheel at set speed
      */
     public synchronized void spinFlywheel() {
-        //setVelocity(FLYWHEEL_SPEED);
-        falconMaster_.set(TalonFXControlMode.PercentOutput, 0.75);
+        setVelocity(FLYWHEEL_SPEED);
     }
 
     public synchronized void spinFlywheel(double velocity) {
@@ -172,7 +180,7 @@ public class Flywheel implements Subsystem {
     }
 
     public void stop() {
-        // Nothing to do here
+        falconMaster_.set(TalonFXControlMode.PercentOutput, 0.0);
     }
 
     protected boolean atReverseLimit() {
