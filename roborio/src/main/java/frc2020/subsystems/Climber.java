@@ -204,9 +204,9 @@ public class Climber implements Subsystem {
 
             if (wantLock_ != isLocked_) {
                 if (wantLock_) {
-                    winchLock_.set(LOCKED_VALUE);
-                } else {
                     winchLock_.set(UNLOCKED_VALUE);
+                } else {
+                    winchLock_.set(LOCKED_VALUE);
                 }
             }
         } else {
