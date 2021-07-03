@@ -3,6 +3,7 @@ package frc2020.subsystems;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Timer;
 
 public class Feeder extends SingleMotorSubsystem {
 
@@ -22,6 +23,11 @@ public class Feeder extends SingleMotorSubsystem {
     private DigitalInput turretBreakBeam_;
 
     private FeederState state_ = FeederState.IDLE;
+
+    private Timer feederCycleTimer;
+    private boolean feederCycleTimerReset = false;
+    private static final double feederCycleTimeDelay = 0.1; // seconds
+    private boolean flipDirection = false;
 
     public enum FeederState {
         MANUAL,
@@ -77,6 +83,8 @@ public class Feeder extends SingleMotorSubsystem {
 
         intakeBreakBeam_ = new DigitalInput(INTAKE_BREAK_BEAM_CHANNEL);
         turretBreakBeam_ = new DigitalInput(TURRET_BREAK_BEAM_CHANNEL);
+
+        feederCycleTimer = new Timer();
     }
 
     public void setOverrideIntakeBreakBeam(boolean overrideIntakeBreakBeam) { overrideIntakeBreakBeam_ = overrideIntakeBreakBeam; }
@@ -150,10 +158,29 @@ public class Feeder extends SingleMotorSubsystem {
 
     private synchronized void intakeFeeder() {
         if (getIntakeBreakBeamBroken() && !overrideIntakeBreakBeam_) {
-            runFeeder(false);
+            if (feederCycleTimerReset) {
+                feederCycleTimer.stop();
+                feederCycleTimer.reset();
+                feederCycleTimerReset = false;
+                System.out.println("reset");
+            }
+            feederCycleTimer.start();
+            if (feederCycleTimer.hasElapsed(feederCycleTimeDelay)) {
+                System.out.println("flip");
+                feederCycleTimerReset = true;
+                flipDirection = !flipDirection;
+            }
+            if (flipDirection) {
+                super.stop();
+            } else {
+                runFeeder(false);
+            }
+            return;
         } else if (!overrideIntakeBreakBeam_) {
             super.stop();
         }
+        feederCycleTimerReset = true;
+        flipDirection = false;
     }
 
     private synchronized void primeFeeder() {

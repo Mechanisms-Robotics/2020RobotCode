@@ -15,7 +15,7 @@ public class Intake extends SingleMotorSubsystem {
     private final static int FLIPPER_REVERSE_PORT = 5;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
-    private final static double INTAKE_RPM = Constants.IS_COMP_BOT ? 5700 : 5400; // 5600 comp bot before
+    private final static double INTAKE_RPM = 4400; // 5600 comp bot before
     private final static double REVERSE_RPM = -INTAKE_RPM;
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();

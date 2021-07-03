@@ -25,8 +25,8 @@ public class Flywheel implements Subsystem {
 
 
     private static final double PULLEY_RATIO = 1.0 / 1.5;
-    private static final int FLYWHEEL_SPEED = Units.rpmToEncTicksPer100Ms( (int) (5500 * PULLEY_RATIO));
-    private static final int LONG_RANGE_SPEED = Units.rpmToEncTicksPer100Ms( (int) (5500 * PULLEY_RATIO));
+    private static final int FLYWHEEL_SPEED = 7250;
+    private static final int LONG_RANGE_SPEED = 7250;
 
     private static int currentLimitStall_ = 30; // amps
     private static double maxVoltage_ = 11.5;
@@ -42,7 +42,7 @@ public class Flywheel implements Subsystem {
     private boolean slaveInvertMotor_ = true;
     private String name_ = "Flywheel";
 
-    private int velocityDeadBand_ = 200; // rpm
+    private int velocityDeadBand_ = 50; // RPM
     private double velocityKp_ = 0.04; //0.1583
     private double velocityKi_ = 0.0;
     private double velocityKd_ = 0.0;
@@ -103,7 +103,7 @@ public class Flywheel implements Subsystem {
     public synchronized void setVelocity(double units) {
         io_.demand = units;
         double feedforward = 0.0;
-        falconMaster_.set(TalonFXControlMode.Velocity, io_.demand, DemandType.ArbitraryFeedForward, feedforward);
+        falconMaster_.set(TalonFXControlMode.Velocity, Units.rpmToEncTicksPer100Ms((int) (io_.demand * PULLEY_RATIO)), DemandType.ArbitraryFeedForward, feedforward);
     }
 
     /**
@@ -144,7 +144,7 @@ public class Flywheel implements Subsystem {
         io_.outputPercent = falconMaster_.getMotorOutputPercent();
         io_.outputVoltage = io_.outputPercent * falconMaster_.getBusVoltage();
         io_.position = falconMaster_.getSelectedSensorPosition();
-        io_.velocity = falconMaster_.getSelectedSensorVelocity() / PULLEY_RATIO;
+        io_.velocity = Units.encTicksPer100MsToRpm(falconMaster_.getSelectedSensorVelocity()) / PULLEY_RATIO;
         io_.dutyCycle = falconMaster_.getMotorOutputPercent();
     }
 
@@ -155,8 +155,8 @@ public class Flywheel implements Subsystem {
     @Override
     public void outputTelemetry() {
         SmartDashboard.putNumber(name_ + " : Position", io_.position);
-        SmartDashboard.putNumber(name_ + " : Velocity", Units.encTicksPer100MsToRpm((int) io_.velocity));
-        SmartDashboard.putNumber(name_ + " : Demand", Units.encTicksPer100MsToRpm((int) io_.velocity));
+        SmartDashboard.putNumber(name_ + " : Velocity", io_.velocity);
+        SmartDashboard.putNumber(name_ + " : Demand", io_.demand);
         SmartDashboard.putNumber(name_ + " : Duty Cycle", io_.dutyCycle);
         SmartDashboard.putBoolean(name_ + " : Safety is Enabled", falconMaster_.isSafetyEnabled());
     }

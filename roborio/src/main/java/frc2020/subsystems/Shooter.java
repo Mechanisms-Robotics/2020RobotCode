@@ -2,6 +2,7 @@ package frc2020.subsystems;
 
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Timer;
 import frc2020.robot.Constants;
 import frc2020.subsystems.Feeder.FeederState;
 import frc2020.util.*;
@@ -41,6 +42,10 @@ public class Shooter implements Subsystem {
 
     private InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> hoodAngleRangeInterpolator;
 
+    private Timer hoodStowTimer;
+    private boolean hoodStowTimerReset = false;
+    private static final double hoodStowTimeDelay = 0.5; // seconds
+
     public enum ShooterState {
         Manual,
         Stowed,
@@ -67,6 +72,8 @@ public class Shooter implements Subsystem {
         seekTurretLatch_ = new LatchedBoolean();
         hoodAngleRangeInterpolator = new InterpolatingTreeMap<>(100);
         loadHoodRangeAngleValues();
+
+        hoodStowTimer = new Timer();
     }
 
     public synchronized ShooterState getState() {
@@ -273,31 +280,27 @@ public class Shooter implements Subsystem {
 
             // position robot just OUTSIDE of trench
             final var BEGINNING_OF_TRENCH = new InterpolatingDouble(4.46);
-            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(3.10 - 0.02); // decrease to shoot higher
+            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(2.3); // decrease to shoot higher
 
             // position halfway between the two
             final var MIDDLE_OF_TRENCH = new InterpolatingDouble(5.99); // (calculated, not measured)
-            final var MIDDLE_OF_TRENCH_HOOD = new InterpolatingDouble(3.23 - 0.02); // decrease to shoot higher
+            final var MIDDLE_OF_TRENCH_HOOD = new InterpolatingDouble(2.5); // decrease to shoot higher
 
             // position robot as far BACK in trench as possible
             final var END_OF_TRENCH = new InterpolatingDouble(7.51);
-            final var END_OF_TRENCH_HOOD = new InterpolatingDouble(3.30 - 0.02); // decrease to shoot higher
+            final var END_OF_TRENCH_HOOD = new InterpolatingDouble(2.5); // decrease to shoot higher NOT TUNED YET
 
             // position robot BEYOND trench in front of power port
             final var BEYOND_TRENCH = new InterpolatingDouble(10.0);
-            final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(2.48); // decrease to shoot a bit higher
+            final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(2.48); // decrease to shoot a bit higher NOT TUNED YET
 
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.12));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.69));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(3.07));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(1.4));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.1));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(2.3));
             hoodAngleRangeInterpolator.put(BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(MIDDLE_OF_TRENCH, MIDDLE_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(BEYOND_TRENCH, BEYOND_TRENCH_HOOD);
-        } else {
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.148), new InterpolatingDouble(1.571));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.98), new InterpolatingDouble(3.476));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(7.31), new InterpolatingDouble(3.476));
         }
     }
 
@@ -369,10 +372,19 @@ public class Shooter implements Subsystem {
 
         hood_.setToStowPosition();
 
-        if (!hood_.atDemand()) {
+        if (!hoodStowTimerReset) {
+            hoodStowTimer.reset();
+            hoodStowTimerReset = true;
+        }
+
+        hoodStowTimer.start();
+
+        if (!hood_.atDemand() /*|| !hoodStowTimer.hasElapsed(hoodStowTimeDelay)*/) {
             return;
         }
 
+        hoodStowTimerReset = false;
+        hoodStowTimer.stop();
         hood_.stowHood();
 
         if (!flywheel_.isStopped() || !hood_.isStowed()) {
@@ -446,14 +458,24 @@ public class Shooter implements Subsystem {
         if (!flywheel_.upToSpeed()) {
             return;
         }
+        System.out.println("Up to speed: " + Units.encTicksPer100MsToRpm((int) flywheel_.getVelocity()));
 
         if (wantedState_ != ShooterState.Shooting) {
             hood_.setToStowPosition();
 
-            if (!hood_.atDemand()) {
+            if (!hoodStowTimerReset) {
+                hoodStowTimer.reset();
+                hoodStowTimerReset = true;
+            }
+
+            hoodStowTimer.start();
+
+            if (!hood_.atDemand() /*|| !hoodStowTimer.hasElapsed(hoodStowTimeDelay)*/) {
                 return;
             }
 
+            hoodStowTimerReset = false;
+            hoodStowTimer.stop();
             hood_.stowHood();
 
             if (!hood_.isStowed()) {
@@ -465,12 +487,13 @@ public class Shooter implements Subsystem {
     }
 
     private void handleShootingTransition() {
-        if (!flywheel_.atDemand()) {
-            flywheel_.spinFlywheel();
-        }
-
         if (state_ == ShooterState.Stowed) {
             handleAimingTransition();
+            return;
+        }
+
+        if (!flywheel_.upToSpeed()) {
+            flywheel_.spinFlywheel();
         }
 
         floodGate_.retract();
