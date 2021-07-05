@@ -138,7 +138,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         // Whether to use manual control or not
         manualControl = manualControlLatch.update(leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_1) &&
-                leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
+            leftSecondJoystick_.getRawButton(Constants.MANUAL_CONTROL_BUTTON_2)) != manualControl;
 
         // The command state for the robot
         CommandState state = new CommandState();
@@ -149,8 +149,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         state.setClimberDemand(generateClimberDemand());
         state.setIntakeDemand(generateIntakeDemand());
         state.setFeederDemand(generateFeederDemand());
-        state.setControlPanelDemand(generateControlPanelDemand());
         state.setFloodGateDemand(generateFloodGateDemand());
+        state.setControlPanelDemand(generateControlPanelDemand());
         if (manualControl) {
             state.setFlywheelDemand(generateFlywheelDemand());
             state.setTurretDemand(generateTurretDemand());
@@ -300,7 +300,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private ClimberDemand generateClimberDemand() {
         ClimberDemand demand = new ClimberDemand();
         boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
-        rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
+            rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
 
         double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY();
         double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : rightSecondJoystick_.getY();
@@ -318,7 +318,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private ControlPanelDemand generateControlPanelDemand() {
         ControlPanelDemand demand = new ControlPanelDemand();
 
-        deployControlPanel = deployControlPanelLatch.update(rightSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
         boolean controlPanelRotation = controlPanelRotationLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
         boolean controlPanelPosition = controlPanelPositionLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
         controlPanelPosition = false; //TODO: REMOVE WHEN WORKING
@@ -342,7 +341,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             }
         }
 
-        demand.deploy = deployControlPanel;
         return demand;
     }
     private HoodDemand generateHoodDemand() {
@@ -352,7 +350,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployHood = deployHoodLatch.update(leftSecondJoystick_.getTrigger()) != deployHood;
 
         demand.speed = Util.limit(Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY(),
-                                    -MAX_SPEED, MAX_SPEED);
+            -MAX_SPEED, MAX_SPEED);
         demand.deploy = deployHood;
         return demand;
     }
@@ -365,6 +363,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         boolean getShooter = getShooterLatch.update(leftJoystick_.getTrigger());
 
         getTrench = getTrenchLatch.update(rightJoystick_.getRawButton(Constants.TRENCH_BUTTON)) != getTrench;
+
+        deployControlPanel = deployControlPanelLatch.update(rightSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
 
         if (manualControl) {
             demand.state = ShooterState.Manual;
@@ -395,6 +395,13 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                 } else {
                     demand.state = ShooterState.Trench;
                 }
+            } else if (shooter_.getWantedState() == ShooterState.Spinning) {
+                if (!deployControlPanel || getStowAiming) {
+                    demand.state = ShooterState.Stowed;
+                    deployControlPanel = false;
+                } else {
+                    demand.state = ShooterState.Spinning;
+                }
             } else {
                 if (getStowAiming) {
                     demand.state = ShooterState.Aiming;
@@ -404,6 +411,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
                     demand.state = ShooterState.PowerPort;
                 } else if (getTrench) {
                     demand.state = ShooterState.Trench;
+                } else if (deployControlPanel) {
+                    demand.state = ShooterState.Spinning;
                 }
             }
         }

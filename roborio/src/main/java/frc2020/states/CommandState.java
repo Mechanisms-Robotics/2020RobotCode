@@ -96,7 +96,6 @@ public class CommandState {
     public static class ControlPanelDemand {
         public boolean clockwise = false;
         public boolean counterclockwise = false;
-        public boolean deploy = false;
         public boolean rotation = false;
         public boolean position = false;
     }
@@ -188,8 +187,8 @@ public class CommandState {
      * @param drive An instance of the drive train subsystem
      */
     public void updateSubsystems(Drive drive, Limelight limelight, Feeder feeder, Turret turret,
-                                 Intake intake, Flywheel flywheel, Climber climber, Hood hood,
-                                 Shooter shooter, ControlPanel controlPanel, FloodGate floodGate) {
+        Intake intake, Flywheel flywheel, Climber climber, Hood hood,
+        Shooter shooter, ControlPanel controlPanel, FloodGate floodGate) {
         maybeUpdateLimelight(limelight);
         maybeUpdateDrive(drive, limelight);
         maybeUpdateIntake(intake);
@@ -319,11 +318,6 @@ public class CommandState {
                 }
             }
 
-            if(controlPanelDemand.deploy) {
-                controlPanel.deployPanelArm();
-            } else {
-                controlPanel.stowPanelArm();
-            }
             controlPanelDemand = null;
         }
     }
