@@ -64,7 +64,8 @@ public class Basic3Ball extends AutoMode {
         if (autoLine == null) {
             generateTrajectories();
         }
+        runCommand(new Aim());
         runCommand(new DriveTrajectory(autoLine));
-		runCommand(new Shoot(5.0));
+		    runCommand(new Shoot(5.0));
 	}
 }

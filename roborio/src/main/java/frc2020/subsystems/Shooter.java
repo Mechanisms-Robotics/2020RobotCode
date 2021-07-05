@@ -31,7 +31,7 @@ public class Shooter implements Subsystem {
     private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
 
     private final static double TRENCH_HOOD_POSITION = 3.476; // units
-    private final static int POWER_PORT_SPEED = 3500;
+    private final static int POWER_PORT_SPEED = 4500;
 
     private double startingPosition = 0.0;
     private double turretSeekPower_ = TURRET_SEEKING_DUTY_CYCLE;
@@ -387,7 +387,7 @@ public class Shooter implements Subsystem {
         hoodStowTimer.stop();
         hood_.stowHood();
 
-        if (!flywheel_.isStopped() || !hood_.isStowed()) {
+        if (!hood_.isStowed()) {
             return;
         }
 
@@ -486,38 +486,74 @@ public class Shooter implements Subsystem {
         state_ = ShooterState.Aiming;
     }
 
+    private void handleAimingTransition (boolean waitSpinupFlywheel) {
+        floodGate_.extend();
+
+        hasStartedSeeking_ = false;
+
+        limelight_.setLed(Limelight.LedMode.PIPELINE);
+
+        // TODO: Aim turret in ball park
+
+        flywheel_.spinFlywheel();
+
+        if (waitSpinupFlywheel && !flywheel_.upToSpeed()) {
+            return;
+        }
+        System.out.println("Up to speed: " + Units.encTicksPer100MsToRpm((int) flywheel_.getVelocity()));
+
+        if (wantedState_ != ShooterState.Shooting) {
+            hood_.setToStowPosition();
+
+            if (!hoodStowTimerReset) {
+                hoodStowTimer.reset();
+                hoodStowTimerReset = true;
+            }
+
+            hoodStowTimer.start();
+
+            if (!hood_.atDemand() /*|| !hoodStowTimer.hasElapsed(hoodStowTimeDelay)*/) {
+                return;
+            }
+
+            hoodStowTimerReset = false;
+            hoodStowTimer.stop();
+            hood_.stowHood();
+
+            if (!hood_.isStowed()) {
+                return;
+            }
+        }
+
+        state_ = ShooterState.Aiming;
+    }
+
     private void handleShootingTransition() {
         if (state_ == ShooterState.Stowed) {
-            handleAimingTransition();
+            handleAimingTransition(false);
             return;
         }
 
-        if (!flywheel_.upToSpeed()) {
+        hood_.deployHood();
+
+        if (!hood_.isDeployed() || !flywheel_.upToSpeed()) {
             flywheel_.spinFlywheel();
+            return;
         }
 
         floodGate_.retract();
 
+        autoHood();
         feeder_.setState(FeederState.PRIMING);
 
-        if (!feeder_.isPrimed()) {
+
+        if (!hood_.atDemand() || !feeder_.isPrimed()) {
             return;
         }
 
         autoTurret();
 
-        hood_.deployHood();
         limelight_.setLed(Limelight.LedMode.PIPELINE);
-
-        if (!hood_.isDeployed()) {
-            return;
-        }
-
-        autoHood();
-
-        if (!hood_.atDemand()) {
-            return;
-        }
 
         state_ = ShooterState.Shooting;
     }
