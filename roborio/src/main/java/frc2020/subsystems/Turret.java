@@ -20,7 +20,7 @@ public class Turret extends SingleMotorSubsystem {
     private final static DriverStation DS = DriverStation.getInstance();
 
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
-            new SingleMotorSubsystemConstants();
+        new SingleMotorSubsystemConstants();
 
     static {
         var masterConstants = new MotorConstants();
@@ -53,7 +53,7 @@ public class Turret extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.useBreakMode = true;
 
         DEFAULT_CONSTANTS.enableSoftLimits = true;
-        double hoodWindow = Constants.IS_COMP_BOT ? 30.0 : 10.0;
+        double hoodWindow = 60.0;
         DEFAULT_CONSTANTS.forwardSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() + hoodWindow); // 350.0F
         DEFAULT_CONSTANTS.reverseSoftLimit = (float)(TURRET_HOME_TO_SENSOR_HOME.getDegrees() - hoodWindow); // 5.0F
     }

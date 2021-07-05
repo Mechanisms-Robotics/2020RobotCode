@@ -14,7 +14,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     private static ControlPanel instance_;
 
     private final static int FLIPPER_PCM_ID = 1;
-    private final static int FLIPPER_FORWARD_PORT = 2; 
+    private final static int FLIPPER_FORWARD_PORT = 2;
     private final static int FLIPPER_REVERSE_PORT = 3;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
@@ -32,7 +32,7 @@ public class ControlPanel extends SingleMotorSubsystem {
         var masterConstants = new MotorConstants();
         masterConstants.id_ = 6;
         masterConstants.invertMotor_ = false;
-        
+
         DEFAULT_CONSTANTS.masterConstants_ = masterConstants;
         DEFAULT_CONSTANTS.name_ = "ControlPanel";
         DEFAULT_CONSTANTS.useBreakMode = true;
@@ -42,7 +42,7 @@ public class ControlPanel extends SingleMotorSubsystem {
         // DEFAULT_CONSTANTS.velocityKi_ = 0.0;
         // DEFAULT_CONSTANTS.velocityKd_ = 0.0;
         // DEFAULT_CONSTANTS.velocityKf_ = 0.0001;
-        
+
     }
 
     private DoubleSolenoid flipper_;
@@ -63,7 +63,7 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     protected ControlPanel(SingleMotorSubsystemConstants constants) {
         super(constants);
-        
+
         flipper_ = new DoubleSolenoid(FLIPPER_PCM_ID, FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
     }
 
@@ -99,20 +99,20 @@ public class ControlPanel extends SingleMotorSubsystem {
     public boolean runActiveTests() {
         logger_.logInfo("Running panel arm active tests", super.logName_);
 
-        logger_.logInfo("Deploying panel arm", super.logName_);
-        deployPanelArm();
-        Timer.delay(1.5);
+        // logger_.logInfo("Deploying panel arm", super.logName_);
+        // deployPanelArm();
+        // Timer.delay(1.5);
 
-        logger_.logInfo("Spinning panel wheel in forward direction", super.logName_);
-        runPanelWheel(false);
-        Timer.delay(1.5);
-        
-        logger_.logInfo("Spinning panel wheel in reverse direction", super.logName_);
-        runPanelWheel(true);
-        Timer.delay(1.5);
-        
-        logger_.logInfo("Stowing panel arm", super.logName_);
-        stowPanelArm();
+        // logger_.logInfo("Spinning panel wheel in forward direction", super.logName_);
+        // runPanelWheel(false);
+        // Timer.delay(1.5);
+
+        // logger_.logInfo("Spinning panel wheel in reverse direction", super.logName_);
+        // runPanelWheel(true);
+        // Timer.delay(1.5);
+
+        // logger_.logInfo("Stowing panel arm", super.logName_);
+        // stowPanelArm();
 
         return true;
     }
@@ -197,6 +197,10 @@ public class ControlPanel extends SingleMotorSubsystem {
 
     };
 
+    public boolean isDeployed() {
+        return isDeployed_;
+    }
+
 
     public synchronized void togglePositionControl() {
         if (state_ != ControlPanelState.POSITION) {
@@ -227,12 +231,12 @@ public class ControlPanel extends SingleMotorSubsystem {
         gameData = DriverStation.getInstance().getGameSpecificMessage();
         gameData = gameData.toUpperCase();
         if (gameData.length() > 0) {
-           switch (gameData.charAt(0)) {
-               case 'R': return WheelColor.RED;
-               case 'B': return WheelColor.BLUE;
-               case 'G': return WheelColor.GREEN;
-               case 'Y': return WheelColor.YELLOW;
-           }
+            switch (gameData.charAt(0)) {
+                case 'R': return WheelColor.RED;
+                case 'B': return WheelColor.BLUE;
+                case 'G': return WheelColor.GREEN;
+                case 'Y': return WheelColor.YELLOW;
+            }
         }
         return WheelColor.UNKNOWN;
     }
@@ -264,7 +268,7 @@ public class ControlPanel extends SingleMotorSubsystem {
         super.readPeriodicInputs();
 
         isDeployed_ = flipper_.get() == DEPLOYED_VALUE;
-        
+
         wheelWatcher_.update();
     }
 

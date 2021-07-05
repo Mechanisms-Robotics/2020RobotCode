@@ -12,7 +12,7 @@ import frc2020.loops.Loop;
 
 public class Shooter implements Subsystem {
 
-    private static Shooter instance_; 
+    private static Shooter instance_;
 
     private Limelight limelight_ = null;
 
@@ -21,12 +21,14 @@ public class Shooter implements Subsystem {
     private Hood hood_;
     private Turret turret_;
     private FloodGate floodGate_;
+    private ControlPanel panelArm_;
 
     private Logger logger_ = Logger.getInstance();
     private String logName = "Shooter";
 
     private final static double FAR_FEEDER_DISTANCE = 5.99; // meters, should be same as MIDDLE_TRENCH
 
+    // TOOD: Make sure seeking is good with the increase in turrent angle
     private final static double TURRET_SEEKING_DUTY_CYCLE = 0.07; // duty cycle
     private final static double TURRET_SEEKING_DELTA_ANGLE = 5.0; // degrees
 
@@ -40,6 +42,8 @@ public class Shooter implements Subsystem {
 
     private LatchedBoolean seekTurretLatch_;
 
+    private Rotation2d safeTurretPosition = Rotation2d.fromDegrees(-60.0);
+
     private InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> hoodAngleRangeInterpolator;
 
     private Timer hoodStowTimer;
@@ -52,11 +56,16 @@ public class Shooter implements Subsystem {
         PowerPort,
         Trench,
         Aiming,
-        Shooting
+        Shooting,
+        Spinning
     }
 
     private static ShooterState state_ = ShooterState.Stowed;
     private static ShooterState wantedState_ = ShooterState.Stowed;
+
+    private final static double SPINNER_STOW_TIME = 1.0; // sec
+    private Timer spinnerStowTimer = new Timer();
+    private boolean spinnerStowing = false;
 
     public static Shooter getInstance() {
         return (instance_ == null) ? instance_ = new Shooter() : instance_;
@@ -68,6 +77,8 @@ public class Shooter implements Subsystem {
         hood_ = Hood.getInstance();
         turret_ = Turret.getInstance();
         floodGate_ = FloodGate.getInstance();
+        panelArm_ = ControlPanel.getInstance();
+
 
         seekTurretLatch_ = new LatchedBoolean();
         hoodAngleRangeInterpolator = new InterpolatingTreeMap<>(100);
@@ -90,7 +101,7 @@ public class Shooter implements Subsystem {
         if (isValidTransition(desiredState)) {
             //logger_.logDebug("Transitioning from " + state_ + " to " + desiredState, logName); // TODO: fix spamming
             wantedState_ = desiredState;
-         } else {
+        } else {
             logger_.logWarning("Transitioning from " + state_ + " to " + desiredState + " IS INVALID", logName);
             wantedState_ = state_;
         }
@@ -113,10 +124,11 @@ public class Shooter implements Subsystem {
             case Manual:
                 return desiredState == ShooterState.Stowed;
             case Stowed:
-                return desiredState == ShooterState.Aiming || 
-                       desiredState == ShooterState.Shooting ||
-                       desiredState == ShooterState.PowerPort ||
-                       desiredState == ShooterState.Trench;
+                return desiredState == ShooterState.Aiming ||
+                    desiredState == ShooterState.Shooting ||
+                    desiredState == ShooterState.PowerPort ||
+                    desiredState == ShooterState.Trench ||
+                    desiredState == ShooterState.Spinning;
             case PowerPort:
                 return desiredState == ShooterState.Stowed;
             case Trench:
@@ -125,9 +137,11 @@ public class Shooter implements Subsystem {
                 return (desiredState == ShooterState.Shooting) || (desiredState == ShooterState.Stowed);
             case Shooting:
                 return desiredState == ShooterState.Stowed;
+            case Spinning:
+                return desiredState == ShooterState.Stowed;
             default:
                 logger_.logWarning("Invalid shooter state transition from " +
-                     state_.toString() + " to " + desiredState.toString() + "!", logName);
+                    state_.toString() + " to " + desiredState.toString() + "!", logName);
                 return false;
         }
     }
@@ -192,6 +206,9 @@ public class Shooter implements Subsystem {
                     case Shooting:
                         handleShooting();
                         break;
+                    case Spinning:
+                        handleSpinning();
+                        break;
                     default:
                         logger_.logWarning("Invalid state: " + state_.toString(), logName);
                         break;
@@ -216,6 +233,9 @@ public class Shooter implements Subsystem {
                     case Shooting:
                         handleShootingTransition();
                         break;
+                    case Spinning:
+                        handleSpinningTransition();
+                        break;
                     default:
                         logger_.logWarning("Invalid wanted state: " + state_.toString(), logName);
                         break;
@@ -226,7 +246,7 @@ public class Shooter implements Subsystem {
         @Override
         public void end() {
         }
-        
+
     };
 
     private void seekTurret() {
@@ -237,8 +257,8 @@ public class Shooter implements Subsystem {
 
         turret_.setOpenLoop(turretSeekPower_);
 
-        boolean outsideOfDelta = seekTurretLatch_.update(Math.abs(turret_.getPosition()-startingPosition) >= TURRET_SEEKING_DELTA_ANGLE 
-                                                         || (turret_.atForwardLimit() || turret_.atReverseLimit()));
+        boolean outsideOfDelta = seekTurretLatch_.update(Math.abs(turret_.getPosition()-startingPosition) >= TURRET_SEEKING_DELTA_ANGLE
+            || (turret_.atForwardLimit() || turret_.atReverseLimit()));
 
         if (outsideOfDelta) {
             turretSeekPower_ *= -1.0;
@@ -351,7 +371,18 @@ public class Shooter implements Subsystem {
         }
     }
 
+    private void handleSpinning() {
+        if (handleOverrideFeeder()) {
+            feeder_.setState(FeederState.INTAKING);
+        }
+    }
+
     private void handleManualTransition() {
+
+        if (handleSpinnerStow()) {
+            return;
+        }
+
         flywheel_.stop();
         feeder_.stop();
         hood_.stop();
@@ -362,6 +393,11 @@ public class Shooter implements Subsystem {
     }
 
     private void handleStowedTransition() {
+
+        if (handleSpinnerStow()) {
+            return;
+        }
+
         floodGate_.extend();
         flywheel_.stop();
         feeder_.setState(FeederState.INTAKING);
@@ -395,6 +431,11 @@ public class Shooter implements Subsystem {
     }
 
     private void handlePowerPortTransition() {
+
+        if (handleSpinnerStow()) {
+            return;
+        }
+
         floodGate_.retract();
         feeder_.setState(FeederState.PRIMING);
 
@@ -420,6 +461,11 @@ public class Shooter implements Subsystem {
     }
 
     private void handleTrenchTransition() {
+
+        if (handleSpinnerStow()) {
+            return;
+        }
+
         floodGate_.retract();
         feeder_.setState(FeederState.PRIMING);
 
@@ -445,6 +491,11 @@ public class Shooter implements Subsystem {
     }
 
     private void handleAimingTransition () {
+
+        if (handleSpinnerStow()) {
+            return;
+        }
+
         floodGate_.extend();
 
         hasStartedSeeking_ = false;
@@ -488,7 +539,6 @@ public class Shooter implements Subsystem {
 
     private void handleAimingTransition (boolean waitSpinupFlywheel) {
         floodGate_.extend();
-
         hasStartedSeeking_ = false;
 
         limelight_.setLed(Limelight.LedMode.PIPELINE);
@@ -529,6 +579,10 @@ public class Shooter implements Subsystem {
     }
 
     private void handleShootingTransition() {
+        if (handleSpinnerStow()) {
+            return;
+        }
+
         if (state_ == ShooterState.Stowed) {
             handleAimingTransition(false);
             return;
@@ -558,6 +612,19 @@ public class Shooter implements Subsystem {
         state_ = ShooterState.Shooting;
     }
 
+    private void handleSpinningTransition() {
+
+        turret_.setAbsoluteRotation(safeTurretPosition);
+
+        if (!turret_.atDemand()) {
+            return;
+        }
+
+        panelArm_.deployPanelArm();
+
+        state_ = ShooterState.Spinning;
+    }
+
     public synchronized void handleReenable() {
         switch (state_) {
             case Manual:
@@ -575,6 +642,9 @@ public class Shooter implements Subsystem {
                 state_ = ShooterState.Stowed; // To force transition
                 wantedState_ = ShooterState.Aiming; // For safety precautions
                 return;
+            case Spinning:
+                state_ = ShooterState.Spinning;
+                wantedState_ = ShooterState.Stowed;
             default:
                 logger_.logWarning("Invalid state on re-enable", logName);
         }
@@ -594,4 +664,23 @@ public class Shooter implements Subsystem {
         SmartDashboard.putString("Wanted state: ", wantedState_.toString());
     }
 
+    // Retruns true if the spinner is still stowing and false
+    // if the spinner is safly stowed.
+    private boolean handleSpinnerStow() {
+        if (panelArm_.isDeployed()) {
+            spinnerStowing = true;
+            spinnerStowTimer.stop();
+            spinnerStowTimer.reset();
+            spinnerStowTimer.start();
+            panelArm_.stowPanelArm();
+        }
+        if (spinnerStowing) {
+            if (spinnerStowTimer.get() < SPINNER_STOW_TIME) {
+                return true;
+            }
+        }
+        spinnerStowTimer.stop();
+        spinnerStowing = false;
+        return false;
+    }
 }
