@@ -315,6 +315,13 @@ public class CommandState {
                     controlPanel.toggleRotationControl();
                 } else if (controlPanelDemand.position) {
                     controlPanel.togglePositionControl();
+                } else if (controlPanelDemand.clockwise && controlPanelDemand.counterclockwise) {
+                    logger_.logInfo("Both control panel forward and reverse buttons pressed");
+                    controlPanel.stop();
+                } else if (controlPanelDemand.clockwise) {
+                    controlPanel.runPanelWheel(true);
+                } else if (controlPanelDemand.counterclockwise) {
+                    controlPanel.runPanelWheel(false);
                 }
             }
 

@@ -57,6 +57,10 @@ public class ControlPanel extends SingleMotorSubsystem {
         IDLE, POSITION, ROTATION, MANUAL
     };
 
+    private boolean needsToReverse_ = false;
+    private Timer reverseTimer_;
+    private double reverseTime_ = 0.375;
+
     public static ControlPanel getInstance() {
         return instance_ == null ? instance_ = new ControlPanel(DEFAULT_CONSTANTS) : instance_;
     }
@@ -65,6 +69,7 @@ public class ControlPanel extends SingleMotorSubsystem {
         super(constants);
 
         flipper_ = new DoubleSolenoid(FLIPPER_PCM_ID, FLIPPER_FORWARD_PORT, FLIPPER_REVERSE_PORT);
+        reverseTimer_ = new Timer();
     }
 
     public void deployPanelArm() {
@@ -149,6 +154,16 @@ public class ControlPanel extends SingleMotorSubsystem {
 
                 switch(state_) {
                     case IDLE:
+                        if (needsToReverse_) {
+                            if (!reverseTimer_.hasElapsed(reverseTime_)) {
+                                runPanelWheel(false);
+                            } else {
+                                needsToReverse_ = false;
+                                reverseTimer_.stop();
+                                reverseTimer_.reset();
+                                stop();
+                            }
+                        }
                         break;
                     case POSITION:
 
@@ -164,6 +179,8 @@ public class ControlPanel extends SingleMotorSubsystem {
                         if (currentColor == colorCompliment) {
                             state_ = ControlPanelState.IDLE;
                             stop();
+                            needsToReverse_ = true;
+                            reverseTimer_.start();
                             break;
                         }
 

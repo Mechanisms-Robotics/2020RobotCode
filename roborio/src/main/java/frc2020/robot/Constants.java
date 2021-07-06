@@ -113,9 +113,9 @@ public class Constants {
     public final static int LOCK_CLIMBER_TOGGLE = 2; //right second
     public final static int DEPLOY_CLIMBER_TOGGLE_1 = 3; //right second
     public final static int DEPLOY_CLIMBER_TOGGLE_2 = 4; //right second
-    public final static int DEPLOY_CONTROL_PANEL_TOGGLE = 8; //right second
-    public final static int CONTROL_PANEL_ROTATION_TOGGLE = 9; //right second
-    public final static int CONTROL_PANEL_POSITION_TOGGLE = 10; //right second
+    public final static int DEPLOY_CONTROL_PANEL_TOGGLE = 14; //right second
+    public final static int CONTROL_PANEL_ROTATION_TOGGLE = 15; //right second
+    public final static int CONTROL_PANEL_POSITION_TOGGLE = 16; //right second
     public final static int MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT = 270; // right second
     public final static int MANUAL_CONTROL_PANEL_CLOCKWISE_HAT = 90; // right second
     public final static int CLIMBER_SPLIT_TOGGLE = 1; // right second (Not used just for reference)

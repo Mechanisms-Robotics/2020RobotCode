@@ -130,6 +130,7 @@ public class Climber implements Subsystem {
      */
     public void resetHasDeployed() {
         hasDeployed_ = false;
+        wantLock_ = false;
     }
 
     private void setOpenLoop(DriveSignal signal) {
@@ -185,8 +186,8 @@ public class Climber implements Subsystem {
         io_.leftOutputVoltage = io_.leftOutputPercent * leftClimb_.getBusVoltage();
 
         isDeployed_ = armFlipper_.get() == DEPLOYED_VALUE;
-        isLocked_ = winchLock_.get() == LOCKED_VALUE;
-        isFloodGateDeployed_ = isLocked_;
+        isLocked_ = !(winchLock_.get() == LOCKED_VALUE);
+        isFloodGateDeployed_ = !isLocked_;
     }
 
     @Override

@@ -305,7 +305,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY();
         double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : rightSecondJoystick_.getY();
 
-        climberSplit = climberSplitLatch.update(rightSecondJoystick_.getTrigger()) != climberSplit;
+        climberSplit = climberSplitLatch.update(leftSecondJoystick_.getTrigger()) != climberSplit;
         deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
         demand.deploy = deployClimber;
         lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
@@ -320,10 +320,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         boolean controlPanelRotation = controlPanelRotationLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
         boolean controlPanelPosition = controlPanelPositionLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
-        controlPanelPosition = false; //TODO: REMOVE WHEN WORKING
 
-        boolean counterClockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_COUNTERCLOCKWISE_HAT;
-        boolean clockwiseControlPanel = rightSecondJoystick_.getPOV() == Constants.MANUAL_CONTROL_PANEL_CLOCKWISE_HAT;
+        boolean counterClockwiseControlPanel = rightSecondJoystick_.getTwist() <= JOYSTICK_DEADBAND ? false : true;
+        boolean clockwiseControlPanel = rightSecondJoystick_.getTwist() >= -JOYSTICK_DEADBAND ? false : true;
 
         if (clockwiseControlPanel && counterClockwiseControlPanel) {
             logger_.logInfo("Counterclockwise and clockwise control panel buttons pressed at same time", logName);
