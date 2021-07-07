@@ -27,7 +27,7 @@ public class Units {
         return (rpm * 2048) / 600;
     }
 
-    public static int encTicksPer100MsToRpm(int encTicks) {
+    public static double encTicksPer100MsToRpm(double encTicks) {
         return (encTicks * 600) / 2048;
     }
 

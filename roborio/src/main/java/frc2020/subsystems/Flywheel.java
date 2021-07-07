@@ -25,8 +25,8 @@ public class Flywheel implements Subsystem {
 
 
     private static final double PULLEY_RATIO = 1.0 / 1.5;
-    private static final int FLYWHEEL_SPEED = 7250;
-    private static final int LONG_RANGE_SPEED = 7250;
+    private static final int FLYWHEEL_SPEED = 5500;
+    private static final int LONG_RANGE_SPEED = 5500;
 
     private static int currentLimitStall_ = 30; // amps
     private static double maxVoltage_ = 11.5;
@@ -42,18 +42,18 @@ public class Flywheel implements Subsystem {
     private boolean slaveInvertMotor_ = true;
     private String name_ = "Flywheel";
 
-    private int velocityDeadBand_ = 50; // RPM
-    private double velocityKp_ = 0.04; //0.1583
+    private int velocityDeadBand_ = 150; // RPM
+    private double velocityKp_ = 0.12; //0.05
     private double velocityKi_ = 0.0;
     private double velocityKd_ = 0.0;
-    private double velocityKf_ = 0.05;
+    private double velocityKf_ = 0.051;//0.0535
     private boolean useBrakeMode = true;
     private boolean useVoltageComp_ = true;
     private final int VELOCITY_PID_SLOT = 0;
 
-    private static final double KS = 0.0497;
-    private static final double KV = 0.13;
-    private static final double KA = 0.0357;
+    private static final double KS = 0.0;
+    private static final double KV = 0.0;
+    private static final double KA = 0.0;
 
     private static Logger logger_;
 

@@ -3,6 +3,7 @@ package frc2020.states;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc2020.auto.modes.Right13Ball;
 import frc2020.robot.Constants;
 import frc2020.states.CommandState.*;
 import frc2020.subsystems.Drive;
@@ -43,8 +44,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private LatchedBoolean deployControlPanelLatch;
     private boolean deployControlPanel = false;
+    private boolean counterClockwiseControlPanel = false;
+    private boolean clockwiseControlPanel = false; 
     private LatchedBoolean controlPanelRotationLatch;
     private LatchedBoolean controlPanelPositionLatch;
+    private LatchedBoolean controlPanelStopLatch;
 
     private LatchedBoolean deployClimberLatch;
     private boolean deployClimber = false;
@@ -102,6 +106,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         deployControlPanelLatch = new LatchedBoolean();
         controlPanelRotationLatch = new LatchedBoolean();
         controlPanelPositionLatch = new LatchedBoolean();
+        controlPanelStopLatch = new LatchedBoolean();
         toggleFloodGateLatch = new LatchedBoolean();
 
         drive_ = Drive.getInstance();
@@ -196,8 +201,21 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         } else if (driveMode == DriveMode.Arcade) {
             leftDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
-            leftDrive += Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
-            rightDrive -= Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
+            double leftOffset = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
+            double rightOffset = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
+            final double JOYSTICK_EXPONENT = 1.2;
+            int lSign = 1;
+            int rSign = 1;
+            if (leftOffset < 0) {
+                lSign = -1;
+            }
+            if (rightOffset < 0) {
+                rSign = -1;
+            }
+            leftOffset = Math.pow(Math.abs(leftOffset), JOYSTICK_EXPONENT) * lSign;
+            rightOffset = Math.pow(Math.abs(rightOffset), JOYSTICK_EXPONENT) * rSign;
+            leftDrive += leftOffset;
+            rightDrive -= rightOffset;
         } else if (driveMode == DriveMode.Cheesy){
             double throttle = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             double wheel = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX();
@@ -318,11 +336,13 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private ControlPanelDemand generateControlPanelDemand() {
         ControlPanelDemand demand = new ControlPanelDemand();
 
-        boolean controlPanelRotation = controlPanelRotationLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
-        boolean controlPanelPosition = controlPanelPositionLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
+        final boolean controlPanelRotation = controlPanelRotationLatch.update(leftSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
+        final boolean controlPanelPosition = controlPanelPositionLatch.update(leftSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
 
-        boolean counterClockwiseControlPanel = rightSecondJoystick_.getTwist() <= JOYSTICK_DEADBAND ? false : true;
-        boolean clockwiseControlPanel = rightSecondJoystick_.getTwist() >= -JOYSTICK_DEADBAND ? false : true;
+        counterClockwiseControlPanel = leftSecondJoystick_.getTwist() >= JOYSTICK_DEADBAND;
+        clockwiseControlPanel = leftSecondJoystick_.getTwist() <= -JOYSTICK_DEADBAND;
+
+        demand.stop = controlPanelStopLatch.update(!(counterClockwiseControlPanel || clockwiseControlPanel));
 
         if (clockwiseControlPanel && counterClockwiseControlPanel) {
             logger_.logInfo("Counterclockwise and clockwise control panel buttons pressed at same time", logName);
@@ -363,7 +383,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         getTrench = getTrenchLatch.update(rightJoystick_.getRawButton(Constants.TRENCH_BUTTON)) != getTrench;
 
-        deployControlPanel = deployControlPanelLatch.update(rightSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
+        deployControlPanel = deployControlPanelLatch.update(leftSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
 
         if (manualControl) {
             demand.state = ShooterState.Manual;

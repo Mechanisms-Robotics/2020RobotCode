@@ -205,6 +205,7 @@ public class Feeder extends SingleMotorSubsystem {
         super.outputTelemetry();
         SmartDashboard.putBoolean("Intake Break Beam Broken", getIntakeBreakBeamBroken());
         SmartDashboard.putBoolean("Shooter Break Beam Broken", getShooterBreakBeamBroken());
+        SmartDashboard.putBoolean("Intake Break Beams Overriden", getOverrideIntakeBrakeBeam());
     }
 
     /**

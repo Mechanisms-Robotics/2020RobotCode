@@ -54,7 +54,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     private WheelColor goalColor_ = WheelColor.UNKNOWN;
 
     private static enum ControlPanelState {
-        IDLE, POSITION, ROTATION, MANUAL
+        IDLE, POSITION, ROTATION, CLOCKWISE, COUNTERCLOCKWISE, MANUAL
     };
 
     private boolean needsToReverse_ = false;
@@ -164,6 +164,10 @@ public class ControlPanel extends SingleMotorSubsystem {
                                 stop();
                             }
                         }
+                        break;
+                    case CLOCKWISE:
+                        break;
+                    case COUNTERCLOCKWISE:
                         break;
                     case POSITION:
 

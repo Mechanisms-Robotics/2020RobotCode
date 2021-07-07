@@ -314,9 +314,9 @@ public class Shooter implements Subsystem {
             final var BEYOND_TRENCH = new InterpolatingDouble(10.0);
             final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(2.48); // decrease to shoot a bit higher NOT TUNED YET
 
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(1.4));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(1.8));
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.1));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(2.3));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(2.2));
             hoodAngleRangeInterpolator.put(BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(MIDDLE_OF_TRENCH, MIDDLE_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);

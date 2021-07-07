@@ -98,6 +98,7 @@ public class CommandState {
         public boolean counterclockwise = false;
         public boolean rotation = false;
         public boolean position = false;
+        public boolean stop = false;
     }
 
     public static class ClimberDemand {
@@ -322,6 +323,8 @@ public class CommandState {
                     controlPanel.runPanelWheel(true);
                 } else if (controlPanelDemand.counterclockwise) {
                     controlPanel.runPanelWheel(false);
+                } else if (controlPanelDemand.stop) {
+                    controlPanel.stop();
                 }
             }
 
