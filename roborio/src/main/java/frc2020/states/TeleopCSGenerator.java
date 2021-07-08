@@ -203,7 +203,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             double leftOffset = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
             double rightOffset = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
-            final double JOYSTICK_EXPONENT = 1.2;
+            final double JOYSTICK_EXPONENT = 1.15;
             int lSign = 1;
             int rSign = 1;
             if (leftOffset < 0) {
@@ -255,9 +255,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     }
 
     private FeederDemand generateFeederDemand() {
-        boolean intakeFeeder = leftSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_INTAKE_HAT;
-        boolean outtakeFeeder = leftSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
-        overrideIntakeBreakBeam = overrideIntakeBreakBeamLatch.update(leftSecondJoystick_.getRawButton(1)) != overrideIntakeBreakBeam;
+        boolean intakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_INTAKE_HAT;
+        boolean outtakeFeeder = rightSecondJoystick_.getPOV() == Constants.MANUAL_FEEDER_OUTTAKE_HAT;
+        overrideIntakeBreakBeam = overrideIntakeBreakBeamLatch.update(rightSecondJoystick_.getRawButton(1)) != overrideIntakeBreakBeam;
 
         FeederDemand demand = new FeederDemand();
         if (intakeFeeder && outtakeFeeder) {
@@ -323,7 +323,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY();
         double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : rightSecondJoystick_.getY();
 
-        climberSplit = climberSplitLatch.update(leftSecondJoystick_.getTrigger()) != climberSplit;
+        climberSplit = climberSplitLatch.update(rightSecondJoystick_.getTrigger()) != climberSplit;
         deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
         demand.deploy = deployClimber;
         lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
@@ -336,11 +336,11 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private ControlPanelDemand generateControlPanelDemand() {
         ControlPanelDemand demand = new ControlPanelDemand();
 
-        final boolean controlPanelRotation = controlPanelRotationLatch.update(leftSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
-        final boolean controlPanelPosition = controlPanelPositionLatch.update(leftSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
+        final boolean controlPanelRotation = controlPanelRotationLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_ROTATION_TOGGLE));
+        final boolean controlPanelPosition = controlPanelPositionLatch.update(rightSecondJoystick_.getRawButton(Constants.CONTROL_PANEL_POSITION_TOGGLE));
 
-        counterClockwiseControlPanel = leftSecondJoystick_.getTwist() >= JOYSTICK_DEADBAND;
-        clockwiseControlPanel = leftSecondJoystick_.getTwist() <= -JOYSTICK_DEADBAND;
+        counterClockwiseControlPanel = rightSecondJoystick_.getTwist() >= JOYSTICK_DEADBAND;
+        clockwiseControlPanel = rightSecondJoystick_.getTwist() <= -JOYSTICK_DEADBAND;
 
         demand.stop = controlPanelStopLatch.update(!(counterClockwiseControlPanel || clockwiseControlPanel));
 
@@ -383,7 +383,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
         getTrench = getTrenchLatch.update(rightJoystick_.getRawButton(Constants.TRENCH_BUTTON)) != getTrench;
 
-        deployControlPanel = deployControlPanelLatch.update(leftSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
+        deployControlPanel = deployControlPanelLatch.update(rightSecondJoystick_.getRawButton(Constants.DEPLOY_CONTROL_PANEL_TOGGLE)) != deployControlPanel;
 
         if (manualControl) {
             demand.state = ShooterState.Manual;

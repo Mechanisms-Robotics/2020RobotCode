@@ -134,7 +134,9 @@ public class Shooter implements Subsystem {
             case Trench:
                 return desiredState == ShooterState.Stowed;
             case Aiming:
-                return (desiredState == ShooterState.Shooting) || (desiredState == ShooterState.Stowed);
+                return desiredState == ShooterState.Shooting ||
+                    desiredState == ShooterState.Stowed ||
+                    desiredState == ShooterState.PowerPort;
             case Shooting:
                 return desiredState == ShooterState.Stowed;
             case Spinning:

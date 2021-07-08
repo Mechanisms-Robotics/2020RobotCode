@@ -198,6 +198,8 @@ public class CommandState {
         if (shooterDemand.overrideFeeder || shooter.getWantedState() == Shooter.ShooterState.Manual ||
             feederDemand.intake || feederDemand.outtake) {
             maybeUpdateFeeder(feeder);
+        } else {
+            feeder.setOverrideIntakeBreakBeam(feederDemand.override);
         }
         maybeUpdateFloodGate(floodGate);
         maybeUpdateShooter(shooter);

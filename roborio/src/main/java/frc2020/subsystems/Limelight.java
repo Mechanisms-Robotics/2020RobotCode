@@ -162,11 +162,10 @@ public class Limelight implements Subsystem {
      * setter
      */
     public synchronized void setLed(LedMode mode) {
-//        if (mode.ordinal() != rawData_.ledMode) {
-//            rawData_.ledMode = mode.ordinal();
-//            outputsHaveChanged_= true;
-//        }
-        rawData_.ledMode = 3;
+        if (mode.ordinal() != rawData_.ledMode) {
+            rawData_.ledMode = mode.ordinal();
+            outputsHaveChanged_= true;
+        }
     }
 
     /**
