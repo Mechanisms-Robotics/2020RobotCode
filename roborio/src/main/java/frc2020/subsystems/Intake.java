@@ -15,7 +15,7 @@ public class Intake extends SingleMotorSubsystem {
     private final static int FLIPPER_REVERSE_PORT = 5;
     private final static DoubleSolenoid.Value STOWED_VALUE = Value.kReverse;
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
-    private final static double INTAKE_RPM = 4000; // 5600 comp bot before
+    private final static double INTAKE_RPM = 3850; // 5600 comp bot before
     private final static double REVERSE_RPM = -INTAKE_RPM;
     private final static SingleMotorSubsystemConstants DEFAULT_CONSTANTS =
         new SingleMotorSubsystemConstants();
@@ -60,9 +60,9 @@ public class Intake extends SingleMotorSubsystem {
         }
     }
 
-    /** 
+    /**
      * Runs the intake in the given direction
-     * 
+     *
      * @param reverse true if the intake is spinning such that 
      * we are intaking from above or outtaking from below
      */
@@ -81,10 +81,10 @@ public class Intake extends SingleMotorSubsystem {
         super.setVelocity(speed);
     }
 
-    /** 
+    /**
      * Runs the active tests for the intake.
      * Deploys the intake, runs in both directions, then stows.
-     * 
+     *
      * @return true always. This is a visual test
      */
     @Override
@@ -94,7 +94,7 @@ public class Intake extends SingleMotorSubsystem {
         logger_.logInfo("Deploying intake", super.logName_);
         deployIntake();
         Timer.delay(1);
-        
+
         logger_.logInfo("Intaking", super.logName_);
         runIntake(false);
         Timer.delay(1.5);

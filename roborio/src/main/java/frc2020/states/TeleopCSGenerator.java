@@ -45,7 +45,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LatchedBoolean deployControlPanelLatch;
     private boolean deployControlPanel = false;
     private boolean counterClockwiseControlPanel = false;
-    private boolean clockwiseControlPanel = false; 
+    private boolean clockwiseControlPanel = false;
     private LatchedBoolean controlPanelRotationLatch;
     private LatchedBoolean controlPanelPositionLatch;
     private LatchedBoolean controlPanelStopLatch;
@@ -203,7 +203,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             double leftOffset = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
             double rightOffset = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
-            final double JOYSTICK_EXPONENT = 1.15;
+            final double JOYSTICK_EXPONENT = 1.1;
             int lSign = 1;
             int rSign = 1;
             if (leftOffset < 0) {
@@ -320,10 +320,10 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         boolean deployButtonsPressed = rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_1) &&
             rightSecondJoystick_.getRawButton(Constants.DEPLOY_CLIMBER_TOGGLE_2);
 
-        double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : leftSecondJoystick_.getY();
-        double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= JOYSTICK_DEADBAND ? 0 : rightSecondJoystick_.getY();
+        double leftWinchSpeed = Math.abs(leftSecondJoystick_.getY()) <= 0.02 ? 0 : leftSecondJoystick_.getY();
+        double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= 0.02 ? 0 : rightSecondJoystick_.getY();
 
-        climberSplit = climberSplitLatch.update(rightSecondJoystick_.getTrigger()) != climberSplit;
+        climberSplit = climberSplitLatch.update(leftSecondJoystick_.getTrigger()) != climberSplit;
         deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
         demand.deploy = deployClimber;
         lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;

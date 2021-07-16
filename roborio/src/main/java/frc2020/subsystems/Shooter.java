@@ -306,19 +306,19 @@ public class Shooter implements Subsystem {
 
             // position halfway between the two
             final var MIDDLE_OF_TRENCH = new InterpolatingDouble(5.99); // (calculated, not measured)
-            final var MIDDLE_OF_TRENCH_HOOD = new InterpolatingDouble(2.5); // decrease to shoot higher
+            final var MIDDLE_OF_TRENCH_HOOD = new InterpolatingDouble(2.4); // decrease to shoot higher
 
             // position robot as far BACK in trench as possible
             final var END_OF_TRENCH = new InterpolatingDouble(7.51);
-            final var END_OF_TRENCH_HOOD = new InterpolatingDouble(2.5); // decrease to shoot higher NOT TUNED YET
+            final var END_OF_TRENCH_HOOD = new InterpolatingDouble(2.5); // decrease to shoot higher
 
             // position robot BEYOND trench in front of power port
             final var BEYOND_TRENCH = new InterpolatingDouble(10.0);
-            final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(2.48); // decrease to shoot a bit higher NOT TUNED YET
+            final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(2.78); // decrease to shoot a bit higher
 
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(1.8));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.1));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(2.2));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.25));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.3));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(2.35));
             hoodAngleRangeInterpolator.put(BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(MIDDLE_OF_TRENCH, MIDDLE_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);
@@ -504,14 +504,7 @@ public class Shooter implements Subsystem {
 
         limelight_.setLed(Limelight.LedMode.PIPELINE);
 
-        // TODO: Aim turret in ball park
-
         flywheel_.spinFlywheel();
-
-        if (!flywheel_.upToSpeed()) {
-            return;
-        }
-        System.out.println("Up to speed: " + Units.encTicksPer100MsToRpm((int) flywheel_.getVelocity()));
 
         if (wantedState_ != ShooterState.Shooting) {
             hood_.setToStowPosition();
@@ -552,7 +545,6 @@ public class Shooter implements Subsystem {
         if (waitSpinupFlywheel && !flywheel_.upToSpeed()) {
             return;
         }
-        System.out.println("Up to speed: " + Units.encTicksPer100MsToRpm((int) flywheel_.getVelocity()));
 
         if (wantedState_ != ShooterState.Shooting) {
             hood_.setToStowPosition();
@@ -590,6 +582,8 @@ public class Shooter implements Subsystem {
             return;
         }
 
+        autoTurret();
+
         hood_.deployHood();
 
         if (!hood_.isDeployed() || !flywheel_.upToSpeed()) {
@@ -606,8 +600,6 @@ public class Shooter implements Subsystem {
         if (!hood_.atDemand() || !feeder_.isPrimed()) {
             return;
         }
-
-        autoTurret();
 
         limelight_.setLed(Limelight.LedMode.PIPELINE);
 
