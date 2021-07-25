@@ -105,7 +105,9 @@ public class Constants {
     public final static int TOGGLE_HOOD_DEPLOY = 1; //left second trigger
     public final static int FLYWHEEL_SPIN_TOGGLE = 2; // left second
     public final static int MANUAL_CONTROL_BUTTON_1 = 7; //left second
+    public final static int ADJUST_HOOD_HIGHER_BUTTON = 11; // left second
     public final static int MANUAL_CONTROL_BUTTON_2 = 13; //left second
+    public final static int ADJUST_HOOD_LOWER_BUTTON = 16; // left second
     public final static int MANUAL_FEEDER_INTAKE_HAT = 180; //left second
     public final static int MANUAL_FEEDER_OUTTAKE_HAT = 0; //left second
     // Left Second Y-Axis: Manual Hood Control

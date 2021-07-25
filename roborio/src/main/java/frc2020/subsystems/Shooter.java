@@ -45,6 +45,9 @@ public class Shooter implements Subsystem {
     private Rotation2d safeTurretPosition = Rotation2d.fromDegrees(-60.0);
 
     private InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> hoodAngleRangeInterpolator;
+    private double hoodAngleAdjustment_ = 0.0;
+    private double hoodAngleAdjustmentStep_ = 0.1; // TODO: Adjust
+    private ArrayList<double> hoodAngleAdjustmentWeights_;
 
     public enum ShooterState {
         Manual,
@@ -78,6 +81,7 @@ public class Shooter implements Subsystem {
 
         seekTurretLatch_ = new LatchedBoolean();
         hoodAngleRangeInterpolator = new InterpolatingTreeMap<>(100);
+        hoodAngleAdjustmentWeights_ = new ArrayList();
         loadHoodRangeAngleValues();
     }
 
@@ -294,30 +298,67 @@ public class Shooter implements Subsystem {
 
             // TUNABLES
 
+            {
+                var closePoint1Weight       = 0.1;
+                var closePoint2Weight       = 0.1;
+                var closePoint3Weight       = 0.1;
+                var beginningOfTrenchWeight = 0.1;
+                var middleOfTrenchWeight    = 0.1;
+                var endOfTrenchWeight       = 0.1;
+                var beyondTrenchWeight      = 0.1;
+
+                hoodAngleAdjustmentWeights_.add(closePoint1Weight);
+                hoodAngleAdjustmentWeights_.add(closePoint2Weight);
+                hoodAngleAdjustmentWeights_.add(closePoint3Weight);
+                hoodAngleAdjustmentWeights_.add(beginningOfTrenchWeight);
+                hoodAngleAdjustmentWeights_.add(middleOfTrenchWeight);
+                hoodAngleAdjustmentWeights_.add(endOfTrenchWeight);
+                hoodAngleAdjustmentWeights_.add(beyondTrenchWeight);
+            }
+
             // position robot just OUTSIDE of trench
             final var BEGINNING_OF_TRENCH = new InterpolatingDouble(4.46);
-            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(2.3); // decrease to shoot higher
+            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(
+                2.3 - (hoodAngleAdjustment_ * hoodAngleAdjustmentWeights_[3])
+            ); // decrease to shoot higher
 
             // position halfway between the two
             final var MIDDLE_OF_TRENCH = new InterpolatingDouble(5.99); // (calculated, not measured)
-            final var MIDDLE_OF_TRENCH_HOOD = new InterpolatingDouble(2.4); // decrease to shoot higher
+            final var MIDDLE_OF_TRENCH_HOOD = new InterpolatingDouble(
+                2.4 - (hoodAngleAdjustment_ * hoodAngleAdjustmentWeights_[4])
+            ); // decrease to shoot higher
 
             // position robot as far BACK in trench as possible
             final var END_OF_TRENCH = new InterpolatingDouble(7.51);
-            final var END_OF_TRENCH_HOOD = new InterpolatingDouble(2.5); // decrease to shoot higher
+            final var END_OF_TRENCH_HOOD = new InterpolatingDouble(
+                2.5 - (hoodAngleAdjustment_ * hoodAngleAdjustmentWeights_[5])
+            ); // decrease to shoot higher
 
             // position robot BEYOND trench in front of power port
             final var BEYOND_TRENCH = new InterpolatingDouble(10.0);
-            final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(2.78); // decrease to shoot a bit higher
+            final var BEYOND_TRENCH_HOOD = new InterpolatingDouble(
+                2.78 - (hoodAngleAdjustment_ * hoodAngleAdjustmentWeights_[6])
+            ); // decrease to shoot a bit higher
 
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.25));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.3));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(2.35));
+            // Check polarity of these three points because there was no comment on them.
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(
+                2.25 - (hoodAngleAdjustment_ * hoodAngleAdjustmentWeights_[0])
+            ));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(
+                2.3 - (hoodAngleAdjustment_ * hoodAngleAdjustmentWeights_[1])
+            ));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(
+                2.35 - (hoodAngleAdjustment_ * hoodAngleAdjustmentWeights_[2])
+            ));
             hoodAngleRangeInterpolator.put(BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(MIDDLE_OF_TRENCH, MIDDLE_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(BEYOND_TRENCH, BEYOND_TRENCH_HOOD);
         }
+    }
+
+    public void adjustHood(boolean shootHigher) {
+        hoodAngleAdjustment_ += (hoodAngleAdjustmentStep_ * (shootHigher ? 1.0 : -1.0));
     }
 
     private void handleManual() {

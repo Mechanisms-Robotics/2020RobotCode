@@ -121,6 +121,8 @@ public class CommandState {
     public static class ShooterDemand {
         public Shooter.ShooterState state = Shooter.ShooterState.Stowed;
         public boolean overrideFeeder = false;
+        public boolean adjustHood = false;
+        public boolean adjustHoodHigher = false;
     }
 
     public static class FloodGateDemand {
@@ -382,6 +384,10 @@ public class CommandState {
         if (shooterDemand != null) {
             shooter.setState(shooterDemand.state);
             shooter.setOverrideFeeder(shooterDemand.overrideFeeder);
+
+            if (shooterDemand.adjustHood) {
+                shooter.adjustHood(shooterDemand.adjustHoodHigher);
+            }
 
             shooterDemand = null;
         }

@@ -72,6 +72,9 @@ public class TeleopCSGenerator implements CommandStateGenerator {
 
     private boolean isFeederDemand = false;
 
+    private boolean shooterAdjustHood_ = false;
+    private boolean shooterAdjustHoodPrev_ = false;
+
     private Shooter shooter_ = Shooter.getInstance();
 
     private CheesyDriveHelper cheesyHelper_;
@@ -438,6 +441,16 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         }
 
         demand.overrideFeeder = isFeederDemand;
+
+        shooterAdjustHood_ = leftSecondJoystick_.getRawButton(Constants.ADJUST_HOOD_HIGHER_BUTTON) ||
+                             leftSecondJoystick_.getRawButton(Constants.ADJUST_HOOD_LOWER_BUTTON);
+
+        if (shooterAdjustHood_ && shooterAdjustHood_ != shooterAdjustHoodPrev_) {
+            demand.adjustHood = true;
+            demand.adjustHoodHigher = leftSecondJoystick_.getRawButton(Constants.ADJUST_HOOD_HIGHER_BUTTON);
+        }
+
+        shooterAdjustHoodPrev_ = shooterAdjustHood_;
 
         return demand;
     }
