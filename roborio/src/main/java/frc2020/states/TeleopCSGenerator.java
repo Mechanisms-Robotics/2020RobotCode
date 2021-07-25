@@ -171,7 +171,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      * Anything specific to this subsystem, including operator controls, is handled here
      */
     private DriveDemand generateDriveDemand() {
-        final double BACKUP_DISTANCE = 0.59;
+        // TODO: Tune
+        final double BACKUP_DISTANCE = 0.54; // reduced by two inches or .05 meters
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
 
