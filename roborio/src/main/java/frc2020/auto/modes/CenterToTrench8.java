@@ -17,6 +17,7 @@ import frc2020.auto.commands.*;
 import frc2020.robot.Constants;
 import frc2020.subsystems.Drive;
 import frc2020.subsystems.Shooter;
+import frc2020.subsystems.Shooter.ShooterState;
 
 /**
  * Starting from same point as basic13Ball, shoots three balls, goes straight
@@ -105,16 +106,12 @@ public class CenterToTrench8 extends AutoMode {
                 generateTrajectories();
             }
 
-            runCommand(new Shoot(3.75));
+            runCommand(new Shoot(3.75, ShooterState.Aiming)); // TODO: Optimize
             runCommand(new IntakeCommand(true));
             runCommand(new DriveTrajectory(centerToTrench, true));
-            runCommand(new WaitCommand(0.5));
+            runCommand(new WaitCommand(0.5)); //TODO: Try removing
             runCommand(new DriveTrajectory(trenchToEnd));
-            runCommand(new Shoot(4.0));
-            //runCommand(new IntakeCommand(false));
-
-            //runCommand(new WaitCommand(0.5));
-            //runCommand(new DriveTrajectory(trenchToEnd));
+            runCommand(new Shoot(4.0)); // TODO: Optimize
         }
 
 }

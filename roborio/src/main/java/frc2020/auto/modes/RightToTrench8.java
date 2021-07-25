@@ -18,6 +18,7 @@ import frc2020.auto.FieldConstants;
 import frc2020.auto.commands.*;
 import frc2020.robot.Constants;
 import frc2020.subsystems.Drive;
+import frc2020.subsystems.Shooter.ShooterState;
 
 /**
  * Starts in front of power port, shoots 3 balls, goes to trench and takes two balls,
@@ -112,13 +113,13 @@ public class RightToTrench8 extends AutoMode {
         if (firstFive == null || nextThree == null || moveToShoot == null) {
             generateTrajectories();
         }
+
         runCommand(new IntakeCommand(true));
         runCommand(new DriveTrajectory(firstFive, true));
-        runCommand(new Shoot(5));
+        runCommand(new Shoot(5, ShooterState.Aiming)); // TODO: Optimize
         runCommand(new DriveTrajectory(nextThree));
-        runCommand(new WaitCommand(0.5));
+        runCommand(new WaitCommand(0.5)); // TODO: Try removing
         runCommand(new DriveTrajectory(moveToShoot));
-        runCommand(new Shoot(5));
-
+        runCommand(new Shoot(5)); // TODO: Optimize
     }
 }

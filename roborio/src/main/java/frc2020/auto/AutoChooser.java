@@ -20,7 +20,8 @@ public class AutoChooser {
     public enum AutoModeChoices {
         NONE(null),
         BASIC_THREE_BALL(new Basic3Ball()),
-        CENTER_TRENCH_AUTO(new CenterToTrench8()),
+        OLD_CENTER_TRENCH_AUTO(new CenterToTrench8()),
+        NEW_CENTER_TRENCH_AUTO(new NewTrenchAuto()),
         RIGHT_TRENCH_AUTO(new RightToTrench8());
 
         public AutoMode autoMode;
