@@ -46,10 +46,6 @@ public class Shooter implements Subsystem {
 
     private InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> hoodAngleRangeInterpolator;
 
-    private Timer hoodStowTimer;
-    private boolean hoodStowTimerReset = false;
-    private static final double hoodStowTimeDelay = 0.5; // seconds
-
     public enum ShooterState {
         Manual,
         Stowed,
@@ -83,8 +79,6 @@ public class Shooter implements Subsystem {
         seekTurretLatch_ = new LatchedBoolean();
         hoodAngleRangeInterpolator = new InterpolatingTreeMap<>(100);
         loadHoodRangeAngleValues();
-
-        hoodStowTimer = new Timer();
     }
 
     public synchronized ShooterState getState() {
@@ -410,19 +404,13 @@ public class Shooter implements Subsystem {
 
         hood_.setToStowPosition();
 
-        if (!hoodStowTimerReset) {
-            hoodStowTimer.reset();
-            hoodStowTimerReset = true;
-        }
-
-        hoodStowTimer.start();
-
-        if (!hood_.atDemand() /*|| !hoodStowTimer.hasElapsed(hoodStowTimeDelay)*/) {
+        if (!flywheel_.isStopped() || !turret_.atDemand() || !hood_.atDemand()) {
+            if (hood_.atDemand()) {
+                hood_.stowHood();
+            }
             return;
         }
 
-        hoodStowTimerReset = false;
-        hoodStowTimer.stop();
         hood_.stowHood();
 
         if (!hood_.isStowed()) {
@@ -441,15 +429,16 @@ public class Shooter implements Subsystem {
         floodGate_.retract();
         feeder_.setState(FeederState.PRIMING);
 
-        if(!feeder_.isPrimed()) {
-            return;
-        }
-
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
+
         hood_.deployHood();
         flywheel_.spinFlywheel(POWER_PORT_SPEED);
 
-        if(!turret_.atDemand() || !hood_.isDeployed() || !flywheel_.atVelocity(POWER_PORT_SPEED)) {
+        if(!feeder_.isPrimed() || !turret_.atDemand() ||
+           !hood_.isDeployed() || !flywheel_.atVelocity(POWER_PORT_SPEED)) {
+            if (hood_.isDeployed()) {
+                hood_.setToStowPosition();
+            }
             return;
         }
 
@@ -468,18 +457,19 @@ public class Shooter implements Subsystem {
             return;
         }
 
+        hood_.deployHood();
         floodGate_.retract();
         feeder_.setState(FeederState.PRIMING);
 
-        if(!feeder_.isPrimed()) {
-            return;
-        }
-
         turret_.setAbsoluteRotation(Rotation2d.fromDegrees(0.0));
-        hood_.deployHood();
+
         flywheel_.spinFlywheel();
 
-        if(!turret_.atDemand() || !hood_.isDeployed() || !flywheel_.upToSpeed()) {
+        if(!hood_.isDeployed() || !feeder_.isPrimed() ||
+           !turret_.atDemand() || !flywheel_.upToSpeed()) {
+            if (hood_.isDeployed()) {
+                hood_.setSmartPosition(TRENCH_HOOD_POSITION);
+            }
             return;
         }
 
@@ -509,59 +499,10 @@ public class Shooter implements Subsystem {
         if (wantedState_ != ShooterState.Shooting) {
             hood_.setToStowPosition();
 
-            if (!hoodStowTimerReset) {
-                hoodStowTimer.reset();
-                hoodStowTimerReset = true;
-            }
-
-            hoodStowTimer.start();
-
-            if (!hood_.atDemand() /*|| !hoodStowTimer.hasElapsed(hoodStowTimeDelay)*/) {
+            if (!hood_.atDemand()) {
                 return;
             }
 
-            hoodStowTimerReset = false;
-            hoodStowTimer.stop();
-            hood_.stowHood();
-
-            if (!hood_.isStowed()) {
-                return;
-            }
-        }
-
-        state_ = ShooterState.Aiming;
-    }
-
-    private void handleAimingTransition (boolean waitSpinupFlywheel) {
-        floodGate_.extend();
-        hasStartedSeeking_ = false;
-
-        limelight_.setLed(Limelight.LedMode.PIPELINE);
-
-        // TODO: Aim turret in ball park
-
-        flywheel_.spinFlywheel();
-
-        if (waitSpinupFlywheel && !flywheel_.upToSpeed()) {
-            return;
-        }
-
-        if (wantedState_ != ShooterState.Shooting) {
-            hood_.setToStowPosition();
-
-            if (!hoodStowTimerReset) {
-                hoodStowTimer.reset();
-                hoodStowTimerReset = true;
-            }
-
-            hoodStowTimer.start();
-
-            if (!hood_.atDemand() /*|| !hoodStowTimer.hasElapsed(hoodStowTimeDelay)*/) {
-                return;
-            }
-
-            hoodStowTimerReset = false;
-            hoodStowTimer.stop();
             hood_.stowHood();
 
             if (!hood_.isStowed()) {
@@ -578,26 +519,30 @@ public class Shooter implements Subsystem {
         }
 
         if (state_ == ShooterState.Stowed) {
-            handleAimingTransition(false);
+            handleAimingTransition();
             return;
         }
 
         autoTurret();
 
         hood_.deployHood();
+        floodGate_.retract();
+        feeder_.setState(FeederState.PRIMING);
 
-        if (!hood_.isDeployed() || !flywheel_.upToSpeed()) {
+        if (!flywheel_.isSpinningUp()) {
             flywheel_.spinFlywheel();
+        }
+
+        if (!hood_.isDeployed() || !feeder_.isPrimed() || !flywheel_.upToSpeed()) {
+            if (hood_.isDeployed()) {
+                autoHood();
+            }
             return;
         }
 
-        floodGate_.retract();
-
         autoHood();
-        feeder_.setState(FeederState.PRIMING);
 
-
-        if (!hood_.atDemand() || !feeder_.isPrimed()) {
+        if (!hood_.atDemand()) {
             return;
         }
 

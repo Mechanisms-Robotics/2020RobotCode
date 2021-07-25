@@ -132,6 +132,9 @@ public class Flywheel implements Subsystem {
         return io_.velocity;
     }
 
+    public synchronized boolean isSpinningUp() { return io_.demand == FLYWHEEL_SPEED; }
+    public synchronized boolean isSpinningUp(double units) { return io_.demand == units; }
+
     public synchronized void setOpenLoop(double units) {
         //logger_.logDebug("Set open loop units: " + units, logName_);
         io_.demand = units;
