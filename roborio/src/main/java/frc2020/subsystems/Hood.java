@@ -40,9 +40,9 @@ public class Hood extends SingleMotorSubsystem {
         DEFAULT_CONSTANTS.reverseSoftLimit = 0.15F;
         DEFAULT_CONSTANTS.homePosition_ = 0.0;
 
-        DEFAULT_CONSTANTS.deadband_ = 0.15;
+        DEFAULT_CONSTANTS.deadband_ = 0.3;
 
-        DEFAULT_CONSTANTS.kP_ = Constants.IS_COMP_BOT ? 0.0005 : 0.0005;
+        DEFAULT_CONSTANTS.kP_ = 0.00001;
         DEFAULT_CONSTANTS.kI_ = 0.0;
         DEFAULT_CONSTANTS.kD_ = 0.0;
         DEFAULT_CONSTANTS.kF_ =  Constants.IS_COMP_BOT ? 0.0011 : 0.0010;

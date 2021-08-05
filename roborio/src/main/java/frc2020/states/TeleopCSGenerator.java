@@ -175,7 +175,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     private DriveDemand generateDriveDemand() {
         // TODO: Tune
-        final double BACKUP_DISTANCE = 0.54; // reduced by two inches or .05 meters
+        final double BACKUP_DISTANCE = 0.44; // reduced by two inches or .05 meters
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
 
@@ -246,8 +246,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private LimelightDemand generateLimelightDemand() {
         LimelightDemand demand = new LimelightDemand();
         if (autoSteerBall) {
-            demand.ledMode = Limelight.LedMode.PIPELINE;
-            demand.pipeline = Constants.POWER_CELL_PIPELINE;
+            demand.ledMode = Limelight.LedMode.OFF;
+            demand.pipeline = 2; // Fixed some weird pipeline issue
         } else if (autoSteerStation) {
             demand.ledMode = Limelight.LedMode.PIPELINE;
             demand.pipeline = Constants.LOADING_STATION_PIPELINE;

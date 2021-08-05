@@ -767,6 +767,8 @@ public class Drive implements Subsystem {
             io_.right_velocity_rpm = rightMaster_.getEncoder().getVelocity() / HIGH_GEAR_RATIO;
             io_.left_velocity_mps = leftCanCoder.getVelocity();
             io_.right_velocity_mps = rightCanCoder.getVelocity();
+            io_.left_current = leftMaster_.getOutputCurrent();
+            io_.right_current = rightMaster_.getOutputCurrent();
             io_.gyro_heading = gyro_.getYaw();
 
             io_.left_temperature = leftMaster_.getMotorTemperature();
@@ -816,6 +818,8 @@ public class Drive implements Subsystem {
         double right_velocity_mps;
         double left_temperature;
         double right_temperature;
+        double left_current;
+        double right_current;
         Rotation2d gyro_heading = new Rotation2d();
 
 
@@ -861,6 +865,8 @@ public class Drive implements Subsystem {
         SmartDashboard.putNumber("Right CANCoder MPS", io_.right_velocity_mps);
         SmartDashboard.putNumber("Left NEO Distance", io_.left_neo_distance);
         SmartDashboard.putNumber("Right NEO Distance", io_.right_neo_distance);
+        SmartDashboard.putNumber("Left NEO Current", io_.left_current);
+        SmartDashboard.putNumber("Right NEO Current", io_.right_current);
 
         SmartDashboard.putNumber("Left Master Temperature: ", io_.left_temperature);
         SmartDashboard.putNumber("Right Master Temperature: ", io_.right_temperature);

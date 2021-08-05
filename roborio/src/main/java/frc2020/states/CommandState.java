@@ -324,9 +324,9 @@ public class CommandState {
                     logger_.logInfo("Both control panel forward and reverse buttons pressed");
                     controlPanel.stop();
                 } else if (controlPanelDemand.clockwise) {
-                    controlPanel.runPanelWheel(true);
+                    controlPanel.runPanelWheel(true, false);
                 } else if (controlPanelDemand.counterclockwise) {
-                    controlPanel.runPanelWheel(false);
+                    controlPanel.runPanelWheel(false, false);
                 } else if (controlPanelDemand.stop) {
                     controlPanel.stop();
                 }

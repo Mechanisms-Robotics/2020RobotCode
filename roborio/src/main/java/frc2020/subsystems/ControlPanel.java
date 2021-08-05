@@ -20,7 +20,7 @@ public class ControlPanel extends SingleMotorSubsystem {
     private final static DoubleSolenoid.Value DEPLOYED_VALUE = Value.kForward;
     private final static double FORWARD_RPM = 3000;
     private final static double REVERSE_RPM = -3000;
-    private final static double GOAL_EDGE_COUNT = 3.0*8.0; // Three rotations | Eight edge counts per rotation
+    private final static double GOAL_EDGE_COUNT = 3.3*8.0; // Three rotations | Eight edge counts per rotation
     private final static String gameData = null;
 
     private WheelWatcher wheelWatcher_ = new WheelWatcher();
@@ -97,6 +97,22 @@ public class ControlPanel extends SingleMotorSubsystem {
         else {
             // super.setVelocity(FORWARD_RPM);
             super.setOpenLoop(0.7);
+        }
+    }
+
+    public void runPanelWheel(boolean reverse, boolean rotation) {
+        if (rotation) {
+            if (reverse) {
+                super.setOpenLoop(-1.0);
+            } else {
+                super.setOpenLoop(1.0);
+            }
+        } else {
+            if (reverse) {
+                super.setOpenLoop(-0.5);
+            } else {
+                super.setOpenLoop(0.5);
+            }
         }
     }
 
@@ -192,13 +208,13 @@ public class ControlPanel extends SingleMotorSubsystem {
                         break;
                     case ROTATION:
 
-                        if (wheelWatcher_.getEdgeCount() == GOAL_EDGE_COUNT) {
+                        if (wheelWatcher_.getEdgeCount() >= GOAL_EDGE_COUNT) {
                             state_ = ControlPanelState.IDLE;
                             stop();
                             break;
                         }
 
-                        runPanelWheel(true);
+                        runPanelWheel(true, true);
                         break;
                     case MANUAL:
                         break;
