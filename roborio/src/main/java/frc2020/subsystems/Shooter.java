@@ -406,7 +406,7 @@ public class Shooter implements Subsystem {
 
         hood_.setToStowPosition();
 
-        if (!flywheel_.isStopped() || !turret_.atDemand() || !hood_.atDemand()) {
+        if (!turret_.atDemand() || !hood_.atDemand()) {
             if (hood_.atDemand()) {
                 hood_.stowHood();
             }
