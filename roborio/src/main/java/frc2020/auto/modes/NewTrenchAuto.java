@@ -39,8 +39,8 @@ public class NewTrenchAuto extends AutoMode {
     var trenchPickup = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - Constants.ROBOT_LENGTH / 2 + Constants.INTAKE_LENGTH + 0.5,
         FieldConstants.THIRD_TRENCH_BALL_Y - 0.1, new Rotation2d());
     {
-      var maxAccel = 2.5; // meters/sec^2
-      var maxVelocity = 2.5; // meters/sec
+      var maxAccel = 2.0; // meters/sec^2
+      var maxVelocity = 2.0; // meters/sec
 
       var startPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH,
           FieldConstants.CENTER_POWER_PORT_Y, new Rotation2d());
