@@ -106,7 +106,7 @@ public class CenterToTrench8 extends AutoMode {
                 generateTrajectories();
             }
 
-            runCommand(new Shoot(3.75, ShooterState.Aiming)); // TODO: Optimize
+            runCommand(new Shoot(3.75)); // TODO: Optimize
             runCommand(new IntakeCommand(true));
             runCommand(new DriveTrajectory(centerToTrench, true));
             runCommand(new WaitCommand(0.5)); //TODO: Try removing

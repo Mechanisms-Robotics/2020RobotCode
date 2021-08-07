@@ -385,10 +385,6 @@ public class CommandState {
             shooter.setState(shooterDemand.state);
             shooter.setOverrideFeeder(shooterDemand.overrideFeeder);
 
-            if (shooterDemand.adjustHood) {
-                shooter.adjustHood(shooterDemand.adjustHoodHigher);
-            }
-
             shooterDemand = null;
         }
     }

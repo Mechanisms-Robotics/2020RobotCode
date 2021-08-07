@@ -39,8 +39,8 @@ public class NewTrenchAuto extends AutoMode {
     var trenchPickup = new Pose2d(FieldConstants.THIRD_TRENCH_BALL_X - Constants.ROBOT_LENGTH / 2 + Constants.INTAKE_LENGTH + 0.5,
         FieldConstants.THIRD_TRENCH_BALL_Y - 0.1, new Rotation2d());
     {
-      var maxAccel = 2.0; // meters/sec^2
-      var maxVelocity = 2.0; // meters/sec
+      var maxAccel = 2.3; // meters/sec^2
+      var maxVelocity = 2.3; // meters/sec
 
       var startPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH,
           FieldConstants.CENTER_POWER_PORT_Y, new Rotation2d());
@@ -77,11 +77,11 @@ public class NewTrenchAuto extends AutoMode {
       var startPose = trenchPickup;
 
       List<Translation2d> midPoints = List.of(
-          //new Translation2d(2.471801‬, 0.854075‬)
+          startPose.transformBy(new Transform2d(new Translation2d(-2.0, -0.5), new Rotation2d())).getTranslation()
       );
 
-      // TODO: Tune point, and change angle to zero. Made need to add midpoints.
-      var endPose = startPose.transformBy(new Transform2d(new Translation2d(-2.0, -0.5), Rotation2d.fromDegrees(15)));
+      var endPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH,
+          FieldConstants.CENTER_POWER_PORT_Y, new Rotation2d());
 
       var voltageConstraint =
           new DifferentialDriveVoltageConstraint(
@@ -107,12 +107,12 @@ public class NewTrenchAuto extends AutoMode {
       generateTrajectories();
     }
 
-    runCommand(new Shoot(3.75, ShooterState.Aiming)); // TODO: Optimize
+    runCommand(new Shoot(3.5)); // TODO: Optimize
     runCommand(new IntakeCommand(true));
     runCommand(new DriveTrajectory(centerToTrench, true));
     runCommand(new WaitCommand(0.5)); //TODO: Try removing
     runCommand(new DriveTrajectory(trenchToEnd));
-    runCommand(new Shoot(4.0)); // TODO: Optimize
+    runCommand(new Shoot(3.5)); // TODO: Optimize
   }
 
 }
