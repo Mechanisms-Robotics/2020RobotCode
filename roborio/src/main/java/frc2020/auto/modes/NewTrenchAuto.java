@@ -111,6 +111,7 @@ public class NewTrenchAuto extends AutoMode {
     runCommand(new Shoot(3.5)); // TODO: Optimize
     runCommand(new IntakeCommand(true));
     runCommand(new DriveTrajectory(centerToTrench, true));
+    runCommand(new Aim());
     runCommand(new WaitCommand(0.5)); //TODO: Try removing
     runCommand(new DriveTrajectory(trenchToEnd));
     runCommand(new Shoot(3.5)); // TODO: Optimize
