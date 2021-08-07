@@ -116,7 +116,7 @@ public class RightToTrench8 extends AutoMode {
 
         runCommand(new IntakeCommand(true));
         runCommand(new DriveTrajectory(firstFive, true));
-        runCommand(new Shoot(5, ShooterState.Aiming)); // TODO: Optimize
+        runCommand(new Shoot(5)); // TODO: Optimize
         runCommand(new DriveTrajectory(nextThree));
         runCommand(new WaitCommand(0.5)); // TODO: Try removing
         runCommand(new DriveTrajectory(moveToShoot));
