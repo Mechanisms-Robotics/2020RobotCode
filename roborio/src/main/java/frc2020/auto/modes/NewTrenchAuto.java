@@ -77,7 +77,8 @@ public class NewTrenchAuto extends AutoMode {
       var startPose = trenchPickup;
 
       List<Translation2d> midPoints = List.of(
-          startPose.transformBy(new Transform2d(new Translation2d(-2.0, -0.5), new Rotation2d())).getTranslation()
+          // TODO: Maybe put this point back in
+          //startPose.transformBy(new Transform2d(new Translation2d(-2.0, -0.5), new Rotation2d())).getTranslation()
       );
 
       var endPose = new Pose2d(FieldConstants.ALLIANCE_WALL_TO_INITIATION_X + Constants.ROBOT_LENGTH,
