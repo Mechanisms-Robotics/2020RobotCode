@@ -9,7 +9,7 @@ public class IntakeCommand implements Command {
     public IntakeCommand(boolean deploy) {
         if (deploy) {
             intake_.deployIntake();
-            intake_.runIntake(false);
+            intake_.runIntakeAuto(false);
         } else {
             intake_.stowIntake();
             intake_.stop();
