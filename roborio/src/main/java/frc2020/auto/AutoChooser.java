@@ -22,7 +22,9 @@ public class AutoChooser {
         BASIC_THREE_BALL(new Basic3Ball()),
         OLD_CENTER_TRENCH_AUTO(new CenterToTrench8()),
         NEW_CENTER_TRENCH_AUTO(new NewTrenchAuto()),
-        RIGHT_TRENCH_AUTO(new RightToTrench8());
+        RIGHT_TRENCH_AUTO(new RightToTrench8()),
+        BIRD_IN_THE_HAND(new StealAuto32()),
+        BIRD_IN_THE_BUSH(new StealAuto50());
 
         public AutoMode autoMode;
 
