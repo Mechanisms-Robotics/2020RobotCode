@@ -29,12 +29,12 @@ public class StealAuto32 extends AutoMode {
   private static Trajectory startToSteal = null;
   private static Trajectory stealToStart = null;
 
-  private static double lineDistance = 4.27; // meters
+  private static double lineDistance = 4.5; // meters
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Voltes
-    var maxAccel = 1.0; // m/s
-    var maxVelocity = 1.0; // m/s
+    var maxAccel = 2.0; // m/s
+    var maxVelocity = 2.0; // m/s
 
     // Define other constraintes
     var voltageConstraint =
@@ -48,6 +48,13 @@ public class StealAuto32 extends AutoMode {
             maxAccel)
             .setKinematics(DRIVE_KINEMATICS)
             .addConstraint(voltageConstraint);
+
+    var config2 =
+        new TrajectoryConfig(maxVelocity,
+            maxAccel)
+            .setKinematics(DRIVE_KINEMATICS)
+            .addConstraint(voltageConstraint)
+            .setReversed(true);
     {
       var startPose = new Pose2d();
 
@@ -73,7 +80,7 @@ public class StealAuto32 extends AutoMode {
       var endPose = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
 
       stealToStart = TrajectoryGenerator.generateTrajectory(
-          startPose, midPoints, endPose, config);
+          startPose, midPoints, endPose, config2);
     }
   }
 
@@ -84,7 +91,7 @@ public class StealAuto32 extends AutoMode {
     }
     runCommand(new Shoot(3.5));
     runCommand(new IntakeCommand(true));
-    runCommand(new DriveTrajectory(startToSteal));
+    runCommand(new DriveTrajectory(startToSteal, true));
     runCommand(new WaitCommand(0.5));
     runCommand(new DriveTrajectory(stealToStart));
     runCommand(new Shoot(3.5));
