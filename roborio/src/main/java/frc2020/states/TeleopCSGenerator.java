@@ -207,7 +207,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             rightDrive = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             double leftOffset = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
             double rightOffset = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX()*0.75f;
-            final double JOYSTICK_EXPONENT = 1.1;
+            final double JOYSTICK_EXPONENT = 2.0;
             int lSign = 1;
             int rSign = 1;
             if (leftOffset < 0) {
