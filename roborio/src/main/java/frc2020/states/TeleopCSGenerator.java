@@ -220,8 +220,8 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             rightOffset = Math.pow(Math.abs(rightOffset), JOYSTICK_EXPONENT) * rSign;
             leftDrive += leftOffset;
             rightDrive -= rightOffset;
-            leftDrive = Math.max(leftDrive, 0.9);
-            rightDrive = Math.max(rightDrive, 0.9);
+            leftDrive = (Math.abs(leftDrive) < 0.9) ? leftDrive : leftDrive * (0.9 / Math.abs(leftDrive));
+            rightDrive = (Math.abs(rightDrive) < 0.9) ? rightDrive : rightDrive * (0.9 / Math.abs(rightDrive));
         } else if (driveMode == DriveMode.Cheesy){
             double throttle = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             double wheel = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX();
