@@ -33,8 +33,8 @@ public class StealAuto50 extends AutoMode {
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Voltes
-    var maxAccel = 1.5; // m/s
-    var maxVelocity = 1.5; // m/s
+    var maxAccel = 1.0; // m/s
+    var maxVelocity = 1.0; // m/s
 
     // Define other constraintes
     var voltageConstraint =

@@ -33,8 +33,8 @@ public class StealAuto32 extends AutoMode {
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Voltes
-    var maxAccel = 1.5; // m/s
-    var maxVelocity = 1.5; // m/s
+    var maxAccel = 1.0; // m/s
+    var maxVelocity = 1.0; // m/s
 
     // Define other constraintes
     var voltageConstraint =
@@ -87,5 +87,6 @@ public class StealAuto32 extends AutoMode {
     runCommand(new DriveTrajectory(startToSteal));
     runCommand(new WaitCommand(0.5));
     runCommand(new DriveTrajectory(stealToStart));
+    runCommand(new Shoot(3.5));
   }
 }
