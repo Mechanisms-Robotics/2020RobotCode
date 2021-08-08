@@ -29,7 +29,7 @@ public class StealAuto32 extends AutoMode {
   private static Trajectory startToSteal = null;
   private static Trajectory stealToStart = null;
 
-  private static double lineDistance = 1.5; // meters
+  private static double lineDistance = 4.27; // meters
 
   public static void generateTrajectories() {
     var maxVoltage = 10.0; // Voltes
