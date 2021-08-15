@@ -53,8 +53,8 @@ public class Constants {
     // Motor Controller Properties
     public final static double OPEN_LOOP_RAMP = 0.05; // seconds
     public final static double CLOSED_LOOP_RAMP = 0.10; // seconds
-    public final static int STALL_LIMIT = 60; // Amps DC
-    public final static int FREE_LIMIT = 60; // Amps DC
+    public final static int STALL_LIMIT = 65; // Amps DC
+    public final static int FREE_LIMIT = 65; // Amps DC
 
     //The Shifters (drive)
     public final static int SHIFT_FORWARD = 6;
@@ -79,7 +79,7 @@ public class Constants {
     // Drive Train Control Loop (VELOCITY)
     public final static double VELOCITY_HIGH_GEAR_KP = 0.0005; //2.28
     public final static double VELOCITY_HIGH_GEAR_KI = 0.0; //0.003
-    public final static double VELOCITY_HIGH_GEAR_KD = 0.0; 
+    public final static double VELOCITY_HIGH_GEAR_KD = 0.0;
     public final static double VELOCITY_HIGH_GEAR_KF = 0.0;
     public final static int VELOCITY_HIGH_GEAR_I_ZONE = 300; //sensor units
 

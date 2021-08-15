@@ -126,6 +126,10 @@ public class Drive implements Subsystem {
     private SimpleMotorFeedforward feedforward_;
     private boolean doneWithTrajectory_;
 
+    private boolean autoBackingUp_ = false;
+    private Timer autoBackupTimer_ = new Timer();
+    private double autoBackupTime_ = 0.5;
+
     private boolean IS_ROBOT = true;
 
     /**
@@ -147,15 +151,15 @@ public class Drive implements Subsystem {
         odometryHistory = new InterpolatingTreeMap<>(100);
 
         kinematics_ = new DifferentialDriveKinematics(
-                Constants.TRACK_SCRUB_FACTOR * Constants.DRIVE_TRACK_WIDTH
+            Constants.TRACK_SCRUB_FACTOR * Constants.DRIVE_TRACK_WIDTH
         );
         currentTrajectory_ = null;
         trajectoryStartTime_ = -1.0;
         doneWithTrajectory_ = true;
         feedforward_ = new SimpleMotorFeedforward(
-                Constants.DRIVE_V_INTERCEPT,
-                Constants.DRIVE_KV,
-                Constants.DRIVE_KA
+            Constants.DRIVE_V_INTERCEPT,
+            Constants.DRIVE_KV,
+            Constants.DRIVE_KA
         );
         controller_ = new RamseteController();
         io_ = new PeriodicIO();
@@ -172,7 +176,7 @@ public class Drive implements Subsystem {
         // Reports firmware version for logging purposes
         logger_.logInfo("Left CAN Coder Firmware: " + leftCanCoder.getFirmwareVersion(), logName);
         logger_.logInfo("Right CAN Coder Firmware: " + rightCanCoder.getFirmwareVersion(), logName);
-        
+
         // Checks for alignment of magnet with encoder (the encoder light color)
         MagnetFieldStrength leftMagStrength = leftCanCoder.getMagnetFieldStrength();
         if (leftMagStrength == MagnetFieldStrength.BadRange_RedLED) {
@@ -195,11 +199,11 @@ public class Drive implements Subsystem {
         } else {
             logger_.logError("Right CAN Coder magnet not detected", logName);
         }
-        
+
         // CANCoder configuration objects
         leftCoderConfig = new CANCoderConfiguration();
         rightCoderConfig = new CANCoderConfiguration();
-        
+
         // Opposite values because of the orientation of the drives. Switch if the robot is reading distance backwards
         leftCoderConfig.sensorDirection = true;
         rightCoderConfig.sensorDirection = false;
@@ -209,7 +213,7 @@ public class Drive implements Subsystem {
 
         leftCoderConfig.sensorCoefficient = sensorCoefficient;
         rightCoderConfig.sensorCoefficient = sensorCoefficient;
-        
+
         // Sets unit name
         leftCoderConfig.unitString = "meters";
         rightCoderConfig.unitString = "meters";
@@ -237,12 +241,12 @@ public class Drive implements Subsystem {
         leftSlave_ = new CANSparkMax(Constants.LEFT_SLAVE_PORT, MotorType.kBrushless);
         rightMaster_ = new CANSparkMax(Constants.RIGHT_MASTER_PORT, MotorType.kBrushless);
         rightSlave_ = new CANSparkMax(Constants.RIGHT_SLAVE_PORT, MotorType.kBrushless);
-        
+
         leftMaster_.restoreFactoryDefaults();
         leftSlave_.restoreFactoryDefaults();
         rightMaster_.restoreFactoryDefaults();
         rightSlave_.restoreFactoryDefaults();
-        
+
         leftMaster_.setInverted(false);
         rightMaster_.setInverted(true);
 
@@ -253,15 +257,15 @@ public class Drive implements Subsystem {
         leftMaster_.setClosedLoopRampRate(Constants.CLOSED_LOOP_RAMP);
         leftMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
         leftMaster_.setSmartCurrentLimit(Constants.STALL_LIMIT, Constants.FREE_LIMIT);
-        
+
         rightMaster_.setOpenLoopRampRate(Constants.OPEN_LOOP_RAMP);
         rightMaster_.setClosedLoopRampRate(Constants.CLOSED_LOOP_RAMP);
         rightMaster_.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 10);
         rightMaster_.setSmartCurrentLimit(Constants.STALL_LIMIT, Constants.FREE_LIMIT);
-        
+
         leftVelocityPID_ = leftMaster_.getPIDController();
         rightVelocityPID_ = rightMaster_.getPIDController();
-        
+
         leftVelocityPID_.setP(Constants.VELOCITY_HIGH_GEAR_KP, VELOCITY_PID);
         leftVelocityPID_.setI(Constants.VELOCITY_HIGH_GEAR_KI, VELOCITY_PID);
         leftVelocityPID_.setD(Constants.VELOCITY_HIGH_GEAR_KD, VELOCITY_PID);
@@ -347,7 +351,7 @@ public class Drive implements Subsystem {
 
             // Check that we know our start time and have a trajectory to follow
             if (trajectoryStartTime_ > 0.0 && currentTrajectory_ != null) {
-                
+
                 // Check to see if we are done with the trajectory
                 if (trajectoryStartTime_ + currentTrajectory_.getTotalTimeSeconds() > Timer.getFPGATimestamp()) {
 
@@ -363,7 +367,7 @@ public class Drive implements Subsystem {
                 } else {
                     // TODO: We could write an pose2pose controller that runs if the
                     // robot is too far off from the desired end state of the trajectory
-                    
+
                     // Set the wheels to the desired end velocity of the trajectory
                     double end_speed = currentTrajectory_.sample(
                         currentTrajectory_.getTotalTimeSeconds()).velocityMetersPerSecond;
@@ -371,7 +375,7 @@ public class Drive implements Subsystem {
                     // Calculate feedforward
                     double feedforward = feedforward_.calculate(end_speed);
                     driveVelocity(new DriveSignal(end_speed, end_speed),
-                                    new DriveSignal(feedforward, feedforward));
+                        new DriveSignal(feedforward, feedforward));
                     state_ = DriveState.Velocity;
                     doneWithTrajectory_ = true;
                 }
@@ -387,8 +391,8 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Registers the Drive Loop
-    */
+     * Registers the Drive Loop
+     */
     @Override
     public void registerLoops(ILooper in){
         in.register(driveLoop);
@@ -412,8 +416,8 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Sets all the Spark Maxes' power to 0
-    */
+     * Sets all the Spark Maxes' power to 0
+     */
     @Override
     public void stop(){
         openLoop(DriveSignal.NEUTRAL);
@@ -492,7 +496,7 @@ public class Drive implements Subsystem {
         double adjustedDutyCycle = kP * targetBearing;
         baseDutyCycle = Util.limit(baseDutyCycle, 0.75);
         DriveSignal autoSteerSignal = new DriveSignal(baseDutyCycle + adjustedDutyCycle,
-                                                      baseDutyCycle - adjustedDutyCycle, true);
+            baseDutyCycle - adjustedDutyCycle, true);
         openLoop(autoSteerSignal);
     }
 
@@ -501,26 +505,39 @@ public class Drive implements Subsystem {
     }
 
     public synchronized void autoBackup() {
+        // DriveSignal autoBackupSignal = new DriveSignal(0.25, 0.25, true);
+
+        // if (!autoBackingUp_) {
+        //     autoBackupTimer_.start();
+        //     autoBackingUp_ = true;
+        // } else {
+        //     if (!autoBackupTimer_.hasElapsed(autoBackupTime_)) {
+        //         openLoop(autoBackupSignal);
+        //     } else {
+        //         stop();
+        //         autoBackingUp_ = false;
+        //         autoBackupTimer_.stop();
+        //         autoBackupTimer_.reset();
+        //     }
+        // }
         double kP = 0.5; // TODO: Tune
         double error = backupPosition_ - getOdometryPose().getTranslation().getX();
 
         DriveSignal autoBackupSignal = new DriveSignal(error*kP, error*kP, true);
-
         openLoop(autoBackupSignal);
     }
 
-
     /**
-    * Resets encoder ticks for CAN Coders and NEO Encoders
-    */
+     * Resets encoder ticks for CAN Coders and NEO Encoders
+     */
     @Override
-	public synchronized void zeroSensors(){
+    public synchronized void zeroSensors(){
         // TODO Reset Neo Encoders
-        
+
         // Sends identity Pose and Rotation2d to resetOdometry function so we're using the same function
         resetOdometry(new Pose2d(), new Rotation2d());
     }
-    
+
     /**
      * Resets the odometry and gyroscope to the desired pose and rotation
      */
@@ -588,7 +605,7 @@ public class Drive implements Subsystem {
 
     /**
      * Gets the gyroscope's current heading
-     * 
+     *
      * @return Gyro heading as a Rotation2d
      */
     public synchronized Rotation2d getHeading() {
@@ -597,7 +614,7 @@ public class Drive implements Subsystem {
 
     /**
      * Sets the gyroscope's heading to a desired Rotation2d
-     * 
+     *
      * @param heading - the desired gyro heading as a Rotation2d
      */
     public synchronized void setHeading(Rotation2d heading) {
@@ -608,136 +625,136 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Converts wheel rotations to linear meters
-    *
-    * @return Linear meters traveled for x wheel rotations.
-    */
+     * Converts wheel rotations to linear meters
+     *
+     * @return Linear meters traveled for x wheel rotations.
+     */
     private static double rotationsToMeters(double rotations) {
         return rotations * (Constants.WHEEL_DIAMETER * Math.PI);
     }
 
     /**
-    * Converts RPM to MPS
-    *
-    * @return The linear meters traveled per second for a wheel moving at x rpm.
-    */
+     * Converts RPM to MPS
+     *
+     * @return The linear meters traveled per second for a wheel moving at x rpm.
+     */
     private static double rpmMetersPerSecond(double rpm) {
         return rotationsToMeters(rpm) / 60;
     }
 
     /**
-    * Converts linear meters to wheel rotations
-    *
-    * @return Wheel rotations for x linear meters traveled.
-    */
+     * Converts linear meters to wheel rotations
+     *
+     * @return Wheel rotations for x linear meters traveled.
+     */
     private static double metersToRotations(double meters) {
         return meters / (Constants.WHEEL_DIAMETER * Math.PI);
     }
 
     /**
-    * Converts wheel rotations to encoder ticks
-    *
-    * @return Encoder ticks for x wheel rotations.
-    */
+     * Converts wheel rotations to encoder ticks
+     *
+     * @return Encoder ticks for x wheel rotations.
+     */
     private static double rotationsToEncoderTicks(double rotations) {
         return rotations * DRIVE_ENCODER_PPR;
     }
 
     /**
-    * Converts linear meters traveled to encoder ticks
-    *
-    * @return Encoder ticks for x linear meters traveled.
-    */
+     * Converts linear meters traveled to encoder ticks
+     *
+     * @return Encoder ticks for x linear meters traveled.
+     */
     public static double metersToEncoderTicks(double meters) {
         return rotationsToEncoderTicks(metersToRotations(meters));
     }
 
     /**
-    * Converts MPS to RPM
-    *
-    * @return The RPM of a wheel that is traveling x MPS.
-    */
+     * Converts MPS to RPM
+     *
+     * @return The RPM of a wheel that is traveling x MPS.
+     */
     private static double metersPerSecondToRpm(double meters_per_second) {
         return metersToRotations(meters_per_second) * 60;
     }
 
     /**
-    * Converts radians per second to encoder ticks per 100 miliseconds
-    *
-    * @return Encoder ticks per 100 miliseconds for a wheel that is rotating at x radians per second.
-    */
+     * Converts radians per second to encoder ticks per 100 miliseconds
+     *
+     * @return Encoder ticks per 100 miliseconds for a wheel that is rotating at x radians per second.
+     */
     private static double radiansPerSecondToTicksPer100ms(double rad_s) {
         return rad_s / (Math.PI * 2.0) * NEO_ENCODER_PPR / 10.0;
     }
 
     /**
-    * Gets the left distance traveled in meters
-    *
-    * @return Left distance in meters.
-    */
+     * Gets the left distance traveled in meters
+     *
+     * @return Left distance in meters.
+     */
     public double getLeftEncoderDistance() {
         return io_.left_distance;
     }
 
     /**
-    * Gets the right distance traveled in meters
-    *
-    * @return Right distance in meters.
-    */
+     * Gets the right distance traveled in meters
+     *
+     * @return Right distance in meters.
+     */
     public double getRightEncoderDistance() {
         return io_.right_distance;
     }
 
     /**
-    * Gets the right velocity in native units
-    *
-    * @return Right velocity in native units.
-    */
+     * Gets the right velocity in native units
+     *
+     * @return Right velocity in native units.
+     */
     public double getRightVelocityRPM() {
         return io_.right_velocity_rpm;
     }
 
     /**
-    * Gets the right velocity in MPS
-    *
-    * @return Right velocity in MPS.
-    */
+     * Gets the right velocity in MPS
+     *
+     * @return Right velocity in MPS.
+     */
     public double getRightLinearVelocity() {
         return rotationsToMeters(getRightVelocityRPM() / 60.0);
     }
 
     /**
-    * Gets the left velocity in native units
-    *
-    * @return Left velocity in native units.
-    */
+     * Gets the left velocity in native units
+     *
+     * @return Left velocity in native units.
+     */
     public double getLeftVelocityRPM() {
         return io_.left_velocity_rpm;
     }
 
     /**
-    * Gets the left velocity in MPS
-    *
-    * @return Left velocity in MPS.
-    */
+     * Gets the left velocity in MPS
+     *
+     * @return Left velocity in MPS.
+     */
     public double getLeftLinearVelocity() {
         return rotationsToMeters(getLeftVelocityRPM() / 60.0);
     }
 
     /**
-    * Gets the total linear velocity of the robot
-    *
-    * @return Linear velocity of robot.
-    */
+     * Gets the total linear velocity of the robot
+     *
+     * @return Linear velocity of robot.
+     */
     public double getLinearVelocity() {
         return (getLeftLinearVelocity() + getRightLinearVelocity()) / 2.0;
     }
 
     /**
-    * Gets the total angular velocity of the robot
-    *
-    * @return Angular velocity of robot.
-    */
+     * Gets the total angular velocity of the robot
+     *
+     * @return Angular velocity of robot.
+     */
     public double getAngularVelocity() {
         return (getRightLinearVelocity() - getLeftLinearVelocity()) / Constants.DRIVE_TRACK_WIDTH;
     }
@@ -751,9 +768,9 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Handles reading all of the data from encoders/CANTalons periodically. Also
-    * adds these readings to the CSVWriter
-    */
+     * Handles reading all of the data from encoders/CANTalons periodically. Also
+     * adds these readings to the CSVWriter
+     */
     public synchronized void readPeriodicInputs() {
         if (Robot.isReal() && IS_ROBOT) {
             // Get this from the CAN coders
@@ -777,7 +794,7 @@ public class Drive implements Subsystem {
             odometry_.update(io_.gyro_heading, getLeftEncoderDistance(), getRightEncoderDistance());
             double timestamp = Timer.getFPGATimestamp();
             odometryHistory.put(new InterpolatingDouble(timestamp),
-                    new InterpolatingPose2d(odometry_.getPoseMeters()));
+                new InterpolatingPose2d(odometry_.getPoseMeters()));
         }
 
         if (CSVWriter_ != null) {
@@ -786,8 +803,8 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Handles writing outputs to Spark Maxes periodically
-    */
+     * Handles writing outputs to Spark Maxes periodically
+     */
     public synchronized void writePeriodicOutputs() {
         if (Robot.isReal() && IS_ROBOT) {
             if (state_ == DriveState.OpenLoop) {
@@ -834,8 +851,8 @@ public class Drive implements Subsystem {
 
 
     /**
-    * Starts logging data to a csv
-    */
+     * Starts logging data to a csv
+     */
     public synchronized void startLogging() {
         if (CSVWriter_ == null) {
             CSVWriter_ = new ReflectingCSVWriter<>("/home/lvuser/DRIVE-LOGS.csv", PeriodicIO.class);
@@ -843,8 +860,8 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Stops logging data to a csv
-    */
+     * Stops logging data to a csv
+     */
     public synchronized void stopLogging() {
         if (CSVWriter_ != null) {
             CSVWriter_.flush();
@@ -853,8 +870,8 @@ public class Drive implements Subsystem {
     }
 
     /**
-    * Outputs telemetry to SmartDashboard and csv
-    */
+     * Outputs telemetry to SmartDashboard and csv
+     */
     @Override
     public void outputTelemetry() {
         SmartDashboard.putNumber("Right Drive Distance", io_.right_distance);
@@ -961,7 +978,7 @@ public class Drive implements Subsystem {
 
         double testRunTime = 5.0; //seconds
         int sampleCount = 5;
-        
+
         logger_.logInfo("Starting active tests", logName);
 
         logger_.logInfo("Running high gear motor tests", logName);
@@ -977,7 +994,7 @@ public class Drive implements Subsystem {
 
         double leftOutputShaftHighGearRPM = 0.0;
         double rightOutputShaftHighGearRPM = 0.0;
-        
+
         double leftMotorHighGearCurrent = 0.0;
         double rightMotorHighGearCurrent = 0.0;
 
@@ -1069,16 +1086,16 @@ public class Drive implements Subsystem {
         }
 
         if (!checkRPM(leftOutputShaftHighGearRPM, expectedHighGearOutputShaftRPM,
-                      highGearOutputShaftEpsilon, "Left output shaft high gear")) {
+            highGearOutputShaftEpsilon, "Left output shaft high gear")) {
             passedChecks = false;
         }
 
         if (!checkRPM(rightMotorHighGearRPM, expectedHighGearMotorRPM, highGearMotorEpsilon, "Right motor high gear")) {
             passedChecks = false;
         }
-        
-        if (!checkRPM(rightOutputShaftHighGearRPM, expectedHighGearOutputShaftRPM, 
-                      highGearOutputShaftEpsilon, "Right output shaft high gear")) {
+
+        if (!checkRPM(rightOutputShaftHighGearRPM, expectedHighGearOutputShaftRPM,
+            highGearOutputShaftEpsilon, "Right output shaft high gear")) {
             passedChecks = false;
         }
 
@@ -1088,16 +1105,16 @@ public class Drive implements Subsystem {
         }
 
         if (!checkRPM(leftOutputShaftLowGearRPM, expectedLowGearOutputShaftRPM,
-                      lowGearOutputShaftEpsilon, "Left output shaft low gear")) {
+            lowGearOutputShaftEpsilon, "Left output shaft low gear")) {
             passedChecks = false;
         }
 
         if (!checkRPM(rightMotorLowGearRPM, expectedLowGearMotorRPM, lowGearMotorEpsilon, "Right motor low gear")) {
             passedChecks = false;
         }
-        
-        if (!checkRPM(rightOutputShaftLowGearRPM, expectedLowGearOutputShaftRPM, 
-                      lowGearOutputShaftEpsilon, "Right output shaft low gear")) {
+
+        if (!checkRPM(rightOutputShaftLowGearRPM, expectedLowGearOutputShaftRPM,
+            lowGearOutputShaftEpsilon, "Right output shaft low gear")) {
             passedChecks = false;
         }
 
@@ -1132,26 +1149,26 @@ public class Drive implements Subsystem {
         double highGearMotorCurrentEpsilon = 1.0;
         double lowGearMotorCurrentEpsilon = 1.0;
 
-        if (!checkCurrent(leftMotorHighGearCurrent, expectedHighGearMotorCurrent, 
-                          highGearMotorCurrentEpsilon, "Left motor high gear current")) {
+        if (!checkCurrent(leftMotorHighGearCurrent, expectedHighGearMotorCurrent,
+            highGearMotorCurrentEpsilon, "Left motor high gear current")) {
             logger_.logWarning("Left motor high gear current inconsistent", logName);
             passedChecks = false;
         }
 
-        if (!checkCurrent(rightMotorHighGearCurrent, expectedHighGearMotorCurrent, 
-                          highGearMotorCurrentEpsilon, "Right motor high gear current")) {
+        if (!checkCurrent(rightMotorHighGearCurrent, expectedHighGearMotorCurrent,
+            highGearMotorCurrentEpsilon, "Right motor high gear current")) {
             logger_.logWarning("Right motor high gear current inconsistent", logName);
             passedChecks = false;
         }
-        
-        if (!checkCurrent(leftMotorLowGearCurrent, expectedLowGearMotorCurrent, 
-                          lowGearMotorCurrentEpsilon, "Left motor low gear current")) {
+
+        if (!checkCurrent(leftMotorLowGearCurrent, expectedLowGearMotorCurrent,
+            lowGearMotorCurrentEpsilon, "Left motor low gear current")) {
             logger_.logWarning("Left motor low gear current inconsistent", logName);
             passedChecks = false;
         }
 
-        if (!checkCurrent(rightMotorLowGearCurrent, expectedLowGearMotorCurrent, 
-                          lowGearMotorCurrentEpsilon, "Right motor low gear current")) {
+        if (!checkCurrent(rightMotorLowGearCurrent, expectedLowGearMotorCurrent,
+            lowGearMotorCurrentEpsilon, "Right motor low gear current")) {
             logger_.logWarning("Right motor low gear current inconsistent", logName);
             passedChecks = false;
         }

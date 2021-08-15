@@ -297,7 +297,7 @@ public class Shooter implements Subsystem {
 
             // position robot just OUTSIDE of trench
             final var BEGINNING_OF_TRENCH = new InterpolatingDouble(4.46);
-            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(3.6); // decrease to shoot higher
+            final var BEGINNING_OF_TRENCH_HOOD = new InterpolatingDouble(3.5); // decrease to shoot higher
 
             // position halfway between the two
             final var MIDDLE_OF_TRENCH = new InterpolatingDouble(5.99); // (calculated, not measured)
@@ -314,7 +314,7 @@ public class Shooter implements Subsystem {
             // Check polarity of these three points because there was no comment on them.
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(2.22), new InterpolatingDouble(2.35));
             hoodAngleRangeInterpolator.put(new InterpolatingDouble(3.04), new InterpolatingDouble(2.4));
-            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(2.7));
+            hoodAngleRangeInterpolator.put(new InterpolatingDouble(4.12), new InterpolatingDouble(3.0));
             hoodAngleRangeInterpolator.put(BEGINNING_OF_TRENCH, BEGINNING_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(MIDDLE_OF_TRENCH, MIDDLE_OF_TRENCH_HOOD);
             hoodAngleRangeInterpolator.put(END_OF_TRENCH, END_OF_TRENCH_HOOD);
@@ -437,7 +437,7 @@ public class Shooter implements Subsystem {
         flywheel_.spinFlywheel(POWER_PORT_SPEED);
 
         if(!feeder_.isPrimed() || !turret_.atDemand() ||
-           !hood_.isDeployed() || !flywheel_.atVelocity(POWER_PORT_SPEED)) {
+            !hood_.isDeployed() || !flywheel_.atVelocity(POWER_PORT_SPEED)) {
             if (hood_.isDeployed()) {
                 hood_.setToStowPosition();
             }
@@ -468,7 +468,7 @@ public class Shooter implements Subsystem {
         flywheel_.spinFlywheel();
 
         if(!hood_.isDeployed() || !feeder_.isPrimed() ||
-           !turret_.atDemand() || !flywheel_.upToSpeed()) {
+            !turret_.atDemand() || !flywheel_.upToSpeed()) {
             if (hood_.isDeployed()) {
                 hood_.setSmartPosition(TRENCH_HOOD_POSITION);
             }

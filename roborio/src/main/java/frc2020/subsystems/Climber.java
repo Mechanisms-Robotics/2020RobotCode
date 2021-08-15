@@ -43,6 +43,8 @@ public class Climber implements Subsystem {
     private CANEncoder rightEncoder;
     private CANEncoder leftEncoder;
 
+    private boolean isSplit_ = false;
+
     private static final int STALL_LIMIT = 30; // amps
     private static final int FREE_LIMIT = 30; // amps
 
@@ -136,6 +138,10 @@ public class Climber implements Subsystem {
     private void setOpenLoop(DriveSignal signal) {
         io_.leftDemand = signal.getLeft();
         io_.rightDemand = signal.getRight();
+    }
+
+    public void setSplit(boolean split) {
+        this.isSplit_ = split;
     }
 
     @Override
@@ -234,5 +240,6 @@ public class Climber implements Subsystem {
     public void outputTelemetry() {
         SmartDashboard.putBoolean("Climber deployed", isDeployed_);
         SmartDashboard.putBoolean("Climber LOCKED", isLocked_);
+        SmartDashboard.putBoolean("Climber Split", isSplit_);
     }
 }

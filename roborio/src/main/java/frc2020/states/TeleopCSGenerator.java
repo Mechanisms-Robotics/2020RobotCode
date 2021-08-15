@@ -10,6 +10,7 @@ import frc2020.subsystems.Drive;
 import frc2020.subsystems.Limelight;
 import frc2020.subsystems.Shooter;
 import frc2020.subsystems.Shooter.ShooterState;
+import frc2020.subsystems.Climber;
 import frc2020.util.*;
 
 /**
@@ -76,6 +77,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private boolean shooterAdjustHoodPrev_ = false;
 
     private Shooter shooter_ = Shooter.getInstance();
+    private Climber climber_ = Climber.getInstance();
 
     private CheesyDriveHelper cheesyHelper_;
 
@@ -175,7 +177,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
      */
     private DriveDemand generateDriveDemand() {
         // TODO: Tune
-        final double BACKUP_DISTANCE = 0.44; // reduced by two inches or .05 meters
+        final double BACKUP_DISTANCE = 0.435; // reduced by two inches or .05 meters
         //Drive
         driveLowGear = driveShiftLatch.update(rightJoystick_.getRawButton(Constants.DRIVE_TOGGLE_SHIFT_BUTTON)) != driveLowGear;
 
@@ -220,8 +222,6 @@ public class TeleopCSGenerator implements CommandStateGenerator {
             rightOffset = Math.pow(Math.abs(rightOffset), JOYSTICK_EXPONENT) * rSign;
             leftDrive += leftOffset;
             rightDrive -= rightOffset;
-            leftDrive = (Math.abs(leftDrive) < 0.9) ? leftDrive : leftDrive * (0.9 / Math.abs(leftDrive));
-            rightDrive = (Math.abs(rightDrive) < 0.9) ? rightDrive : rightDrive * (0.9 / Math.abs(rightDrive));
         } else if (driveMode == DriveMode.Cheesy){
             double throttle = Math.abs(leftJoystick_.getY()) <= DEADBAND ? 0 : -leftJoystick_.getY();
             double wheel = Math.abs(rightJoystick_.getX()) <= DEADBAND ? 0 : rightJoystick_.getX();
@@ -283,7 +283,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
     private IntakeDemand generateIntakeDemand() {
         deployIntake = deployIntakeLatch.update(rightJoystick_.getTrigger()) != deployIntake;
         boolean outtakeIntake = rightJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON) ||
-                                rightSecondJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON2);
+            rightSecondJoystick_.getRawButton(Constants.INTAKE_OUTTAKE_BUTTON2);
 
         // This is so that if they press intake/outake and it is not deployed it will deploy
         //deployIntake = (deployIntake) || (intakeIntake || outtakeIntake);
@@ -331,6 +331,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         double rightWinchSpeed = Math.abs(rightSecondJoystick_.getY()) <= 0.02 ? 0 : rightSecondJoystick_.getY();
 
         climberSplit = climberSplitLatch.update(leftSecondJoystick_.getTrigger()) != climberSplit;
+        climber_.setSplit(climberSplit);
         deployClimber = deployClimberLatch.update(deployButtonsPressed) != deployClimber;
         demand.deploy = deployClimber;
         lockClimber = lockClimberLatch.update(rightSecondJoystick_.getRawButton(Constants.LOCK_CLIMBER_TOGGLE)) != lockClimber;
@@ -446,7 +447,7 @@ public class TeleopCSGenerator implements CommandStateGenerator {
         demand.overrideFeeder = isFeederDemand;
 
         shooterAdjustHood_ = leftSecondJoystick_.getRawButton(Constants.ADJUST_HOOD_HIGHER_BUTTON) ||
-                             leftSecondJoystick_.getRawButton(Constants.ADJUST_HOOD_LOWER_BUTTON);
+            leftSecondJoystick_.getRawButton(Constants.ADJUST_HOOD_LOWER_BUTTON);
 
         if (shooterAdjustHood_ && shooterAdjustHood_ != shooterAdjustHoodPrev_) {
             demand.adjustHood = true;
